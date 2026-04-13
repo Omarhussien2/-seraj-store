@@ -290,7 +290,7 @@
 
   function renderMedia(media, big) {
     var size = big ? ' big' : '';
-    if (media.type === 'book3d') return '<div class="book3d' + size + '"><div class="book3d-cover"><span class="book3d-title">' + media.title + '</span><img src="' + media.image + '" class="book3d-mascot" alt=""/></div></div>';
+    if (media.type === 'book3d') return '<div class="book3d' + size + '"><div class="book3d-cover"><span class="book3d-title">' + media.title + '</span><img src="' + media.image + '" class="book3d-mascot" alt="" loading="lazy"/></div></div>';
     if (media.type === 'cards-fan') { var c = ['#e85d4c', '#c9974e', '#36a39a', '#6bbf3f', '#8b5e2a'], f = '<div class="cards-fan">'; for (var i = 0; i < c.length; i++) f += '<i style="--i:' + i + ';--c:' + c[i] + '"></i>'; return f + '</div>'; }
     if (media.type === 'bundle-stack') return '<div class="bundle-stack"><div class="bundle-i"></div><div class="bundle-i"></div><div class="bundle-i"></div></div>';
     return '';
@@ -418,7 +418,7 @@
     h += '<div class="pay-stack">';
     h += '<label class="pay-option reveal">';
     h += '<input type="radio" name="pay" value="deposit" checked/>';
-    h += '<div class="pay-media"><img src="assets/seraj.png" alt="" class="tiny-mascot"/></div>';
+    h += '<div class="pay-media"><img src="assets/seraj.png" alt="" class="tiny-mascot" loading="lazy"/></div>';
     h += '<div class="pay-body">';
     h += '<span class="pay-kicker">الأكثر راحة</span>';
     h += '<h3>عربون جدية — ' + toArabicNum(deposit) + ' جنيه</h3>';
@@ -441,7 +441,7 @@
     h += '<div class="insta-card reveal">';
     h += '<div class="insta-head"><span>ادفعي على InstaPay</span></div>';
     h += '<div class="insta-body">';
-    h += '<div class="qr"><img src="assets/instapay-qr.jpeg" alt="InstaPay QR" style="width:100%;height:100%;object-fit:contain;border-radius:8px"/></div>';
+    h += '<div class="qr"><img src="assets/instapay-qr.jpeg" alt="InstaPay QR" style="width:100%;height:100%;object-fit:contain;border-radius:8px" loading="lazy"/></div>';
     h += '<div class="insta-num"><small>Username</small><strong>' + INSTAPAY_NUMBER + '</strong><small>أو اضغطي على الرابط:</small>';
     h += '<a href="' + INSTAPAY_LINK + '" target="_blank" rel="noopener" style="color:var(--seraj);font-weight:700;word-break:break-all">ipn.eg/S/' + INSTAPAY_NUMBER + '</a></div>';
     h += '</div></div>';
