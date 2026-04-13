@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   Table,
   TableBody,
@@ -87,11 +87,22 @@ const paymentColors: Record<string, string> = {
   fully_paid: "bg-green-100 text-green-800",
 };
 
+// ---------- WhatsApp helper ----------
+function getWhatsAppLink(order: Order): string {
+  const msg = encodeURIComponent(
+    `السلام عليكم، بخصوص طلبكم رقم ${order.orderNumber} على متجر سِراج. المبلغ: ${order.total} ج.م`
+  );
+  return `https://wa.me/2${order.customerPhone}?text=${msg}`;
+}
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [newOrdersCount, setNewOrdersCount] = useState(0);
+  const prevOrderCountRef = useRef(0);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -99,7 +110,15 @@ export default function AdminOrdersPage() {
         filter === "all" ? "/api/orders" : `/api/orders?status=${filter}`;
       const res = await fetch(url);
       const json = await res.json();
-      if (json.success) setOrders(json.data);
+      if (json.success) {
+        const newOrders = json.data as Order[];
+        // Detect new orders (polling)
+        if (prevOrderCountRef.current > 0 && newOrders.length > prevOrderCountRef.current) {
+          setNewOrdersCount((prev) => prev + (newOrders.length - prevOrderCountRef.current));
+        }
+        prevOrderCountRef.current = newOrders.length;
+        setOrders(newOrders);
+      }
     } catch (err) {
       console.error("Failed to fetch orders:", err);
     } finally {
@@ -109,6 +128,17 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     fetchOrders();
+  }, [fetchOrders]);
+
+  // Polling: refresh every 30 seconds
+  useEffect(() => {
+    pollingRef.current = setInterval(() => {
+      fetchOrders();
+    }, 30000);
+
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
   }, [fetchOrders]);
 
   async function updateOrderStatus(id: string, field: string, value: string) {
@@ -136,19 +166,31 @@ export default function AdminOrdersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">إدارة الطلبات</h1>
-        <Select value={filter} onValueChange={(v) => { if (v) setFilter(v); }}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="فلتر الحالة" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">الكل</SelectItem>
-            <SelectItem value="pending">جديد</SelectItem>
-            <SelectItem value="in_progress">جاري التنفيذ</SelectItem>
-            <SelectItem value="shipped">تم الشحن</SelectItem>
-            <SelectItem value="delivered">تم التسليم</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold">إدارة الطلبات</h1>
+          {newOrdersCount > 0 && (
+            <Badge className="bg-green-500 text-white animate-pulse">
+              +{newOrdersCount} جديد
+            </Badge>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => { fetchOrders(); setNewOrdersCount(0); }}>
+            🔄 تحديث
+          </Button>
+          <Select value={filter} onValueChange={(v) => { if (v) setFilter(v); }}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="فلتر الحالة" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">الكل</SelectItem>
+              <SelectItem value="pending">جديد</SelectItem>
+              <SelectItem value="in_progress">جاري التنفيذ</SelectItem>
+              <SelectItem value="shipped">تم الشحن</SelectItem>
+              <SelectItem value="delivered">تم التسليم</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {loading ? (
@@ -167,7 +209,7 @@ export default function AdminOrdersPage() {
                 <TableHead>حالة الدفع</TableHead>
                 <TableHead>حالة الطلب</TableHead>
                 <TableHead>التاريخ</TableHead>
-                <TableHead></TableHead>
+                <TableHead>إجراءات</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -230,13 +272,24 @@ export default function AdminOrdersPage() {
                     {new Date(order.createdAt).toLocaleDateString("ar-EG")}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedOrder(order)}
-                    >
-                      تفاصيل
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedOrder(order)}
+                      >
+                        تفاصيل
+                      </Button>
+                      <a
+                        href={getWhatsAppLink(order)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Button variant="outline" size="sm" className="text-green-600 hover:text-green-700 hover:bg-green-50">
+                          💬
+                        </Button>
+                      </a>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -252,9 +305,22 @@ export default function AdminOrdersPage() {
       >
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
-            <DialogTitle>
-              تفاصيل الطلب {selectedOrder?.orderNumber}
-            </DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle>
+                تفاصيل الطلب {selectedOrder?.orderNumber}
+              </DialogTitle>
+              {selectedOrder && (
+                <a
+                  href={getWhatsAppLink(selectedOrder)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button variant="default" size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1">
+                    💬 واتساب العميل
+                  </Button>
+                </a>
+              )}
+            </div>
           </DialogHeader>
           {selectedOrder && (
             <div className="space-y-4">
