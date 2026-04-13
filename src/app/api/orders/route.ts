@@ -14,9 +14,15 @@ const OrderItemSchema = z.object({
 
 const CustomStorySchema = z.object({
   heroName: z.string().min(1),
-  age: z.number().int().min(1).max(18).default(5),
-  challenge: z.string().default("شجاعة"),
-  photoUrl: z.string().url().optional(),
+  age: z.preprocess(
+    (val) => (val === null || val === undefined || val === "" ? 5 : Number(val)),
+    z.number().int().min(1).max(18)
+  ),
+  challenge: z.preprocess(
+    (val) => (val === null || val === undefined || val === "" ? "شجاعة" : val),
+    z.string().min(1)
+  ),
+  photoUrl: z.string().url().optional().nullable(),
 });
 
 const CreateOrderSchema = z.object({
@@ -94,7 +100,16 @@ export async function POST(request: Request) {
       paymentMethod: validated.paymentMethod,
       paymentStatus: "unpaid",
       orderStatus: "pending",
-      customStory: validated.customStory || undefined,
+      customStory: validated.customStory
+        ? {
+            heroName: validated.customStory.heroName,
+            age: validated.customStory.age,
+            challenge: validated.customStory.challenge,
+            ...(validated.customStory.photoUrl
+              ? { photoUrl: validated.customStory.photoUrl }
+              : {}),
+          }
+        : undefined,
       customerName: validated.customerName,
       customerPhone: validated.customerPhone,
       address: validated.address,
