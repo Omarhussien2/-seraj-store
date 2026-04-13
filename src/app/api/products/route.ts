@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import Product from "@/lib/models/Product";
+import { requireAdmin } from "@/lib/requireAdmin";
 
 /**
  * GET /api/products
@@ -84,6 +85,9 @@ const CreateProductSchema = z.object({
  */
 export async function POST(request: Request) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     await connectDB();
 
     const body = await request.json();

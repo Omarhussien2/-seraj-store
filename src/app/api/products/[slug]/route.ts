@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import Product from "@/lib/models/Product";
+import { requireAdmin } from "@/lib/requireAdmin";
 
 /**
  * GET /api/products/[slug]
@@ -88,6 +89,9 @@ export async function PATCH(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     await connectDB();
     const { slug } = await params;
 
@@ -143,6 +147,9 @@ export async function DELETE(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     await connectDB();
     const { slug } = await params;
 

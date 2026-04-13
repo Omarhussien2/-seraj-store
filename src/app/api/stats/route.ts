@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Order from "@/lib/models/Order";
+import { requireAdmin } from "@/lib/requireAdmin";
 
 /**
  * GET /api/stats
- * Dashboard statistics for admin panel
+ * Dashboard statistics for admin panel (admin only)
  */
 export async function GET() {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     await connectDB();
 
     const [

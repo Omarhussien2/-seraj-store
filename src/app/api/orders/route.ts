@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import Order, { generateOrderNumber } from "@/lib/models/Order";
+import { requireAdmin } from "@/lib/requireAdmin";
 
 // ---------- Zod validation schemas ----------
 const OrderItemSchema = z.object({
@@ -35,10 +36,13 @@ const CreateOrderSchema = z.object({
 /**
  * GET /api/orders
  * Query params: ?status=pending
- * Returns all orders (admin — no auth for now)
+ * Returns all orders (admin only)
  */
 export async function GET(request: Request) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     await connectDB();
 
     const { searchParams } = new URL(request.url);

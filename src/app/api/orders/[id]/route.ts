@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import Order from "@/lib/models/Order";
+import { requireAdmin } from "@/lib/requireAdmin";
 
 // ---------- Zod schema for PATCH ----------
 const PatchOrderSchema = z.object({
@@ -26,6 +27,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     await connectDB();
     const { id } = await params;
 
@@ -60,6 +64,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     await connectDB();
     const { id } = await params;
 
