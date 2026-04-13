@@ -1425,6 +1425,8 @@ input, textarea { font-family: inherit; }
   margin-bottom: 20px;
   transition: all .2s;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 .dropzone:hover { background: var(--seraj-wash); border-color: var(--seraj-dark); }
 .dz-icon { width: 72px; height: 72px; margin: 0 auto 14px; }

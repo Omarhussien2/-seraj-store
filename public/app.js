@@ -11,6 +11,10 @@
   var WIZARD_KEY = 'seraj-wizard';
   var ORDER_KEY = 'seraj-last-order';
 
+  // ----- Cloudinary Config -----
+  var CLOUD_NAME = 'dkhndsrhr';
+  var UPLOAD_PRESET = 'seraj-uploads';
+
   // ----- Wizard state (ephemeral) -----
   var state = {
     heroName: '',
@@ -18,6 +22,7 @@
     challenge: null,
     photoUrl: null,
     photoFile: null,
+    photoUploading: false,
     wizardStep: 1,
   };
 
@@ -505,7 +510,8 @@
       orderData.customStory = {
         heroName: wizardData.heroName,
         age: typeof wizardData.age === 'string' ? parseInt(wizardData.age, 10) : wizardData.age,
-        challenge: wizardData.challenge || ''
+        challenge: wizardData.challenge || '',
+        photoUrl: wizardData.photoUrl || undefined
       };
     }
 
@@ -744,6 +750,70 @@
     if (wizardInited) return;
     wizardInited = true;
 
+    // ----- Photo upload (Step 3) -----
+    var photoInput = wizardShell.querySelector('#photoInput');
+    var dropzone = wizardShell.querySelector('.dropzone');
+
+    if (photoInput) {
+      photoInput.addEventListener('change', function (e) {
+        var file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        // Validate type
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+          showToast('الصورة لازم تكون JPEG أو PNG أو WebP ✦');
+          return;
+        }
+        // Validate size (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          showToast('حجم الصورة أكبر من ٥ ميجا ✦');
+          return;
+        }
+
+        state.photoFile = file;
+
+        // Show preview
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+          if (dropzone) {
+            dropzone.classList.add('has-photo');
+            // Check if preview already exists
+            var existing = dropzone.querySelector('.dz-preview');
+            if (existing) existing.remove();
+
+            var preview = document.createElement('div');
+            preview.className = 'dz-preview';
+            preview.innerHTML = '<img src="' + ev.target.result + '" alt="صورة بطلنا" style="width:100%;height:100%;object-fit:cover;border-radius:14px"/>';
+            dropzone.appendChild(preview);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Drag & drop support
+    if (dropzone) {
+      dropzone.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        dropzone.classList.add('drag-over');
+      });
+      dropzone.addEventListener('dragleave', function () {
+        dropzone.classList.remove('drag-over');
+      });
+      dropzone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        dropzone.classList.remove('drag-over');
+        var file = e.dataTransfer.files && e.dataTransfer.files[0];
+        if (file && photoInput) {
+          // Set the file on the input for consistency
+          var dt = new DataTransfer();
+          dt.items.add(file);
+          photoInput.files = dt.files;
+          photoInput.dispatchEvent(new Event('change'));
+        }
+      });
+    }
+
     wizardShell.querySelectorAll('.age-chip').forEach(function (chip) {
       chip.addEventListener('click', function () {
         wizardShell.querySelectorAll('.age-chip').forEach(function (c) { c.classList.remove('is-active'); });
@@ -813,7 +883,40 @@
 
     setTimeout(initReveals, 60);
 
-    if (n === 4) runGenerator();
+    if (n === 4) {
+      // Upload photo before running generator
+      uploadPhotoAndGenerate();
+    }
+  }
+
+  function uploadPhotoAndGenerate() {
+    if (state.photoFile && !state.photoUrl) {
+      state.photoUploading = true;
+      var formData = new FormData();
+      formData.append('file', state.photoFile);
+
+      fetch('/api/upload-child-photo', {
+        method: 'POST',
+        body: formData
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data.success && data.data) {
+            state.photoUrl = data.data.url;
+          }
+          state.photoUploading = false;
+          saveWizardData();
+          runGenerator();
+        })
+        .catch(function () {
+          state.photoUploading = false;
+          saveWizardData();
+          runGenerator();
+        });
+    } else {
+      saveWizardData();
+      runGenerator();
+    }
   }
 
   function runGenerator() {
@@ -937,7 +1040,12 @@
     '.checkout-summary { max-width: 640px; margin: 20px auto 0; padding: 0 20px; }' +
     '.cart-qty { font-size: 14px; color: var(--ink-mute); font-weight: 600; margin-right: 6px; }' +
     '.checkout-form { display: grid; gap: 18px; }' +
-    '.checkout-form .field { display: block; }';
+    '.checkout-form .field { display: block; }' +
+    // Dropzone photo preview styles
+    '.dropzone.has-photo { border-style: solid; border-color: var(--seraj); }' +
+    '.dropzone .dz-preview { position: absolute; inset: 0; z-index: 2; }' +
+    '.dropzone.has-photo > :not(.dz-preview) { opacity: 0; }' +
+    '.dropzone.drag-over { border-color: var(--seraj); background: var(--seraj-wash); }';
   document.head.appendChild(checkoutStyles);
 
   // ----- Value cards pre-select on landing (visual) -----
