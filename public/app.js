@@ -6,7 +6,7 @@
   'use strict';
 
   // ----- Constants -----
-  var WHATSAPP_NUMBER = '20101234567';
+  var WHATSAPP_NUMBER = '201152806034';
   var CART_KEY = 'seraj-cart';
   var WIZARD_KEY = 'seraj-wizard';
   var ORDER_KEY = 'seraj-last-order';
@@ -410,14 +410,13 @@
     h += '</div><span class="pay-check">✓</span></label>';
     h += '</div>';
 
-    // InstaPay card
+    // InstaPay card — real QR image
     h += '<div class="insta-card reveal">';
-    h += '<div class="insta-head"><span>ادفعي على InstaPay</span><span class="copy">انسخي الرقم</span></div>';
+    h += '<div class="insta-head"><span>ادفعي على InstaPay</span></div>';
     h += '<div class="insta-body">';
-    h += '<div class="qr"><div class="qr-grid">';
-    for (var qi = 0; qi < 49; qi++) h += '<i></i>';
-    h += '</div></div>';
-    h += '<div class="insta-num"><small>الرقم</small><strong>seraj@instapay</strong><small>أو ٠١٠ ١٢٣ ٤٥٦٧</small></div>';
+    h += '<div class="qr"><img src="assets/instapay-qr.jpeg" alt="InstaPay QR" style="width:100%;height:100%;object-fit:contain;border-radius:8px"/></div>';
+    h += '<div class="insta-num"><small>Username</small><strong>omarhussien22</strong><small>أو اضغطي على الرابط:</small>';
+    h += '<a href="https://ipn.eg/S/omarhussien22/instapay/72tQbs" target="_blank" rel="noopener" style="color:var(--seraj);font-weight:700;word-break:break-all">ipn.eg/S/omarhussien22</a></div>';
     h += '</div></div>';
 
     // Customer form
