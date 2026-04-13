@@ -34,7 +34,7 @@ export default function AdminLayout({
             <img
               src="/assets/logo/logo.svg"
               alt="سِراج"
-              className="w-9 h-9 object-contain"
+              className="w-9 h-9 object-contain rounded-lg"
             />
             <span className="text-lg font-bold">سِراج</span>
           </Link>

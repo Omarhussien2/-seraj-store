@@ -50,7 +50,7 @@ function LoginForm() {
           <img
             src="/assets/logo/logo-icon.svg"
             alt="سِراج"
-            className="w-20 h-20 mx-auto object-contain"
+            className="w-20 h-20 mx-auto object-contain rounded-2xl"
           />
           <p className="text-sm text-muted-foreground">لوحة التحكم</p>
         </CardHeader>
