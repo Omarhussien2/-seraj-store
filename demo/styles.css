@@ -1722,6 +1722,142 @@ input, textarea { font-family: inherit; }
 .cs-card:hover { background: var(--seraj-light); }
 .cs-card strong { color: var(--seraj-dark); font-family: var(--display); }
 
+/* ========== PRODUCT DETAIL (Dynamic) ========== */
+.pd-topnav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.pd-nav-label {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+.pd-title {
+  font-size: clamp(26px, 4vw, 36px);
+  margin: 10px 0 14px;
+  line-height: 1.25;
+}
+.pd-desc {
+  color: var(--ink-soft);
+  font-size: 16px;
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+/* Price group (original + discounted) */
+.price-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.price.old-price {
+  font-size: 16px;
+  color: var(--ink-mute);
+  text-decoration: line-through;
+  text-decoration-color: var(--ember);
+  text-decoration-thickness: 2.5px;
+}
+
+/* Video placeholder */
+.pd-video-section {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.pd-video-placeholder {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-width: 640px;
+  margin: 0 auto;
+  background: var(--cream-2);
+  border: 3px dashed var(--line);
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--ink-mute);
+}
+.pd-video-placeholder svg { opacity: .4; }
+.pd-video-placeholder p {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+/* Product detail reviews section */
+.pd-reviews-section,
+.pd-related-section {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ========== TOPBAR CART ICON ========== */
+.topbar-cart {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: color .2s;
+  margin-inline-start: auto;
+}
+@media (min-width: 820px) {
+  .topbar-cart { margin-inline-start: 0; }
+}
+.topbar-cart:hover { color: var(--seraj-dark); }
+.cart-count {
+  position: absolute;
+  top: 2px;
+  inset-inline-end: -4px;
+  background: var(--ember);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  font-family: var(--display);
+  min-width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--cream);
+  padding: 0 4px;
+  animation: pop .3s cubic-bezier(.2,.9,.3,1.6);
+}
+
+/* ========== TOAST NOTIFICATION ========== */
+.toast {
+  position: fixed;
+  bottom: calc(var(--bottomnav-h) + 20px);
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--ink);
+  color: var(--cream);
+  padding: 14px 28px;
+  border-radius: 18px;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.3);
+  z-index: 200;
+  opacity: 0;
+  transition: all .3s cubic-bezier(.2,.9,.3,1.4);
+  border: 2.5px solid var(--seraj);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 /* ========== HOW-IT-WORKS ACCORDION (WIZARD) ========== */
 .hiw-accordion {
   background: var(--paper);

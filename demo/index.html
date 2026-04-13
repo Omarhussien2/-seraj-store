@@ -43,6 +43,10 @@
       <a href="#/products" data-link>المنتجات</a>
       <a href="#/about" data-link>حكايتنا</a>
     </nav>
+    <div class="topbar-cart" id="topbarCart">
+      <svg viewBox="0 0 24 24" width="24" height="24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="cart-count" id="cartCount" hidden>0</span>
+    </div>
     <a href="#/wizard" data-link class="pill-btn">اصنع قصة لابنك</a>
   </header>
 
@@ -124,7 +128,7 @@
 
         <div class="products-grid">
           <!-- Card 1: قصة خالد بن الوليد — الأكثر طلباً -->
-          <a href="#/product/story" data-link class="product-card reveal" style="--d:.05s">
+          <a href="#/product/story-khaled" data-link class="product-card reveal" style="--d:.05s">
             <div class="product-media emerald">
               <span class="badge">الأكثر طلباً</span>
               <div class="book3d">
@@ -418,34 +422,54 @@
 
       <div class="filter-chips">
         <button class="chip is-active">الكل</button>
+        <button class="chip">قصص جاهزة</button>
         <button class="chip">قصص مخصصة</button>
         <button class="chip">فلاش كاردز</button>
         <button class="chip">مجموعات</button>
-        <button class="chip">ملصقات</button>
       </div>
 
       <div class="products-grid big">
+        <!-- 1. قصة خالد بن الوليد -->
+        <a href="#/product/story-khaled" data-link class="product-card reveal">
+          <div class="product-media emerald">
+            <span class="badge">الأكثر طلباً</span>
+            <div class="book3d"><div class="book3d-cover"><span class="book3d-title">خالد بن<br/>الوليد</span><img src="assets/khaled-v2.png" class="book3d-mascot" alt=""/></div></div>
+          </div>
+          <div class="product-body">
+            <h3>قصة خالد بن الوليد</h3>
+            <p>قصة بطولة وشجاعة بأسلوب تعليمي ممتع</p>
+            <div class="product-foot"><span class="price">١٤٠ ج.م</span><span class="cta-mini">شوفيها →</span></div>
+          </div>
+        </a>
+
+        <!-- 2. القصة المخصصة -->
         <a href="#/wizard" data-link class="product-card reveal">
           <div class="product-media emerald">
-            <span class="badge">الأكتر طلباً</span>
+            <span class="badge">مخصصة باسم بطلنا</span>
             <div class="book3d"><div class="book3d-cover"><span class="book3d-title">حكاية<br/>بطلنا</span><img src="assets/seraj.png" class="book3d-mascot" alt=""/></div></div>
           </div>
           <div class="product-body">
-            <h3>القصة الذهبية المخصصة</h3>
-            <p>٢٤ صفحة، غلاف مقوّى، باسم طفلك</p>
-            <div class="product-foot"><span class="price">٣٢٠ ج.م</span><span class="cta-mini">اطلبي →</span></div>
+            <h3>القصة المخصصة</h3>
+            <p>قصة كاملة باسم طفلك وصورته</p>
+            <div class="product-foot"><span class="price">٢٢٠ ج.م</span><span class="cta-mini">ابدئي القصة →</span></div>
           </div>
         </a>
-        <a href="#/product/cards" data-link class="product-card reveal">
+
+        <!-- 3. كروت الروتين — قريباً -->
+        <div class="product-card coming-soon reveal">
           <div class="product-media sand">
+            <span class="badge soon-badge">قريباً</span>
             <div class="cards-fan"><i style="--i:0;--c:#e85d4c"></i><i style="--i:1;--c:#c9974e"></i><i style="--i:2;--c:#36a39a"></i><i style="--i:3;--c:#6bbf3f"></i><i style="--i:4;--c:#8b5e2a"></i></div>
+            <div class="soon-overlay">قريباً</div>
           </div>
           <div class="product-body">
             <h3>كروت الروتين اليومي</h3>
-            <p>٣٠ كارت مصوّر لتنظيم اليوم</p>
-            <div class="product-foot"><span class="price">١٥٠ ج.م</span><span class="cta-mini">اطلبي →</span></div>
+            <p>٣٠ كارت مصوّر بتساعد بطلنا ينظم يومه</p>
+            <div class="product-foot"><span class="price">١٥٠ ج.م</span><span class="cta-mini soon-text">قريباً</span></div>
           </div>
-        </a>
+        </div>
+
+        <!-- 4. مجموعة الأبطال الصغار -->
         <a href="#/product/bundle" data-link class="product-card reveal">
           <div class="product-media teal">
             <span class="badge">وفّري ٢٠٪</span>
@@ -453,43 +477,8 @@
           </div>
           <div class="product-body">
             <h3>مجموعة الأبطال الصغار</h3>
-            <p>قصة + كروت + ملصقات</p>
-            <div class="product-foot"><span class="price">٤٢٠ ج.م</span><span class="cta-mini">اطلبي →</span></div>
-          </div>
-        </a>
-        <a href="#/product/stickers" data-link class="product-card reveal">
-          <div class="product-media blush">
-            <div class="sticker-float">
-              <span style="--r:-8deg;--c:#6bbf3f">★</span>
-              <span style="--r:6deg;--c:#e85d4c">♥</span>
-              <span style="--r:-4deg;--c:#36a39a">✦</span>
-              <span style="--r:10deg;--c:#c9974e">✿</span>
-            </div>
-          </div>
-          <div class="product-body">
-            <h3>ملصقات سِراج</h3>
-            <p>٤٠ ملصق ملوّن بشخصيات سِراج</p>
-            <div class="product-foot"><span class="price">٨٠ ج.م</span><span class="cta-mini">اطلبي →</span></div>
-          </div>
-        </a>
-        <a href="#/product/poster" data-link class="product-card reveal">
-          <div class="product-media cream2">
-            <div class="poster-mock"><span>خريطة مغامرات بطلنا</span></div>
-          </div>
-          <div class="product-body">
-            <h3>بوستر المغامرات</h3>
-            <p>بوستر A2 بأماكن البطل المفضلة</p>
-            <div class="product-foot"><span class="price">١٢٠ ج.م</span><span class="cta-mini">اطلبي →</span></div>
-          </div>
-        </a>
-        <a href="#/product/pack" data-link class="product-card reveal">
-          <div class="product-media ember">
-            <div class="bundle-stack"><div class="bundle-i"></div><div class="bundle-i"></div></div>
-          </div>
-          <div class="product-body">
-            <h3>حزمة رمضان الصغيرة</h3>
-            <p>قصة + كروت روتين رمضان</p>
-            <div class="product-foot"><span class="price">٣٨٠ ج.م</span><span class="cta-mini">اطلبي →</span></div>
+            <p>قصة مخصصة + كروت + قصة من السلسلة</p>
+            <div class="product-foot"><span class="price">٤٢٠ ج.م</span><span class="cta-mini">شوفيها →</span></div>
           </div>
         </a>
       </div>
@@ -954,44 +943,9 @@
       </div>
     </section>
 
-    <!-- Product detail (simple) -->
+    <!-- Product detail (dynamic — populated by JS) -->
     <section class="page" data-page="product">
-      <div class="page-head tight">
-        <span class="kicker">منتج سِراج</span>
-        <h1>القصة الذهبية المخصصة</h1>
-      </div>
-      <div class="pd-wrap">
-        <div class="pd-media reveal">
-          <div class="book3d big"><div class="book3d-cover"><span class="book3d-title">حكاية<br/>بطلنا</span><img src="assets/seraj.png" class="book3d-mascot" alt=""/></div></div>
-        </div>
-        <div class="pd-body reveal">
-          <span class="kicker">الأكتر طلباً</span>
-          <h2>قصة باسم بطلك، ٢٤ صفحة</h2>
-          <p>قصة مغامرة كاملة باسم بطلك، بترسمها إيد سِراج وبتعلّم قيمة من اختيارك. غلاف مقوّى وورق سميك يستحمل معاه كل مرات القراية.</p>
-          <ul class="feat-list">
-            <li>✦ ٢٤ صفحة ملوّنة</li>
-            <li>✦ غلاف مقوّى مقاوم</li>
-            <li>✦ رسوم أصلية بإيد فنانين مصريين</li>
-            <li>✦ باسم طفلك على الغلاف والصفحات</li>
-          </ul>
-          <div class="pd-foot">
-            <span class="price big">٣٢٠ ج.م</span>
-            <a href="#/wizard" data-link class="btn btn-primary btn-xl">ابدئي القصة</a>
-          </div>
-
-          <!-- Cross sell -->
-          <div class="cross-sell">
-            <div class="cs-head">
-              <img src="assets/seraj.png" alt="" class="tiny-mascot"/>
-              <p>بطلنا اللي بيحب الشجاعة أكيد هيحتاج كروت الروتين عشان ينظم يومه!</p>
-            </div>
-            <a href="#/product/cards" data-link class="cs-card">
-              <span>كروت الروتين اليومي</span>
-              <strong>+١٥٠ ج.م</strong>
-            </a>
-          </div>
-        </div>
-      </div>
+      <div id="productDetail"></div>
     </section>
 
     <!-- ========================================================= -->
