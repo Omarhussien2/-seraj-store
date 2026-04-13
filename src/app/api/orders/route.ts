@@ -2,7 +2,13 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import Order, { generateOrderNumber } from "@/lib/models/Order";
+import Product from "@/lib/models/Product";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { isRateLimited, getClientIp } from "@/lib/rateLimit";
+
+// Force dynamic rendering — prevent Vercel from caching or treating as static
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 // ---------- Zod validation schemas ----------
 const OrderItemSchema = z.object({
@@ -53,19 +59,26 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
+    const hasStory = searchParams.get("hasStory") === "true";
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
+    const skip = (page - 1) * limit;
 
     const filter: Record<string, unknown> = {};
-    if (status) {
-      filter.orderStatus = status;
-    }
+    if (status) filter.orderStatus = status;
+    if (hasStory) filter["customStory.heroName"] = { $exists: true };
 
-    const orders = await Order.find(filter)
-      .sort({ createdAt: -1 })
-      .lean();
+    const [orders, total] = await Promise.all([
+      Order.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Order.countDocuments(filter),
+    ]);
 
     return NextResponse.json({
       success: true,
       count: orders.length,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
       data: orders,
     });
   } catch (error) {
@@ -82,19 +95,48 @@ export async function GET(request: Request) {
  * Create a new order with Zod validation
  */
 export async function POST(request: Request) {
+  // Rate limit: 10 orders per 15 minutes per IP
+  const ip = getClientIp(request);
+  if (isRateLimited(`orders:${ip}`, 10, 15 * 60 * 1000)) {
+    return NextResponse.json(
+      { success: false, error: "طلبات كتير أوي، حاول تاني بعد شوية" },
+      { status: 429 }
+    );
+  }
+
   try {
     await connectDB();
 
     const body = await request.json();
     const validated = CreateOrderSchema.parse(body);
 
+    // Recalculate total from actual DB prices — never trust client-side total
+    const slugs = validated.items.map((i) => i.productSlug);
+    const products = await Product.find({ slug: { $in: slugs }, active: true })
+      .select("slug price")
+      .lean();
+
+    const productMap = new Map(products.map((p) => [p.slug, p.price]));
+
+    let calculatedTotal = 0;
+    for (const item of validated.items) {
+      const price = productMap.get(item.productSlug);
+      if (price === undefined) {
+        return NextResponse.json(
+          { success: false, error: `المنتج "${item.productSlug}" غير موجود أو غير متاح` },
+          { status: 400 }
+        );
+      }
+      calculatedTotal += price * item.qty;
+    }
+
     const orderNumber = await generateOrderNumber();
-    const remaining = validated.total - validated.deposit;
+    const remaining = calculatedTotal - validated.deposit;
 
     const order = await Order.create({
       orderNumber,
       items: validated.items,
-      total: validated.total,
+      total: calculatedTotal,
       deposit: validated.deposit,
       remaining,
       paymentMethod: validated.paymentMethod,

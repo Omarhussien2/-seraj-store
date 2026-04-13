@@ -95,51 +95,62 @@ function getWhatsAppLink(order: Order): string {
   return `https://wa.me/2${order.customerPhone}?text=${msg}`;
 }
 
+const PAGE_SIZE = 20;
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [newOrdersCount, setNewOrdersCount] = useState(0);
-  const prevOrderCountRef = useRef(0);
+  const prevTotalRef = useRef(0);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = useCallback(async (currentPage = page) => {
     try {
-      const url =
-        filter === "all" ? "/api/orders" : `/api/orders?status=${filter}`;
-      const res = await fetch(url);
+      const params = new URLSearchParams({ page: String(currentPage), limit: String(PAGE_SIZE) });
+      if (filter !== "all") params.set("status", filter);
+      const res = await fetch(`/api/orders?${params}`);
       const json = await res.json();
       if (json.success) {
-        const newOrders = json.data as Order[];
-        // Detect new orders (polling)
-        if (prevOrderCountRef.current > 0 && newOrders.length > prevOrderCountRef.current) {
-          setNewOrdersCount((prev) => prev + (newOrders.length - prevOrderCountRef.current));
+        // Detect new orders via total count change (polling on page 1)
+        if (currentPage === 1 && prevTotalRef.current > 0 && json.total > prevTotalRef.current) {
+          setNewOrdersCount((prev) => prev + (json.total - prevTotalRef.current));
         }
-        prevOrderCountRef.current = newOrders.length;
-        setOrders(newOrders);
+        prevTotalRef.current = json.total;
+        setOrders(json.data as Order[]);
+        setTotalPages(json.totalPages ?? 1);
+        setTotal(json.total ?? 0);
       }
     } catch (err) {
       console.error("Failed to fetch orders:", err);
     } finally {
       setLoading(false);
     }
+  }, [filter, page]);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchOrders(page);
+  }, [fetchOrders, page]);
+
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setPage(1);
   }, [filter]);
 
-  useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
-
-  // Polling: refresh every 30 seconds
+  // Polling: refresh current page every 30 seconds
   useEffect(() => {
     pollingRef.current = setInterval(() => {
-      fetchOrders();
+      fetchOrders(page);
     }, 30000);
-
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
-  }, [fetchOrders]);
+  }, [fetchOrders, page]);
 
   async function updateOrderStatus(id: string, field: string, value: string) {
     try {
@@ -175,7 +186,7 @@ export default function AdminOrdersPage() {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => { fetchOrders(); setNewOrdersCount(0); }}>
+          <Button variant="outline" size="sm" onClick={() => { fetchOrders(page); setNewOrdersCount(0); }}>
             🔄 تحديث
           </Button>
           <Select value={filter} onValueChange={(v) => { if (v) setFilter(v); }}>
@@ -198,6 +209,10 @@ export default function AdminOrdersPage() {
       ) : orders.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">لا توجد طلبات</div>
       ) : (
+        <div className="space-y-2">
+        <div className="text-sm text-muted-foreground">
+          إجمالي الطلبات: <strong>{total}</strong>
+        </div>
         <div className="border rounded-lg bg-white">
           <Table>
             <TableHeader>
@@ -295,6 +310,32 @@ export default function AdminOrdersPage() {
               ))}
             </TableBody>
           </Table>
+        </div>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            السابق
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            صفحة {page} من {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            التالي
+          </Button>
         </div>
       )}
 

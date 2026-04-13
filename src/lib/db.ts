@@ -1,21 +1,23 @@
 import mongoose from "mongoose";
 
 declare global {
+  // Cache the Promise — not the resolved value — to prevent duplicate connections
+  // when multiple requests arrive before the first connect() resolves.
   // eslint-disable-next-line no-var
-  var _mongooseConnection: mongoose.Connection | undefined;
+  var _mongoosePromise: Promise<mongoose.Connection> | undefined;
 }
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
 /**
  * MongoDB singleton connection — prevents multiple connections in Serverless.
- * Caches the connection on `globalThis` so hot-reloads don't create new pools.
+ * Caches the Promise on `globalThis` so concurrent calls await the same connect.
  *
  * Throws at CALL TIME (not import time) so the build works without a DB.
  */
 export async function connectDB(): Promise<mongoose.Connection> {
-  if (globalThis._mongooseConnection) {
-    return globalThis._mongooseConnection;
+  if (globalThis._mongoosePromise) {
+    return globalThis._mongoosePromise;
   }
 
   if (!MONGODB_URI) {
@@ -30,19 +32,23 @@ export async function connectDB(): Promise<mongoose.Connection> {
     socketTimeoutMS: 45000,
   };
 
-  const { connection } = await mongoose.connect(MONGODB_URI, opts);
+  globalThis._mongoosePromise = mongoose
+    .connect(MONGODB_URI, opts)
+    .then(({ connection }) => {
+      connection.on("error", (err) => {
+        console.error("MongoDB connection error:", err);
+      });
+      connection.on("disconnected", () => {
+        console.warn("MongoDB disconnected — will reconnect on next request");
+        globalThis._mongoosePromise = undefined;
+      });
+      console.log("MongoDB connected:", connection.host);
+      return connection;
+    })
+    .catch((err) => {
+      globalThis._mongoosePromise = undefined;
+      throw err;
+    });
 
-  connection.on("error", (err) => {
-    console.error("MongoDB connection error:", err);
-  });
-
-  connection.on("disconnected", () => {
-    console.warn("MongoDB disconnected");
-    globalThis._mongooseConnection = undefined;
-  });
-
-  globalThis._mongooseConnection = connection;
-  console.log("MongoDB connected:", connection.host);
-
-  return connection;
+  return globalThis._mongoosePromise;
 }

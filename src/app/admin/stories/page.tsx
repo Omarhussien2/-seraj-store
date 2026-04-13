@@ -63,15 +63,9 @@ export default function AdminStoriesPage() {
 
   const fetchStories = useCallback(async () => {
     try {
-      // Fetch all orders, we'll filter for those with customStory
-      const res = await fetch("/api/orders");
+      const res = await fetch("/api/orders?hasStory=true&limit=100");
       const json = await res.json();
-      if (json.success) {
-        const withStories = json.data.filter(
-          (o: Order) => o.customStory && o.customStory.heroName
-        );
-        setOrders(withStories);
-      }
+      if (json.success) setOrders(json.data);
     } catch (err) {
       console.error("Failed to fetch stories:", err);
     } finally {
@@ -88,9 +82,7 @@ export default function AdminStoriesPage() {
       const res = await fetch(`/api/orders/${orderId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customStory: { storyStatus: newStatus },
-        }),
+        body: JSON.stringify({ storyStatus: newStatus }),
       });
       const json = await res.json();
       if (json.success) {

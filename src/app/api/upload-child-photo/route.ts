@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
+import { isRateLimited, getClientIp } from "@/lib/rateLimit";
 
 // Configure Cloudinary from env
 cloudinary.config({
@@ -15,6 +16,15 @@ cloudinary.config({
  * Has strict validation: max 5MB, images only.
  */
 export async function POST(request: Request) {
+  // Rate limit: 20 uploads per 10 minutes per IP
+  const ip = getClientIp(request);
+  if (isRateLimited(`upload-child:${ip}`, 20, 10 * 60 * 1000)) {
+    return NextResponse.json(
+      { success: false, error: "طلبات رفع كتير أوي، حاول تاني بعد شوية" },
+      { status: 429 }
+    );
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;

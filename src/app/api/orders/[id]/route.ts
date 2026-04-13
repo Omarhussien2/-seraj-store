@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import Order from "@/lib/models/Order";
 import { requireAdmin } from "@/lib/requireAdmin";
@@ -13,9 +14,10 @@ const PatchOrderSchema = z.object({
     .enum(["unpaid", "deposit_paid", "fully_paid"])
     .optional(),
   notes: z.string().optional(),
-  customStory: z.object({
-    storyStatus: z.enum(["pending", "reviewed", "sent_to_print", "delivered"]),
-  }).optional(),
+  // storyStatus is patched via dot-notation to avoid overwriting other customStory fields
+  storyStatus: z
+    .enum(["pending", "reviewed", "sent_to_print", "delivered"])
+    .optional(),
 });
 
 /**
@@ -32,6 +34,13 @@ export async function GET(
 
     await connectDB();
     const { id } = await params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid order ID" },
+        { status: 400 }
+      );
+    }
 
     const order = await Order.findById(id).lean();
 
@@ -70,12 +79,27 @@ export async function PATCH(
     await connectDB();
     const { id } = await params;
 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid order ID" },
+        { status: 400 }
+      );
+    }
+
     const body = await request.json();
     const validated = PatchOrderSchema.parse(body);
 
+    // Build update with dot-notation for nested fields to avoid overwriting
+    // the entire customStory subdocument (which would wipe heroName, age, etc.)
+    const updateFields: Record<string, unknown> = {};
+    if (validated.orderStatus !== undefined) updateFields.orderStatus = validated.orderStatus;
+    if (validated.paymentStatus !== undefined) updateFields.paymentStatus = validated.paymentStatus;
+    if (validated.notes !== undefined) updateFields.notes = validated.notes;
+    if (validated.storyStatus !== undefined) updateFields["customStory.storyStatus"] = validated.storyStatus;
+
     const order = await Order.findByIdAndUpdate(
       id,
-      { $set: validated },
+      { $set: updateFields },
       { new: true, runValidators: true }
     ).lean();
 

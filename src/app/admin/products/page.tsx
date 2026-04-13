@@ -119,15 +119,12 @@ export default function AdminProductsPage() {
     try {
       if (isEditing) {
         // PATCH existing product
-        const { slug, _id, ...updateData } = editingProduct as Product;
-        // Remove mongoose fields that shouldn't be sent
-        const cleanData = { ...updateData };
-        delete (cleanData as Record<string, unknown>).createdAt;
-        delete (cleanData as Record<string, unknown>).updatedAt;
+        const { slug, _id, createdAt, updatedAt, ...cleanData } = editingProduct as Product & { createdAt?: unknown; updatedAt?: unknown };
+        void _id; void createdAt; void updatedAt; // unused — excluded intentionally
         const res = await fetch(`/api/products/${slug}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updateData),
+          body: JSON.stringify(cleanData),
         });
         const json = await res.json();
         if (!json.success) {
