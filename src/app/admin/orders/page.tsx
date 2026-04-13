@@ -137,7 +137,7 @@ export default function AdminOrdersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">إدارة الطلبات</h1>
-        <Select value={filter} onValueChange={setFilter}>
+        <Select value={filter} onValueChange={(v) => { if (v) setFilter(v); }}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="فلتر الحالة" />
           </SelectTrigger>
@@ -184,9 +184,9 @@ export default function AdminOrdersPage() {
                   <TableCell>
                     <Select
                       value={order.paymentStatus}
-                      onValueChange={(v) =>
-                        updateOrderStatus(order._id, "paymentStatus", v)
-                      }
+                      onValueChange={(v) => {
+                        if (v) updateOrderStatus(order._id, "paymentStatus", v);
+                      }}
                     >
                       <SelectTrigger className="w-36">
                         <Badge
@@ -206,9 +206,9 @@ export default function AdminOrdersPage() {
                   <TableCell>
                     <Select
                       value={order.orderStatus}
-                      onValueChange={(v) =>
-                        updateOrderStatus(order._id, "orderStatus", v)
-                      }
+                      onValueChange={(v) => {
+                        if (v) updateOrderStatus(order._id, "orderStatus", v);
+                      }}
                     >
                       <SelectTrigger className="w-40">
                         <Badge

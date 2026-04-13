@@ -176,7 +176,7 @@ export default function AdminStoriesPage() {
                   <TableCell>
                     <Select
                       value={order.customStory?.storyStatus || "pending"}
-                      onValueChange={(v) => updateStoryStatus(order._id, v)}
+                      onValueChange={(v) => { if (v) updateStoryStatus(order._id, v); }}
                     >
                       <SelectTrigger className="w-44">
                         <Badge

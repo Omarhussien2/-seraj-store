@@ -119,7 +119,11 @@ export default function AdminProductsPage() {
     try {
       if (isEditing) {
         // PATCH existing product
-        const { slug, _id, createdAt, updatedAt, ...updateData } = editingProduct as Product;
+        const { slug, _id, ...updateData } = editingProduct as Product;
+        // Remove mongoose fields that shouldn't be sent
+        const cleanData = { ...updateData };
+        delete (cleanData as Record<string, unknown>).createdAt;
+        delete (cleanData as Record<string, unknown>).updatedAt;
         const res = await fetch(`/api/products/${slug}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -177,8 +181,9 @@ export default function AdminProductsPage() {
 
   function updateMedia(field: string, value: string) {
     if (!editingProduct?.media) return;
+    const updatedMedia = { ...editingProduct.media, [field]: value };
     setEditingProduct((prev) =>
-      prev ? { ...prev, media: { ...prev.media, [field]: value } } : prev
+      prev ? { ...prev, media: updatedMedia as Product["media"] } : prev
     );
   }
 
@@ -301,7 +306,7 @@ export default function AdminProductsPage() {
                   <Label>التصنيف</Label>
                   <Select
                     value={editingProduct.category || "قصص جاهزة"}
-                    onValueChange={(v) => updateField("category", v)}
+                    onValueChange={(v) => { if (v) updateField("category", v); }}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -391,7 +396,7 @@ export default function AdminProductsPage() {
                   <Label>نوع الإجراء</Label>
                   <Select
                     value={editingProduct.action || "cart"}
-                    onValueChange={(v) => updateField("action", v)}
+                    onValueChange={(v) => { if (v) updateField("action", v); }}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -418,7 +423,7 @@ export default function AdminProductsPage() {
                   <Label>نوع الوسائط</Label>
                   <Select
                     value={editingProduct.media?.type || "book3d"}
-                    onValueChange={(v) => updateMedia("type", v)}
+                    onValueChange={(v) => { if (v) updateMedia("type", v); }}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -442,7 +447,7 @@ export default function AdminProductsPage() {
                   <Label>الخلفية</Label>
                   <Select
                     value={editingProduct.media?.bg || "emerald"}
-                    onValueChange={(v) => updateMedia("bg", v)}
+                    onValueChange={(v) => { if (v) updateMedia("bg", v); }}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -462,7 +467,7 @@ export default function AdminProductsPage() {
                   <Label>نشط</Label>
                   <Select
                     value={editingProduct.active ? "true" : "false"}
-                    onValueChange={(v) => updateField("active", v === "true")}
+                    onValueChange={(v) => { if (v) updateField("active", v === "true"); }}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -477,7 +482,7 @@ export default function AdminProductsPage() {
                   <Label>قريباً</Label>
                   <Select
                     value={editingProduct.comingSoon ? "true" : "false"}
-                    onValueChange={(v) => updateField("comingSoon", v === "true")}
+                    onValueChange={(v) => { if (v) updateField("comingSoon", v === "true"); }}
                   >
                     <SelectTrigger>
                       <SelectValue />
