@@ -14,19 +14,19 @@ export const metadata: Metadata = {
     siteName: "سِراج",
     images: [
       {
-        url: "/assets/logo/logo-icon.svg",
-        width: 1536,
-        height: 1536,
+        url: "/assets/sharelinkbannar.png",
+        width: 1200,
+        height: 630,
         alt: "سِراج — متعة القراءة واللعب",
       },
     ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "سِراج — متعة القراءة واللعب",
     description:
       "قصص مخصصة باسم طفلك — مصنوعة بحب في مصر.",
-    images: ["/assets/logo/logo-icon.svg"],
+    images: ["/assets/sharelinkbannar.png"],
   },
   robots: {
     index: true,
