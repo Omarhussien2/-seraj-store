@@ -6,6 +6,8 @@ const ASSETS_TO_CACHE = [
   '/app.js',
   '/styles.css',
   '/manifest.json',
+  '/assets/logo/logo.svg',
+  '/assets/logo/logo-icon.svg',
   '/assets/seraj.png',
   '/assets/khaled-v2.png',
   '/assets/family-photo.mp4',

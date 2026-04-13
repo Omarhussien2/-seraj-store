@@ -14,9 +14,9 @@ export const metadata: Metadata = {
     siteName: "سِراج",
     images: [
       {
-        url: "/assets/seraj.png",
-        width: 800,
-        height: 800,
+        url: "/assets/logo/logo-icon.svg",
+        width: 1536,
+        height: 1536,
         alt: "سِراج — متعة القراءة واللعب",
       },
     ],
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     title: "سِراج — متعة القراءة واللعب",
     description:
       "قصص مخصصة باسم طفلك — مصنوعة بحب في مصر.",
-    images: ["/assets/seraj.png"],
+    images: ["/assets/logo/logo-icon.svg"],
   },
   robots: {
     index: true,
@@ -42,6 +42,8 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className="h-full antialiased">
       <head>
+        <link rel="icon" type="image/svg+xml" href="/assets/logo/logo-icon.svg" />
+        <link rel="apple-touch-icon" href="/assets/logo/logo-icon.svg" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"

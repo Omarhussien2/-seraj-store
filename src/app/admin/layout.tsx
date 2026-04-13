@@ -30,10 +30,15 @@ export default function AdminLayout({
       <aside className="w-56 bg-white border-r border-gray-200 flex flex-col">
         {/* Logo */}
         <div className="p-4 border-b border-gray-200">
-          <Link href="/admin" className="text-xl font-bold">
-            سِراج
+          <Link href="/admin" className="flex items-center gap-2">
+            <img
+              src="/assets/logo/logo.svg"
+              alt="سِراج"
+              className="w-9 h-9 object-contain"
+            />
+            <span className="text-lg font-bold">سِراج</span>
           </Link>
-          <p className="text-xs text-muted-foreground">Admin Panel</p>
+          <p className="text-xs text-muted-foreground mt-1">Admin Panel</p>
         </div>
 
         {/* Navigation */}

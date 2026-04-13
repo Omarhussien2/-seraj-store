@@ -11,10 +11,16 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "assets/seraj.png",
-      "sizes": "512x512",
-      "type": "image/png",
+      "src": "assets/logo/logo-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
+    },
+    {
+      "src": "assets/logo/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ]
 }

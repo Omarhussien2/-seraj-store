@@ -47,7 +47,11 @@ function LoginForm() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">سِراج</CardTitle>
+          <img
+            src="/assets/logo/logo-icon.svg"
+            alt="سِراج"
+            className="w-20 h-20 mx-auto object-contain"
+          />
           <p className="text-sm text-muted-foreground">لوحة التحكم</p>
         </CardHeader>
         <CardContent>

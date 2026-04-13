@@ -116,7 +116,7 @@ input, textarea { font-family: inherit; }
   border-bottom: 1px solid rgba(0, 0, 0, .06);
 }
 .logo { display: inline-flex; align-items: center; gap: 10px; }
-.logo-mark svg { width: 38px; height: 38px;   filter: drop-shadow(0 2px 0 rgba(0,0,0,.1)); }
+.logo-mark { width: 42px; height: 42px; object-fit: contain; filter: drop-shadow(0 2px 0 rgba(0,0,0,.1)); }
 .logo-text { font-family: var(--display); font-weight: 800; font-size: 26px; color: var(--ink); letter-spacing: -.02em; }
 .topnav { display: none; gap: 28px; margin-inline-start: 20px; }
 .topnav a { font-weight: 700; color: var(--ink-soft); font-size: 15px; transition: color .2s; }
@@ -1031,7 +1031,7 @@ input, textarea { font-family: inherit; }
 }
 .footer-top { display: grid; grid-template-columns: 1fr; gap: 32px; max-width: 1100px; margin: 0 auto 40px; }
 @media (min-width: 680px) { .footer-top { grid-template-columns: 1.5fr 1fr 1fr 1fr; } }
-.foot-brand .logo .logo-text { color: var(--cream); }
+.foot-brand .logo .logo-mark { width: 80px; height: 80px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.2)); }
 .foot-brand p { color: rgba(253, 244, 228, .7); margin-top: 12px; font-size: 14px; max-width: 280px; }
 .foot-col h5 { color: var(--brass-light); font-size: 14px; margin-bottom: 14px; text-transform: uppercase; letter-spacing: .08em; }
 .foot-col a { display: block; color: rgba(253, 244, 228, .7); font-size: 14px; padding: 5px 0; transition: color .2s; }
