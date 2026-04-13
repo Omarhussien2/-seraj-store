@@ -6,7 +6,9 @@
   'use strict';
 
   // ----- Constants -----
-  var WHATSAPP_NUMBER = '201152806034';
+  var WHATSAPP_NUMBER = '201152806034'; // fallback
+  var INSTAPAY_NUMBER = 'omarhussien22'; // fallback
+  var INSTAPAY_LINK = 'https://ipn.eg/S/omarhussien22/instapay/72tQbs'; // fallback
   var CART_KEY = 'seraj-cart';
   var WIZARD_KEY = 'seraj-wizard';
   var ORDER_KEY = 'seraj-last-order';
@@ -113,6 +115,23 @@
       })
       .catch(function () {
         console.warn('⚠️ API fetch failed, using fallback products');
+      });
+  }
+
+  // ----- Fetch Config from API (graceful fallback) -----
+  function fetchConfig() {
+    fetch('/api/config')
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.success && data.data) {
+          if (data.data.whatsappNumber) WHATSAPP_NUMBER = data.data.whatsappNumber;
+          if (data.data.instaPayNumber) INSTAPAY_NUMBER = data.data.instaPayNumber;
+          if (data.data.instaPayLink) INSTAPAY_LINK = data.data.instaPayLink;
+          console.log('✅ Config loaded from API');
+        }
+      })
+      .catch(function () {
+        console.warn('⚠️ Config fetch failed, using fallback values');
       });
   }
 
@@ -423,8 +442,8 @@
     h += '<div class="insta-head"><span>ادفعي على InstaPay</span></div>';
     h += '<div class="insta-body">';
     h += '<div class="qr"><img src="assets/instapay-qr.jpeg" alt="InstaPay QR" style="width:100%;height:100%;object-fit:contain;border-radius:8px"/></div>';
-    h += '<div class="insta-num"><small>Username</small><strong>omarhussien22</strong><small>أو اضغطي على الرابط:</small>';
-    h += '<a href="https://ipn.eg/S/omarhussien22/instapay/72tQbs" target="_blank" rel="noopener" style="color:var(--seraj);font-weight:700;word-break:break-all">ipn.eg/S/omarhussien22</a></div>';
+    h += '<div class="insta-num"><small>Username</small><strong>' + INSTAPAY_NUMBER + '</strong><small>أو اضغطي على الرابط:</small>';
+    h += '<a href="' + INSTAPAY_LINK + '" target="_blank" rel="noopener" style="color:var(--seraj);font-weight:700;word-break:break-all">ipn.eg/S/' + INSTAPAY_NUMBER + '</a></div>';
     h += '</div></div>';
 
     // Customer form
@@ -1184,6 +1203,7 @@
     loadCart();
     updateCartBadge();
     fetchProducts();
+    fetchConfig();
     if (!location.hash) location.hash = '#/home';
     handleRoute();
     initReveals();
