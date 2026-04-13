@@ -1722,6 +1722,80 @@ input, textarea { font-family: inherit; }
 .cs-card:hover { background: var(--seraj-light); }
 .cs-card strong { color: var(--seraj-dark); font-family: var(--display); }
 
+/* ========== HOW-IT-WORKS ACCORDION (WIZARD) ========== */
+.hiw-accordion {
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 20px;
+  margin-bottom: 28px;
+  box-shadow: 0 4px 0 var(--ink);
+  overflow: hidden;
+}
+.hiw-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background .2s;
+  list-style: none;
+}
+.hiw-summary::-webkit-details-marker { display: none; }
+.hiw-summary::marker { display: none; content: ""; }
+.hiw-summary:hover { background: var(--seraj-wash); }
+.hiw-summary svg { flex-shrink: 0; }
+.hiw-summary span { flex: 1; }
+.hiw-chevron {
+  transition: transform .3s ease;
+  color: var(--ink-mute);
+}
+.hiw-accordion[open] .hiw-chevron {
+  transform: rotate(180deg);
+}
+.hiw-body {
+  padding: 0 20px 20px;
+  display: grid;
+  gap: 16px;
+}
+.hiw-step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.hiw-num {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--seraj);
+  border: 2.5px solid var(--ink);
+  color: #fff;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 14px;
+  place-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 0 var(--seraj-dark);
+  flex-shrink: 0;
+}
+.hiw-step strong {
+  display: block;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+.hiw-step p {
+  font-size: 13px;
+  color: var(--ink-mute);
+  line-height: 1.5;
+}
+
 /* ========== BOTTOM NAV ========== */
 .bottom-nav {
   position: fixed;
