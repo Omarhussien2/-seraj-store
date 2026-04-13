@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"C:\\\\Users\\\\omarh\\\\Downloads\\\\code projects\\\\seraj-store\\\\demo\\\\assets\")",
+      "Bash(cp \"charachters images/سراج/حول_صورة_الارنب_202604111828.png\" \"demo/assets/seraj.png\")",
+      "Bash(cp \"charachters images/اجعلها_واقفة_بدون_202604111722.png\" \"demo/assets/grandma-fatima.png\")",
+      "Bash(cp \"charachters images/اجعل_الشخصية_فقط_202604111801.png\" \"demo/assets/mom-amira.png\")",
+      "Bash(cp \"charachters images/اجعله_بدون_شماخ_202604111803.png\" \"demo/assets/dad-mostafa.png\")",
+      "Bash(cp \"charachters images/شخصيات ثانوي/Prompt__A_full-body_202604111758.png\" \"demo/assets/mom-amira.png\")",
+      "Bash(cp \"charachters images/شخصيات ثانوي/Prompt__A_full-body_202604111800.png\" \"demo/assets/layla.png\")",
+      "Bash(cp \"charachters images/شخصيات ثانوي/A_slightly_plump_202604111720.png\" \"demo/assets/grandma-fatima-seated.png\")",
+      "Bash(cp \"charachters images/شخصيات ثانوي/اجعله_بنفس_الملابس_202604111826.png\" \"demo/assets/khaled-v2.png\")",
+      "Bash(cp \"charachters images/اجعل_الشخصية_فقط_202604111801.png\" \"demo/assets/layla-nobook.png\")"
+    ]
+  }
+}
