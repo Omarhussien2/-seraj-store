@@ -1,15 +1,19 @@
 # سِراج — ملف الذاكرة الكامل (MEMORY)
 > هذا الملف هو المرجع الأساسي لأي وكيل جديد يعمل على المشروع.
-> آخر تحديث: 2026-04-12
+> آخر تحديث: 2026-04-13
 
 ---
 
 ## 1. ما هو مشروع "سِراج"؟
 
 سِراج هو **متجر إلكتروني مصري** متخصص في:
-- **قصص أطفال مخصصة** — تُكتب يدوياً باسم الطفل وقيمته المختارة
-- **فلاش كاردز** — كروت تعليمية (روتين، مشاعر، الخ)
-- **مجموعات** — قصة + كروت + ملصقات
+- **قصص أطفال جاهزة** — من سلسلة "سباق الفتوحات" (مثل: خالد بن الوليد)
+- **قصص أطفال مخصصة** — تُكتب يدوياً باسم الطفل وبتعلم قيمة من اختيارك
+- **فلاش كاردز** — كروت تعليمية (روتين يومي، مشاعر، الخ)
+- **مجموعات (Bundles)** — قصة مخصصة + كروت + قصة من السلسلة
+- **ألعاب تعليمية** — قريباً (بورد جيم، بازل، ذاكرة)
+
+**المنتجات المحذوفة:** ملصقات + بوستر + حزمة رمضان — **لم تعد موجودة**
 
 **الشخصية الرئيسية:** سِراج — أرنب أخضر بأسلوب Steampunk يرشد المستخدم في كل الصفحات.
 
@@ -20,6 +24,8 @@
 **التكلفة:** صفر — Vercel + MongoDB Atlas + Cloudinary + GitHub كلها مجانية.
 
 **توليد القصص:** يدوي — لا API توليد. الأدمن يستلم بيانات المعالج ويرسل عينة يدوياً عبر واتساب.
+
+**الدفع:** InstaPay فقط — عربون إلزامي (٥٠ ج.م) + الباقي كاش عند الاستلام. لا فودافون كاش.
 
 ---
 
@@ -38,22 +44,17 @@ C:\Users\omarh\Downloads\code projects\seraj-store\
 ├── demo/                            ← النسخة التفاعلية (Static HTML Prototype)
 │   ├── index.html                   ← كل الصفحات كـ SPA
 │   ├── styles.css                   ← Design System كامل
-│   ├── app.js                       ← Router + Wizard + Videos + Confetti
+│   ├── app.js                       ← Router + Products + Cart + Wizard + Videos
 │   ├── HANDOFF.md                   ← توثيق الديمو
 │   └── assets/                      ← صور + فيديوهات
 │       ├── seraj.png
+│       ├── khaled-v2.png            ← غلاف قصة خالد
 │       ├── family-photo.mp4         ← فيديو Hero
-│       ├── 1-.mp4                   ← فيديو الخطوة 1 (Zig-Zag)
-│       ├── 2.mp4                    ← فيديو الخطوة 2
-│       ├── 3.mp4                    ← فيديو الخطوة 3
-│       ├── khaled-v2.png, grandma-fatima-seated.png, ...
+│       ├── 1-.mp4, 2.mp4, 3.mp4    ← فيديوهات Zig-Zag
 │       └── (9 شخصيات + family-group.png)
 │
 ├── ui&ux - سراج.../                  ← صور UI أصلية (placeholder)
 └── charachters images/فيديوهات/     ← مصدر الفيديوهات الأصلية
-    ├── 1.mp4 → نُسخ لـ demo/assets/1-.mp4
-    ├── 2.mp4 → نُسخ لـ demo/assets/2.mp4
-    └── 3.mp4 → نُسخ لـ demo/assets/3.mp4
 ```
 
 ---
@@ -64,20 +65,22 @@ C:\Users\omarh\Downloads\code projects\seraj-store\
 | Route | الصفحة | Status |
 |-------|--------|--------|
 | `#/home` | الصفحة الرئيسية | ✅ كامل |
-| `#/products` | كتالوج المنتجات | ✅ كامل |
+| `#/products` | كتالوج المنتجات (4 منتجات + فلترات شغالة) | ✅ كامل |
+| `#/product/*` | تفصيل منتج (ديناميكي — data-driven) | ✅ كامل |
+| `#/cart` | سلة التسوق (عرض + حذف + ملخص) | ✅ كامل |
 | `#/about` | حكايتنا + العيلة (9 شخصيات) | ✅ كامل |
 | `#/wizard` | معالج التأليف (4 خطوات) | ✅ كامل |
 | `#/preview` | معاينة القصة | ✅ كامل |
-| `#/checkout` | الدفع (عربون + VIP + QR) | ✅ كامل |
+| `#/checkout` | الدفع (عربون + VIP + InstaPay QR) | ✅ كامل |
 | `#/success` | النجاح + كونفيتي | ✅ كامل |
-| `#/product/*` | تفصيل منتج | ✅ كامل |
 | `#/how-it-works` | scroll لقسم في home | ✅ كامل |
+| `#/mama-world` | عالم ماما (مقالات+فسحة+شات) | ✅ كامل |
 
 ### أقسام الصفحة الرئيسية (من أعلى لأسفل)
-1. **Topbar** — Logo + Nav + CTA pill
+1. **Topbar** — Logo + Nav + أيقونة السلة + CTA pill
 2. **Hero** — فيديو يمين + نص يسار (Desktop RTL) / فيديو فوق + نص تحت (Mobile)
 3. **Marquee** — شريط متحرك صغير
-4. **Products** — خالد بن الوليد + القصة المخصصة + كروت الروتين (قريباً)
+4. **Products** — خالد بن الوليد + القصة المخصصة + كروت (قريباً)
 5. **Social Proof** — عداد + صور قصص مخصصة
 6. **Zig-Zag** — "إزاي سراج بيعمل قصة بصورة ابنك؟" — 3 خطوات بفيديوهات
 7. **Values** — 5 كاردز قيم (شجاعة، نظافة، علم، احترام، صبر)
@@ -112,6 +115,7 @@ C:\Users\omarh\Downloads\code projects\seraj-store\
 - **أزرار:** 3D effect بـ `box-shadow: 0 Npx 0 var(--color)` + `translateY` on active
 - **RTL:** `dir="rtl"` + `lang="ar"` في الـ html tag
 - **Bottom Nav:** يختفي فوق 900px
+- **منتجات "قريباً":** `.coming-soon` class → opacity .55 + grayscale + pointer-events none + `.soon-overlay`
 
 ### الـ Green Highlight (Duolingo-style)
 ```css
@@ -121,11 +125,12 @@ C:\Users\omarh\Downloads\code projects\seraj-store\
   border-radius: 4px;
 }
 ```
-يُستخدم في Hero title على "في حكايات بتصنع" و "أبطال بجد!"
 
 ---
 
 ## 5. النصوص المعتمدة (لا تُغيّر بدون إذن)
+
+> ⚠️ المرجع الوحيد هو ملف "المحتوى النصي بالعامية المصرية"
 
 ### Hero Banner
 - **العنوان:** متعة القراءة واللعب.. في حكايات بتصنع أبطال بجد!
@@ -157,15 +162,15 @@ C:\Users\omarh\Downloads\code projects\seraj-store\
 
 | الاسم | الملف | الدور | يظهر في |
 |-------|-------|-------|---------|
-| سِراج | seraj.png | البطل الرئيسي | كل الصفحات |
-| الجدة فاطمة | grandma-fatima-seated.png | حارسة الحكايات | About + Home |
-| أميرة (الأم) | mom-amira.png | مصممة المغامرات | About + Home |
-| مصطفى (الأب) | dad-mostafa.png | المؤرخ | About + Home |
-| القائد خالد | khaled-v2.png | بطل الشجاعة | Wizard Step 2 |
-| ليلى | layla.png | عاشقة القراءة | About |
-| عمر | omar.png | المخترع الصغير | About |
-| زين | zain.png | حالم الخيال | About |
-| هدى | huda-bird.png | الطائر النحاسي | Wizard Step 3 |
+| سِراج ★ | seraj.png | البطل الرئيسي — الأرنب الأخضر | كل الصفحات |
+| الجدة زينب | grandma-fatima-seated.png | حارسة الحكايات | About + Mama World |
+| تقى (الأم) | mom-amira.png | مخترعة آلة الزمن | About |
+| عمر (الأب) | dad-mostafa.png | المؤرخ | About |
+| القائد خالد | khaled-v2.png | بطل الشجاعة | Wizard Step 2 + Product Detail |
+| ليلى | layla.png | رفيقة الرحلة الوفيّة | About |
+| يونس | omar.png | رفيق المغامرات | About |
+| داوود الصغير | zain.png | أخو يونس | About |
+| هدى | huda-bird.png | الحمامة الآلية | Wizard Step 3 + About |
 
 ---
 
@@ -173,90 +178,323 @@ C:\Users\omarh\Downloads\code projects\seraj-store\
 
 | الملف | الموقع | الحالة |
 |-------|--------|--------|
-| family-photo.mp4 | Hero banner | ✅ موجود في demo/assets/ |
-| 1-.mp4 | Zig-Zag خطوة 1 | ✅ منسوخ من charachters images/فيديوهات/1.mp4 |
-| 2.mp4 | Zig-Zag خطوة 2 | ✅ منسوخ من charachters images/فيديوهات/2.mp4 |
-| 3.mp4 | Zig-Zag خطوة 3 | ✅ منسوخ من charachters images/فيديوهات/3.mp4 |
+| family-photo.mp4 | Hero banner | ✅ موجود |
+| 1-.mp4 | Zig-Zag خطوة 1 | ✅ موجود |
+| 2.mp4 | Zig-Zag خطوة 2 | ✅ موجود |
+| 3.mp4 | Zig-Zag خطوة 3 | ✅ موجود |
+| *(فيديو خالد)* | صفحة تفصيل خالد | 🔲 placeholder — لازم يتضاف |
+| *(فيديو الكروت)* | صفحة تفصيل الكروت | 🔲 placeholder — لازم يتضاف |
+| *(فيديو المجموعة)* | صفحة تفصيل المجموعة | 🔲 placeholder — لازم يتضاف |
 
 **كل الفيديوهات بدون صوت (muted) وبدون borders — مندمجة في الصفحة.**
 
 ---
 
-## 8. ما تم تعديله في هذه الجلسة
+## 8. المنتجات الحالية
 
-### الجلسة الأولى
-1. ✅ إعادة كتابة PLAN.md (11 مرحلة بدل 9، ترتيب صحيح، تفاصيل تنفيذية)
-2. ✅ تحديث وثيقة المراجعة التقنية
-3. ✅ تحديث وثيقة رحلة المستخدم
-4. ✅ توحيد النصوص في ملف المحتوى النصي (Single Source of Truth)
-5. ✅ تعديل Hero Banner — نص جديد + شريط أخضر + 2 CTA + خط أصغر
-6. ✅ تحويل قسم How it Works → Zig-Zag layout بفيديوهات
-7. ✅ نسخ الفيديوهات لـ demo/assets/
-8. ✅ إزالة borders من فيديوهات Zig-Zag
-9. ✅ تصغير الشريط المتحرك (marquee)
-10. ✅ إضافة lazy loading لفيديوهات Zig-Zag
-11. ✅ إضافة btn-secondary style
+### كائن المنتجات (الـ Data Model)
 
-### الجلسة الثانية — مراجعة شاملة وإصلاح أعطال (2026-04-13)
+```
+PRODUCTS = {
+  'story-khaled': {
+    name: 'قصة خالد بن الوليد',
+    badge: 'الأكثر طلباً',
+    price: 140,           // جنيه مصري
+    priceText: '١٤٠ ج.م',
+    category: 'قصص جاهزة',
+    action: 'cart',       // → يضاف للسلة
+    media: { type: 'book3d', image: 'khaled-v2.png', bg: 'emerald' },
+    reviews: [...],       // 2-3 آراء أمهات
+    related: ['custom-story', 'bundle']
+  },
+  'custom-story': {
+    name: 'القصة المخصصة',
+    badge: 'مخصصة باسم بطلنا',
+    price: 220,
+    priceText: '٢٢٠ ج.م',
+    category: 'قصص مخصصة',
+    action: 'wizard',     // → يروح للمعالج
+    media: { type: 'book3d', image: 'seraj.png', bg: 'emerald' },
+    reviews: [...],
+    related: ['story-khaled', 'bundle']
+  },
+  'flash-cards': {
+    name: 'كروت الروتين اليومي',
+    badge: 'قريباً',
+    price: 150,
+    priceText: '١٥٠ ج.م',
+    category: 'فلاش كاردز',
+    action: 'none',       // → معطل (قريباً)
+    comingSoon: true,
+    media: { type: 'cards-fan', bg: 'sand' },
+    reviews: [...],
+    related: ['story-khaled', 'bundle']
+  },
+  'bundle': {
+    name: 'مجموعة الأبطال الصغار',
+    badge: 'وفّري ٢٠٪',
+    price: 420,
+    originalPrice: 530,   // السعر قبل الخصم
+    priceText: '٤٢٠ ج.م',
+    category: 'مجموعات',
+    action: 'cart',
+    media: { type: 'bundle-stack', bg: 'teal' },
+    reviews: [...],
+    related: ['story-khaled', 'custom-story']
+  }
+}
+```
 
-#### 🔴 إصلاحات حرجة
-12. ✅ إضافة `@keyframes bob` المفقود — الأنيميشن كان مستخدم في 3 عناصر بس مفيش keyframe متعرف (ribbon mascot, bottom nav CTA, wizard character)
-13. ✅ إصلاح روابط `href="#"` — كانت بتسبب صفحة بيضاء بسبب SPA router (7 روابط في Footer + WhatsApp button)
-14. ✅ إصلاح WhatsApp button في صفحة النجاح — تحويل من `href="#"` لرابط `wa.me` حقيقي مع رسالة مُرمّزة
-15. ✅ منع Form submission على Enter key في الـ Wizard — كان بيعمل reload للصفحة
-16. ✅ إصلاح Wizard stuck in loop — المستخدم كان يعتقل في Loop (Step 4 → Preview → Wizard → Step 4)؛ دلوقتي بيعمل reset كامل كل مرة
-
-#### 🟡 إصلاحات متوسطة
-17. ✅ إصلاح Speech Bubble styling في الـ Wizard — أضفت خلفية + حدود + سهم (triangle pointer) + تنسيق النص
-18. ✅ إصلاح Book 3D spine لـ RTL — العمود كان على الشمال، دلوقتي على اليمين (book3d-cover + bc-front + bookHover animation)
-19. ✅ إضافة `.value-card.is-active` style — feedback بصري لما المستخدم يضغط على value card
-20. ✅ إضافة Filter Chips functionality — click handler بيبدل `is-active` في صفحة المنتجات
-21. ✅ إصلاح invalid CSS `gap: -10px` — شلت القيمة السالبة (كانت بتتجاهلها الـ browsers أصلاً)
-22. ✅ تصحيح تعليقات HTML في Zig-Zag — لتوضح الـ layout الفعلي في RTL
-
-#### 🟢 إعادة ترتيب
-23. ✅ إعادة ترتيب أقسام الصفحة الرئيسية — المنتجات طلعت فوق (بعد الـ Marquee مباشرة) + Social Proof بعدها + بعدين خطوات القصص + Values + آراء الأمهات
-
-### الجلسة الثالثة — تعديل قسم المنتجات في الصفحة الرئيسية (2026-04-13)
-
-#### 📦 تعديل كروت المنتجات
-24. ✅ استبدال كروت المنتجات الـ 3 في الصفحة الرئيسية:
-    - **كارت 1:** "قصة خالد بن الوليد" — badge "الأكثر طلباً" — ستايل book3d بصورة khaled-v2.png — سعر ١٤٠ جنيه
-    - **كارت 2:** "القصة المخصصة" — badge "مخصصة باسم بطلنا" — ستايل book3d بصورة seraj.png — سعر ٢٢٠ جنيه — رابط لـ #/wizard
-    - **كارت 3:** "كروت الروتين اليومي" — badge "قريباً" — ستايل cards-fan — سعر ١٥٠ جنيه — **غير قابل للضغط** (باهت + overlay)
-25. ✅ حذف كارت "مجموعة الأبطال الصغار" (bundle) من الصفحة الرئيسية
-26. ✅ إضافة CSS لـ `.coming-soon` — opacity .55 + grayscale .2 + pointer-events none + hover disabled
-27. ✅ إضافة `.soon-overlay` — overlay أبيض شفاف مع نص "قريباً" على الكارت الغير متاح
-28. ✅ إضافة `.soon-badge` — لون رمادي للـ badge بتاع "قريباً"
+### أنواع المنتجات ومسارها
+| النوع | الـ action | المسار |
+|-------|-----------|--------|
+| قصة جاهزة | `cart` | صفحة تفصيل → أضيفي للسلة → سلة → checkout → InstaPay |
+| قصة مخصصة | `wizard` | صفحة تفصيل → ابدئي القصة → Wizard → Preview → Checkout |
+| كروت فلاش | `none` | صفحة تفصيل → زر "قريباً" معطل |
+| مجموعة | `cart` | صفحة تفصيل → أضيفي للسلة → سلة → checkout → InstaPay |
+| ألعاب تعليمية | TBD | 🔲 قريباً |
 
 ---
 
-## 9. ما لم يُبنَ بعد (المهام القادمة)
+## 9. سلة التسوق — النظام الحالي
 
-### أولوية عالية — تعديلات على الديمو
-- [x] مراجعة كل صفحات الديمو على الموبايل والديسكتوب ✅ (جلسة 2)
-- [x] التأكد من أن الـ Zig-Zag يظهر صح في RTL (يمين/يسار) ✅ (جلسة 2)
-- [ ] ضبط أحجام الفيديوهات لو كبيرة أو صغيرة — **محتاج مراجعة يدوية على الموبايل**
-- [x] التأكد من أن كل الأنيميشن سلسة على الموبايل ✅ (أضفنا @keyframes bob المفقود)
-- [x] مراجعة أقسام: Values, Social Proof, Products, Testimonials ✅ (جلسة 2)
-- [ ] إزالة/تعديل أي قسم مش لازم أو مش مكتمل
-- [x] التأكد من أن كل الروابط تشتغل (صفحات + أزرار) ✅ (أصلحنا href="#" و WhatsApp)
+### Flow
+1. المستخدم يضغط "أضيفي للسلة" في صفحة المنتج
+2. المنتج بيتضاف لـ `cart[]` array في JS
+3. Badge counter بيتحدث في التوب بار
+4. Toast بتظهر: "اسم المنتج اتضاف للسلة ✦"
+5. المستخدم يضغط أيقونة السلة → صفحة `#/cart`
+6. الصفحة بتعرد: منتجات + ملخص (إجمالي + شحن + عربون)
+7. "إتمام الطلب" → `#/checkout` → InstaPay QR → `#/success`
 
-### أولوية عالية — Next.js
+### الصفحة بتعرض:
+- **لو فاضية:** رسالة + زرار "شوفي المنتجات"
+- **لو فيها منتجات:** كروت المنتجات + زرار ✕ للحذف + ملخص + إتمام الطلب
+
+### ملاحظات للباك إند:
+- الدنيا دلوقتي **client-side only** (لا session, لا DB)
+- لما نربط الباك إند: `cart` هيحصل في MongoDB session أو localStorage
+- الأسعار حالياً hardcoded في JS — لازم تتحط في DB
+- Arabون (٥٠ ج.م) ثابت — لازم يكون configurable من admin
+
+---
+
+## 10. فلترات الكتالوج
+
+### آلية العمل:
+- كل chip فيه `data-filter` (all / قصص جاهزة / قصص مخصصة / فلاش كاردز / مجموعات)
+- كل كارت منتج فيه `data-cat` بالتصنيف
+- لما المستخدم يضغط chip → JS بيخفي/يظهر الكروت حسب التصنيف
+- `auto-fill` مش `auto-fit` عشان الكروت متمدّش بالعرض الكامل
+
+---
+
+## 11. ما تم تعديله — سجل الجلسات
+
+### الجلسة الأولى
+1. ✅ إعادة كتابة PLAN.md
+2. ✅ تحديث وثائق التقنية و UX
+3. ✅ توحيد النصوص (Single Source of Truth)
+4. ✅ تعديل Hero + Zig-Zag + فيديوهات + Marquee
+
+### الجلسة الثانية — مراجعة شاملة وإصلاح أعطال
+5. ✅ إضافة `@keyframes bob` المفقود
+6. ✅ إصلاح `href="#"` → ما بتعملش صفحة بيضاء
+7. ✅ إصلاح WhatsApp button في صفحة النجاح
+8. ✅ منع Form submission في Wizard
+9. ✅ إصلاح Wizard stuck in loop
+10. ✅ إصلاح Speech Bubble + Book 3D RTL + value-card active + filter chips
+11. ✅ إعادة ترتيب أقسام الصفحة الرئيسية
+
+### الجلسة الثالثة — تعديل كروت الصفحة الرئيسية
+12. ✅ استبدال كروت المنتجات الـ 3 (خالد + مخصصة + كروت قريباً)
+13. ✅ حذف كارت bundle من الصفحة الرئيسية
+14. ✅ إضافة CSS لـ coming-soon cards
+
+### الجلسة الرابعة — صفحات تفصيلية + سلة + فلترات (2026-04-13)
+15. ✅ حذف 3 منتجات: ملصقات + بوستر + حزمة رمضان
+16. ✅ تحديث فلتر الكتالوج (5 فلاتر شغالة)
+17. ✅ بناء نظام صفحات تفصيلية data-driven (`PRODUCTS` object)
+18. ✅ كل صفحة تفصيلية: back nav + hero + features + video placeholder + آراء + مقترحات
+19. ✅ 3 أنواع CTA: cart / wizard / none (قريباً)
+20. ✅ Bundle يعرض سعر مشطوب + خصم
+21. ✅ أيقونة سلة في التوب بار + badge counter
+22. ✅ Toast notification عند الإضافة
+23. ✅ صفحة سلة كاملة (`#/cart`) — عرض + حذف + ملخص
+24. ✅ إصلاح الفلاتر (كانت بتغير اللون بس من غير ما تخفي المنتجات)
+25. ✅ إصلاح عرض الكروت بعد الفلتر (`auto-fill` بدل `auto-fit`)
+
+---
+
+## 12. ما لم يُبنَ بعد (المهام القادمة)
+
+### أولوية عالية — الديمو
+- [ ] إضافة فيديوهات حقيقية لصفحات المنتجات (حالياً placeholder)
+- [ ] ضبط أحجام الفيديوهات على الموبايل — **محتاج مراجعة يدوية**
+- [ ] إزالة/تعديل أي قسم مش مكتمل
+
+### أولوية عالية — سلة + checkout
+- [ ] صفحة checkout تتحدث ديناميكياً حسب محتوى السلة (حالياً static)
+- [ ] ربط checkout بـ InstaPay API حقيقي
+- [ ] إرسال طلب واتساب بالتفاصيل تلقائياً
+- [ ] حفظ السلة في localStorage (تبقى موجودة بعد reload)
+
+### أولوية عالية — Next.js (الباك إند الحقيقي)
 - [ ] إنشاء مشروع Next.js 15 + TypeScript + Tailwind
 - [ ] تحويل الـ Demo لـ React components
 - [ ] Wizard state → Zustand store
 - [ ] API Routes للـ Orders و Stories
 
-### أولوية متوسطة
-- [ ] MongoDB connection
-- [ ] Cloudinary integration (رفع صور الأطفال)
-- [ ] Admin dashboard
-- [ ] SEO + Open Graph
+---
+
+## 13. 🏗️ الباك إند — الخطة التقنية
+
+### Tech Stack (المقرر)
+| الأداة | الاستخدام | التكلفة |
+|--------|----------|---------|
+| Next.js 15 | Framework + API Routes + SSR | مجاني |
+| MongoDB Atlas | قاعدة البيانات | مجاني (512MB) |
+| Cloudinary | رفع صور الأطفال | مجاني (25GB) |
+| Vercel | Hosting + Deployment | مجاني (Hobby) |
+| InstaPay | الدفع | — |
+| WhatsApp API | إرسال تفاصيل الطلب | مجاني |
+
+### Database Schema (MongoDB)
+```javascript
+// المنتجات
+products {
+  _id: ObjectId,
+  slug: "story-khaled",           // unique identifier
+  name: "قصة خالد بن الوليد",
+  nameEn: "Khalid ibn Al-Walid Story",
+  badge: "الأكثر طلباً",
+  category: "قصص جاهزة",          // قصص جاهزة | قصص مخصصة | فلاش كاردز | مجموعات | ألعاب
+  price: 140,
+  originalPrice: null,            // لو فيه خصم
+  description: "...",
+  features: ["..."],
+  media: { type: "book3d", image: "khaled-v2.png", bg: "emerald" },
+  video: "assets/khaled-video.mp4",  // null لو مفيش
+  action: "cart",                 // cart | wizard | none
+  comingSoon: false,
+  reviews: [{ text, name, place, color, initial }],
+  related: ["custom-story", "bundle"],
+  active: true,
+  order: 1,                       // ترتيب العرض
+  createdAt, updatedAt
+}
+
+// الطلبات
+orders {
+  _id: ObjectId,
+  orderNumber: "SRJ-2026-0847",
+  items: [{ productSlug, productName, price, qty }],
+  total: 420,
+  deposit: 50,                    // العربون المدفوع
+  paymentMethod: "instapay",
+  paymentStatus: "deposit_paid",  // deposit_paid | fully_paid | unpaid
+  orderStatus: "pending",         // pending | in_progress | shipped | delivered
+  // لو فيها قصة مخصصة:
+  customStory: {
+    heroName: "يوسف",
+    age: 5,
+    challenge: "شجاعة",
+    photo: "cloudinary-url",
+    wizardCompleted: true
+  },
+  customerPhone: "01012345678",
+  customerName: "منى",
+  shippingAddress: "...",
+  notes: "",
+  createdAt, updatedAt
+}
+
+// آراء الأمهات (لو عايزين إدارة منفصلة)
+reviews {
+  _id: ObjectId,
+  productSlug: "story-khaled",
+  text: "...",
+  name: "منى — أم يوسف",
+  place: "القاهرة · ٦ سنين",
+  color: "#6bbf3f",
+  initial: "م",
+  approved: true,
+  createdAt
+}
+```
+
+### API Routes (Next.js)
+```
+GET    /api/products              → كل المنتجات (active only)
+GET    /api/products/[slug]       → منتج واحد
+GET    /api/products?category=قصص جاهزة  → فلتر بالتصنيف
+
+POST   /api/orders                → إنشاء طلب جديد
+GET    /api/orders/[id]           → تفاصيل طلب
+PATCH  /api/orders/[id]/status    → تحديث حالة الطلب (admin)
+
+POST   /api/upload/photo          → رفع صورة الطفل (Cloudinary)
+
+POST   /api/whatsapp/notify       → إرسال واتساب بالتفاصيل
+
+GET    /api/reviews?product=slug  → آراء منتج
+POST   /api/reviews               → إضافة رأي (admin approve)
+```
+
+### Workflow — من الديمو للإنتاج
+```
+1. Demo (الحالي)           → Static HTML + JS + data in PRODUCTS object
+                                ↓
+2. Next.js Migration       → تحويل لـ React components
+   - صفحات SPA → React pages
+   - PRODUCTS object → /api/products
+   - cart[] array → Zustand store + localStorage
+   - Wizard state → Zustand
+   - Router → next/router
+                                ↓
+3. Backend Integration     → MongoDB + API
+   - المنتجات من DB مش hardcoded
+   - الطلبات تتخزن في MongoDB
+   - صور الأطفال تتخزن في Cloudinary
+                                ↓
+4. Payment Integration     → InstaPay
+   - Checkout page تتصل بـ InstaPay API
+   - webhook لتحديث حالة الدفع
+                                ↓
+5. Admin Dashboard         → Next.js route (/admin)
+   - إضافة/تعديل منتجات
+   - إدارة الطلبات
+   - إدارة الآراء
+   - رفع صور وفيديوهات
+```
+
+### Cart Flow (الإنتاج)
+```
+User يضيف منتج → POST /api/orders (create draft)
+                → localStorage يحتفظ بالـ cart ID
+                → كل إضافة/حذف → PATCH /api/orders/[id]/items
+
+Checkout:
+  1. POST /api/orders/[id]/checkout
+  2. → InstaPay payment link (50 ج.م عربون)
+  3. → User يدفع → InstaPay webhook → PATCH order status
+  4. → WhatsApp notification للأدمن
+  5. → Success page مع رقم الطلب
+```
+
+### ملاحظات مهمة للباك إند
+- **الأسعار:** لازم تكون في DB مش hardcoded — عشان الأدمن يقدر يغيرها
+- **العربون:** ٥٠ ج.م ثابت حالياً — لازم يكون configurable per product
+- **الشحن:** حالياً "مجاناً" — ممكن يتغير حسب المنطقة
+- **الفيديوهات:** لازم تتخزن على Cloudinary مش في assets/
+- **صور الأطفال:** Cloudinary بـ upload preset آمن
+- **الواتساب:** ممكن يتبعت عبر WhatsApp Business API أو مجرد deep link `wa.me`
+- **SEO:** كل صفحة منتج محتاجة meta tags + Open Graph + structured data
+- **الألعاب التعليمية:** نفس الـ data model بس `category: "ألعاب"` + `action: "cart"`
 
 ---
 
-## 10. طريقة تشغيل الديمو
+## 14. طريقة تشغيل الديمو
 
 ```bash
 cd "C:\Users\omarh\Downloads\code projects\seraj-store\demo"
@@ -268,7 +506,7 @@ python -m http.server 3000
 
 ---
 
-## 11. قواعد مهمة لأي وكيل
+## 15. قواعد مهمة لأي وكيل
 
 1. **لا تُغيّر النصوص** بدون الرجوع لملف "المحتوى النصي" — هو المرجع الوحيد
 2. **كل فيديو muted دائماً** — لا صوت أبداً
@@ -277,6 +515,9 @@ python -m http.server 3000
 5. **RTL عربي** — كل شيء من اليمين لليسار
 6. **لا مكتبات مدفوعة** — كل شيء مجاني
 7. **لا توليد آلي للقصص** — الأدمن يراجع يدوياً
-8. ** افتح الديمو في المتصفح بعد كل تعديل** وتأكد أنه يشتغل
+8. **افتح الديمو في المتصفح بعد كل تعديل** وتأكد أنه يشتغل
 9. **لا تضيف Lottie أو Three.js** — Framer Motion فقط للأنيميشن
 10. **أخطاء الـ console؟** صلحها فوراً — لا تترك أخطاء
+11. **منتجات "قريباً":** `.coming-soon` class → باهت + غير قابل للضغط + overlay
+12. **كل منتج جديد:** أضيفه في `PRODUCTS` object في app.js + في الكتالوج + في الصفحة الرئيسية
+13. **الأسعار:** استخدم أرقام عربية (١٤٠ مش 140) في الـ display بس أرقام إنجليزية في الكود

@@ -43,10 +43,10 @@
       <a href="#/products" data-link>المنتجات</a>
       <a href="#/about" data-link>حكايتنا</a>
     </nav>
-    <div class="topbar-cart" id="topbarCart">
+    <a href="#/cart" data-link class="topbar-cart" id="topbarCart">
       <svg viewBox="0 0 24 24" width="24" height="24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="cart-count" id="cartCount" hidden>0</span>
-    </div>
+    </a>
     <a href="#/wizard" data-link class="pill-btn">اصنع قصة لابنك</a>
   </header>
 
@@ -420,17 +420,17 @@
         <p>اختاري مغامرة بطلنا القادمة</p>
       </div>
 
-      <div class="filter-chips">
-        <button class="chip is-active">الكل</button>
-        <button class="chip">قصص جاهزة</button>
-        <button class="chip">قصص مخصصة</button>
-        <button class="chip">فلاش كاردز</button>
-        <button class="chip">مجموعات</button>
+      <div class="filter-chips" data-filter-group="catalog">
+        <button class="chip is-active" data-filter="all">الكل</button>
+        <button class="chip" data-filter="قصص جاهزة">قصص جاهزة</button>
+        <button class="chip" data-filter="قصص مخصصة">قصص مخصصة</button>
+        <button class="chip" data-filter="فلاش كاردز">فلاش كاردز</button>
+        <button class="chip" data-filter="مجموعات">مجموعات</button>
       </div>
 
-      <div class="products-grid big">
+      <div class="products-grid big" id="catalogGrid">
         <!-- 1. قصة خالد بن الوليد -->
-        <a href="#/product/story-khaled" data-link class="product-card reveal">
+        <a href="#/product/story-khaled" data-link class="product-card reveal" data-cat="قصص جاهزة">
           <div class="product-media emerald">
             <span class="badge">الأكثر طلباً</span>
             <div class="book3d"><div class="book3d-cover"><span class="book3d-title">خالد بن<br/>الوليد</span><img src="assets/khaled-v2.png" class="book3d-mascot" alt=""/></div></div>
@@ -443,7 +443,7 @@
         </a>
 
         <!-- 2. القصة المخصصة -->
-        <a href="#/wizard" data-link class="product-card reveal">
+        <a href="#/wizard" data-link class="product-card reveal" data-cat="قصص مخصصة">
           <div class="product-media emerald">
             <span class="badge">مخصصة باسم بطلنا</span>
             <div class="book3d"><div class="book3d-cover"><span class="book3d-title">حكاية<br/>بطلنا</span><img src="assets/seraj.png" class="book3d-mascot" alt=""/></div></div>
@@ -456,7 +456,7 @@
         </a>
 
         <!-- 3. كروت الروتين — قريباً -->
-        <div class="product-card coming-soon reveal">
+        <div class="product-card coming-soon reveal" data-cat="فلاش كاردز">
           <div class="product-media sand">
             <span class="badge soon-badge">قريباً</span>
             <div class="cards-fan"><i style="--i:0;--c:#e85d4c"></i><i style="--i:1;--c:#c9974e"></i><i style="--i:2;--c:#36a39a"></i><i style="--i:3;--c:#6bbf3f"></i><i style="--i:4;--c:#8b5e2a"></i></div>
@@ -470,7 +470,7 @@
         </div>
 
         <!-- 4. مجموعة الأبطال الصغار -->
-        <a href="#/product/bundle" data-link class="product-card reveal">
+        <a href="#/product/bundle" data-link class="product-card reveal" data-cat="مجموعات">
           <div class="product-media teal">
             <span class="badge">وفّري ٢٠٪</span>
             <div class="bundle-stack"><div class="bundle-i"></div><div class="bundle-i"></div><div class="bundle-i"></div></div>
@@ -496,17 +496,31 @@
       <section class="about-hero">
         <img src="assets/family-group.png" alt="عائلة سِراج" class="about-photo reveal"/>
         <div class="about-quote reveal">
-          <p>"في قلب قرية الابتكار، سِراج وعيلته عايشين في ورشة سحرية مليانة تروس وكتب قديمة. الجدة زينب بتحكي، والأم أميرة بتصمم، والأب مصطفى بيدور على الحقيقة. إحنا قررنا نسيب كذبة الأبطال الخارقين، ونعلم أطفالنا قصص أبطالنا المسلمين الحقيقيين بأسلوب مخترع وجديد.. عشان بطلنا الصغير يطلع فاهم، شجاع، ومبتكر."</p>
+          <p>"في عالمٍ استسلم لسحر الشاشات وأبطال الخيال الزائف، يبرز بطل من نوع مختلف.. بطل يجمع بين ذكاء العلم وعراقة التاريخ."</p>
+          <p style="margin-top:16px">كان سراج ولداً عادياً من أسرة استثنائية؛ والده عمر مؤرخ يبحث في سير أبطال المسلمين، ووالدته تُقى عالمة اخترعت "آلة الزمن" لتكون جسراً بين الماضي والحاضر. لكن في لحظة غامضة، وجد سراج نفسه محبوساً في جسد أرنب أخضر وسط عائلته، عالقاً بين عالمين: عالمنا الحديث الذي نسي أبطاله الحقيقيين وانشغل بالهواتف، وعالمه الأصلي حيث المعرفة هي القوة.</p>
         </div>
       </section>
 
-      <!-- FULL FAMILY SECTION — 9 characters -->
+      <!-- FULL FAMILY SECTION — Characters -->
       <section class="section family-section" id="family">
         <header class="section-head reveal">
           <span class="kicker">عيلة سِراج</span>
           <h2>عيلة سِراج بتساعدك إزاي؟</h2>
           <p>كل واحد فيهم ليه دور في صناعة مغامرة بطلنا الصغير</p>
         </header>
+
+        <!-- Row 0: سِراج البطل — وحده أولاً -->
+        <div class="family-grid one-col reveal-group">
+          <article class="family-card tilt reveal seraj-card seraj-hero" style="--bg:#eaf6d6;--d:.0s">
+            <div class="photo seraj-glow"><img src="assets/seraj.png" alt="سِراج"/></div>
+            <div class="body">
+              <h3>سِراج ★</h3>
+              <span class="role" style="--rc:#6bbf3f">بطل المغامرة — الأرنب الأخضر</span>
+              <p>ولداً عادياً من أسرة استثنائية، وجد نفسه محبوساً في جسد أرنب أخضر.. عالقاً بين عالمين: عالمنا الحديث الذي نسي أبطاله الحقيقيين، وعالمه الأصلي حيث المعرفة هي القوة.</p>
+            </div>
+            <span class="corner-gear"></span>
+          </article>
+        </div>
 
         <!-- Row 1: العيلة الرئيسية (4 characters) -->
         <div class="family-group-label reveal">
@@ -524,21 +538,21 @@
           </article>
 
           <article class="family-card tilt reveal" style="--bg:#fde8d8;--d:.08s">
-            <div class="photo"><img src="assets/mom-amira.png" alt="المهندسة أميرة"/></div>
+            <div class="photo"><img src="assets/mom-amira.png" alt="العالمة تقى"/></div>
             <div class="body">
-              <h3>المهندسة أميرة</h3>
-              <span class="role" style="--rc:#e85d4c">مصممة المغامرات</span>
-              <p>"أنا اللي بصمم الأدوات والمخططات عشان المغامرة تكون ممتعة."</p>
+              <h3>العالمة تقى</h3>
+              <span class="role" style="--rc:#e85d4c">مخترعة آلة الزمن</span>
+              <p>عالمة اخترعت "آلة الزمن" لتكون جسراً بين الماضي والحاضر.. أم سراج الذكية.</p>
             </div>
             <span class="corner-gear"></span>
           </article>
 
           <article class="family-card tilt reveal" style="--bg:#f6e9d2;--d:.16s">
-            <div class="photo"><img src="assets/dad-mostafa.png" alt="المؤرخ مصطفى"/></div>
+            <div class="photo"><img src="assets/dad-mostafa.png" alt="المؤرخ عمر"/></div>
             <div class="body">
-              <h3>المؤرخ مصطفى</h3>
+              <h3>المؤرخ عمر</h3>
               <span class="role" style="--rc:#c9974e">باحث الكتب القديمة</span>
-              <p>"بفتش في الكتب القديمة عشان نطلع منها أحلى دروس لبطلنا."</p>
+              <p>"بفتش في الكتب القديمة عشان نطلع منها أحلى دروس لبطلنا." والد سراج ومؤرخ يبحث في سير أبطال المسلمين.</p>
             </div>
             <span class="corner-gear"></span>
           </article>
@@ -554,95 +568,71 @@
           </article>
         </div>
 
-        <!-- Row 2: الأطفال الثلاثة -->
+        <!-- Row 2: رفاق المغامرات (4 characters: ليلى، يونس، داوود، هدى) -->
         <div class="family-group-label reveal" style="--d:.1s">
-          <span class="group-tag" style="--c:#36a39a">★ الأجيال القادمة</span>
+          <span class="group-tag" style="--c:#36a39a">✦ رفاق المغامرات</span>
         </div>
-        <div class="family-grid three-col reveal-group">
+        <div class="family-grid reveal-group">
           <article class="family-card tilt reveal" style="--bg:#d8f0ec;--d:.05s">
             <div class="photo"><img src="assets/layla.png" alt="ليلى"/></div>
             <div class="body">
               <h3>ليلى</h3>
-              <span class="role" style="--rc:#36a39a">عاشقة القراءة</span>
-              <p>الأكبر بين الأطفال، بتحمل كتاب "قصص وحكايات" وترس ذهبي على شعرها.</p>
+              <span class="role" style="--rc:#36a39a">رفيقة الرحلة الوفيّة</span>
+              <p>صديقة سراج المخلصة، بتحمل كتاب "قصص وحكايات" وترس ذهبي على شعرها.. رفيقة في كل مغامرة.</p>
             </div>
             <span class="corner-gear"></span>
           </article>
 
           <article class="family-card tilt reveal" style="--bg:#e9f7d4;--d:.13s">
-            <div class="photo"><img src="assets/omar.png" alt="عمر"/></div>
+            <div class="photo"><img src="assets/omar.png" alt="يونس"/></div>
             <div class="body">
-              <h3>عمر</h3>
-              <span class="role" style="--rc:#6bbf3f">المخترع الصغير</span>
-              <p>الأوسط، بيرتدي نظارة مكبّرة وحقيبة ظهر بتروسها ومروحتها. حب الابتكار في عقله.</p>
+              <h3>يونس</h3>
+              <span class="role" style="--rc:#6bbf3f">رفيق المغامرات</span>
+              <p>صديق سراج الوفي في كل رحلة، بيرتدي نظارة مكبّرة وحقيبة ظهر بتروسها ومروحتها.. حب الابتكار في عقله.</p>
             </div>
             <span class="corner-gear"></span>
           </article>
 
           <article class="family-card tilt reveal" style="--bg:#fef0d4;--d:.21s">
-            <div class="photo"><img src="assets/zain.png" alt="زين"/></div>
+            <div class="photo"><img src="assets/zain.png" alt="داوود"/></div>
             <div class="body">
-              <h3>زين</h3>
-              <span class="role" style="--rc:#c9974e">حالم الخيال</span>
-              <p>الأصغر، لابس قبعة طيار قديمة وحامل الطائر النحاسي هدى، شايف الأحلام بعينيه.</p>
-            </div>
-            <span class="corner-gear"></span>
-          </article>
-        </div>
-
-        <!-- Row 3: المرافقون (سِراج + هدى) -->
-        <div class="family-group-label reveal" style="--d:.1s">
-          <span class="group-tag" style="--c:#c9974e">✦ مرافقو المغامرة</span>
-        </div>
-        <div class="family-grid two-col reveal-group">
-          <article class="family-card tilt reveal seraj-card" style="--bg:#eaf6d6;--d:.05s">
-            <div class="photo seraj-glow"><img src="assets/seraj.png" alt="سِراج"/></div>
-            <div class="body">
-              <h3>سِراج ★</h3>
-              <span class="role" style="--rc:#6bbf3f">أرنب الورشة السحرية</span>
-              <p>بطل الرواية! سِراج بيجمع العيلة كلها ويحوّل أفكارهم لقصة مكتوبة ومرسومة مخصوصة لبطلنا الصغير.</p>
+              <h3>داوود الصغير</h3>
+              <span class="role" style="--rc:#c9974e">أخو يونس</span>
+              <p>أخو يونس الأصغر اللي ما يتركه أبداً، والمقرب لقلب هدى.. شايف الأحلام بعينيه.</p>
             </div>
             <span class="corner-gear"></span>
           </article>
 
-          <article class="family-card tilt reveal" style="--bg:#f6e9d2;--d:.13s">
+          <article class="family-card tilt reveal" style="--bg:#f6e9d2;--d:.29s">
             <div class="photo"><img src="assets/huda-bird.png" alt="هدى"/></div>
             <div class="body">
               <h3>هدى</h3>
-              <span class="role" style="--rc:#c9974e">الطائر النحاسي الآلي</span>
-              <p>"ارفعي صورة بطلنا هنا.. وأنا هطير بيها لورشة سِراج فوراً!" الوسيط بين الأسرة والورشة.</p>
+              <span class="role" style="--rc:#c9974e">الحمامة الآلية</span>
+              <p>الحمامة الآلية التي صنعتها الأم "تُقى"، هي عينهم في السماء.. ورغم برمجتها المتطورة إلا أنها تملك قلباً يميل لداوود أكثر من الجميع.</p>
             </div>
             <span class="corner-gear"></span>
           </article>
         </div>
       </section>
 
-      <section class="values-row">
-        <div class="v-item reveal" style="--d:.05s">
-          <div class="v-icon" style="--c:#6bbf3f">★</div>
-          <h4>قيم بنحبها</h4>
-          <p>مش مجرد قصة.. كل حكاية بتعلّم قيمة نحبها</p>
-        </div>
-        <div class="v-item reveal" style="--d:.12s">
-          <div class="v-icon" style="--c:#c9974e">✎</div>
-          <h4>بإيد فنانين مصريين</h4>
-          <p>رسوم أصلية بإيد فنانين من عندنا</p>
-        </div>
-        <div class="v-item reveal" style="--d:.19s">
-          <div class="v-icon" style="--c:#e85d4c">♥</div>
-          <h4>مخصصة بجد</h4>
-          <p>باسم طفلك وصورته مش مجرد "أدخلي اسم"</p>
-        </div>
-      </section>
-
-      <section class="cta-ribbon reveal">
-        <div class="ribbon-inner">
-          <img src="assets/seraj.png" class="ribbon-mascot" alt=""/>
-          <div class="ribbon-copy">
-            <h2>تعرّفتي علينا.. نبدأ حكاية بطلنا؟</h2>
-            <p>٣ خطوات صغيرة بس</p>
+      <!-- CTA BANNER — اصنع قصة أو استعرض المنتجات -->
+      <section class="about-cta-banner reveal">
+        <div class="about-cta-inner">
+          <img src="assets/seraj.png" class="about-cta-mascot" alt="سِراج"/>
+          <div class="about-cta-copy">
+            <h2>جاهزة تبدأي مغامرة بطلنا؟</h2>
+            <p>اختاري: اصنعي قصة مخصصة باسم طفلك، أو استعرضي منتجات سراج المتنوعة</p>
           </div>
-          <a href="#/wizard" data-link class="btn btn-primary btn-xl">اصنع قصة لابنك</a>
+          <div class="about-cta-btns">
+            <a href="#/wizard" data-link class="btn btn-primary btn-xl">
+              اصنعي قصة مخصصة
+              <svg viewBox="0 0 24 24" width="22" height="22"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+            <a href="#/products" data-link class="btn btn-secondary btn-xl">
+              استعرضي المنتجات
+              <svg viewBox="0 0 24 24" width="20" height="20"><path d="M6 12h12M12 6l6 6-6 6" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+          </div>
         </div>
       </section>
     </section>
@@ -941,6 +931,13 @@
           <a href="#/home" data-link class="btn btn-ghost">الرجوع للرئيسية</a>
         </div>
       </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- CART                                                      -->
+    <!-- ========================================================= -->
+    <section class="page" data-page="cart">
+      <div id="cartPage"></div>
     </section>
 
     <!-- Product detail (dynamic — populated by JS) -->

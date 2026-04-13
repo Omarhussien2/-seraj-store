@@ -613,7 +613,7 @@ Vercel Serverless لا يسمح بحفظ ملفات على السيرفر — ك
 #### المهمة 4.2: Family Section + Featured Products
 - **الملفات:** `src/components/home/FamilySection.tsx`, `src/components/home/FeaturedProducts.tsx`, `src/components/products/ProductCard.tsx`
 - **الخطوات:**
-  1. FamilySection: 3 كاردز (الجدة فاطمة، الأم أميرة، الأب مصطفى) مع:
+  1. FamilySection: 3 كاردز (الجدة زينب، الأم تقى، الأب عمر) مع:
      - صورة الشخصية + الاسم + الدور
      - أنيميشن ظهور عند scroll (stagger effect)
      - كل كارد يقول جملته (مثال: الجدة: "أنا حارسة الحكايات")

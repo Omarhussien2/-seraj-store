@@ -724,6 +724,10 @@ input, textarea { font-family: inherit; }
   margin: 0 auto;
 }
 .products-grid.big { max-width: 1200px; }
+#catalogGrid {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 340px));
+  justify-content: center;
+}
 
 .product-card {
   background: var(--paper);
@@ -1100,6 +1104,109 @@ input, textarea { font-family: inherit; }
   color: var(--seraj);
   font-family: Georgia;
   line-height: 1;
+}
+
+/* Seraj alone — hero card in about page */
+.family-grid.one-col {
+  max-width: 480px;
+  margin: 0 auto 12px;
+}
+.family-card.seraj-hero {
+  text-align: center;
+  padding: 30px 24px 28px;
+}
+.family-card.seraj-hero .photo {
+  width: 180px;
+  height: 180px;
+  margin: 0 auto 16px;
+}
+.family-card.seraj-hero .body h3 {
+  font-size: 26px;
+  margin-bottom: 6px;
+}
+
+/* About CTA Banner */
+.about-cta-banner {
+  max-width: 1100px;
+  margin: 60px auto;
+  padding: 0 20px;
+}
+.about-cta-inner {
+  background: linear-gradient(135deg, var(--seraj) 0%, var(--seraj-dark) 100%);
+  border-radius: 36px;
+  padding: 40px 30px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 10px 0 var(--seraj-darker), 0 30px 60px rgba(74,145,40,.3);
+  border: 4px solid var(--ink);
+  position: relative;
+  overflow: hidden;
+}
+.about-cta-inner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 80% 20%, rgba(255,255,255,.2), transparent 50%);
+  pointer-events: none;
+}
+@media (min-width: 820px) {
+  .about-cta-inner {
+    grid-template-columns: auto 1fr auto;
+    text-align: start;
+    padding: 50px 60px;
+    gap: 40px;
+  }
+}
+.about-cta-mascot {
+  width: 140px;
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,.3));
+  animation: bob 3s ease-in-out infinite;
+  margin: 0 auto;
+}
+@media (min-width: 820px) {
+  .about-cta-mascot { margin: 0; }
+}
+.about-cta-copy h2 {
+  color: #fff;
+  font-size: clamp(24px, 3.5vw, 36px);
+  margin-bottom: 6px;
+  text-shadow: 0 2px 0 rgba(0,0,0,.2);
+}
+.about-cta-copy p {
+  color: rgba(255,255,255,.9);
+  font-size: 16px;
+}
+.about-cta-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+@media (min-width: 820px) {
+  .about-cta-btns {
+    flex-direction: column;
+    min-width: 220px;
+  }
+}
+.about-cta-btns .btn-primary {
+  background: var(--paper);
+  color: var(--seraj-darker);
+  border-color: var(--ink);
+  box-shadow: 0 6px 0 var(--ink);
+  text-shadow: none;
+}
+.about-cta-btns .btn-secondary {
+  background: transparent;
+  color: #fff;
+  border-color: #fff;
+  box-shadow: 0 5px 0 rgba(0,0,0,.2);
+}
+.about-cta-btns .btn-secondary:hover {
+  background: rgba(255,255,255,.15);
 }
 
 .values-row {
@@ -1857,6 +1964,94 @@ input, textarea { font-family: inherit; }
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+
+/* ========== CART PAGE ========== */
+.cart-empty {
+  text-align: center;
+  padding: 60px 20px;
+}
+.cart-empty svg { margin-bottom: 20px; opacity: .4; }
+.cart-empty h2 { font-size: 28px; margin-bottom: 8px; }
+.cart-empty p { color: var(--ink-soft); margin-bottom: 24px; }
+.cart-items { max-width: 700px; margin: 0 auto; }
+.cart-item {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 18px;
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 22px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 0 var(--ink);
+  position: relative;
+}
+.cart-item-media {
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+  border: 2px solid var(--ink);
+  overflow: hidden;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+}
+.cart-item-media.emerald-bg { background: var(--seraj-wash); }
+.cart-item-media.sand-bg { background: var(--brass-wash); }
+.cart-item-media.teal-bg { background: #d8f0ec; }
+.cart-item-info { flex: 1; }
+.cart-item-info h3 { font-size: 17px; margin-bottom: 4px; }
+.cart-item-info .price { font-size: 20px; }
+.cart-remove {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  background: transparent;
+  color: var(--ink-mute);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  font-weight: 700;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+.cart-remove:hover { background: #fde8e8; border-color: var(--ember); color: var(--ember); }
+
+.cart-summary {
+  max-width: 700px;
+  margin: 20px auto 0;
+  padding: 24px;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 24px;
+  box-shadow: 0 6px 0 var(--ink);
+}
+.cart-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+.cart-summary-row.total {
+  border-top: 2.5px solid var(--ink);
+  margin-top: 10px;
+  padding-top: 14px;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--ink);
+}
+.cart-note {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--ink-mute);
+}
+.cart-note svg { vertical-align: middle; }
 
 /* ========== HOW-IT-WORKS ACCORDION (WIZARD) ========== */
 .hiw-accordion {

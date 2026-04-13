@@ -182,6 +182,81 @@
     setTimeout(function() { t.classList.remove('show'); setTimeout(function() { t.remove(); }, 300); }, 2200);
   }
 
+  // ----- Cart Page Rendering -----
+  function renderCartPage() {
+    var container = document.getElementById('cartPage');
+    if (!container) return;
+
+    // Count items
+    var counts = {};
+    cart.forEach(function(slug) { counts[slug] = (counts[slug] || 0) + 1; });
+    var slugs = Object.keys(counts);
+
+    if (slugs.length === 0) {
+      container.innerHTML =
+        '<div class="cart-empty">' +
+          '<svg viewBox="0 0 24 24" width="64" height="64"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+          '<h2>السلة فاضية!</h2>' +
+          '<p>مفيش منتجات في السلة دلوقتي.. شوفي منتجاتنا الحلوة!</p>' +
+          '<a href="#/products" data-link class="btn btn-primary btn-xl">شوفي المنتجات</a>' +
+        '</div>';
+      return;
+    }
+
+    var h = '<div class="page-head tight"><span class="kicker">سِراج</span><h1>سلة بطلنا</h1></div>';
+    h += '<div class="cart-items">';
+
+    var total = 0;
+    var prices = { 'story-khaled': 140, 'custom-story': 220, 'flash-cards': 150, 'bundle': 420 };
+
+    slugs.forEach(function(slug) {
+      var product = PRODUCTS[slug];
+      if (!product) return;
+      var qty = counts[slug];
+      var price = prices[slug] || 0;
+      total += price * qty;
+      var bgClass = product.media.bg === 'emerald' ? 'emerald-bg' : product.media.bg === 'sand' ? 'sand-bg' : 'teal-bg';
+      h += '<div class="cart-item">';
+      h += '<div class="cart-item-media ' + bgClass + '">' + renderMedia(product.media, false) + '</div>';
+      h += '<div class="cart-item-info"><h3>' + product.name + '</h3><span class="price">' + product.priceText + '</span></div>';
+      h += '<button class="cart-remove" data-remove-cart="' + slug + '" title="شيلي المنتج">✕</button>';
+      h += '</div>';
+    });
+
+    h += '</div>';
+
+    // Summary
+    var deposit = 50;
+    h += '<div class="cart-summary">';
+    h += '<div class="cart-summary-row"><span>المجموع الفرعي</span><span>' + toArabicNum(total) + ' ج.م</span></div>';
+    h += '<div class="cart-summary-row"><span>الشحن</span><span style="color:var(--seraj-dark);font-weight:700">مجاناً ✦</span></div>';
+    h += '<div class="cart-summary-row total"><span>الإجمالي</span><span>' + toArabicNum(total) + ' ج.م</span></div>';
+    h += '</div>';
+    h += '<p class="cart-note">🎯 عربون جدية ' + toArabicNum(deposit) + ' ج.م بس عشان نبدأ، والباقي بعد الاستلام</p>';
+
+    h += '<a href="#/checkout" data-link class="btn btn-primary btn-xl btn-fullrow" style="margin-top:24px">إتمام الطلب</a>';
+    h += '<a href="#/products" data-link class="btn btn-ghost btn-fullrow" style="margin-top:8px">كملي التسوق</a>';
+
+    container.innerHTML = h;
+  }
+
+  // Remove from cart handler
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-remove-cart]');
+    if (!btn) return;
+    var slug = btn.dataset.removeCart;
+    var idx = cart.indexOf(slug);
+    if (idx > -1) cart.splice(idx, 1);
+    updateCartBadge();
+    renderCartPage();
+    showToast('تم الشيل من السلة');
+  });
+
+  function toArabicNum(n) {
+    var digits = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+    return String(n).replace(/[0-9]/g, function(d) { return digits[+d]; });
+  }
+
   // ----- Router -----
   const pages = document.querySelectorAll('.page');
   const bottomTabs = document.querySelectorAll('.bottom-nav a[data-tab]');
@@ -217,6 +292,7 @@
 
     // Special page setups
     if (name === 'product') renderProductDetail(sub);
+    if (name === 'cart') renderCartPage();
     if (name === 'wizard') setupWizard();
     if (name === 'success') burstConfetti();
     if (name === 'mama-world') initMamaWorld();
@@ -503,14 +579,26 @@
     setTimeout(() => { location.hash = '#/wizard'; }, 220);
   });
 
-  // ----- Filter Chips -----
+  // ----- Filter Chips (Catalog) -----
   document.addEventListener('click', (e) => {
-    const chip = e.target.closest('.chip');
+    const chip = e.target.closest('.chip[data-filter]');
     if (!chip) return;
     const container = chip.closest('.filter-chips');
     if (!container) return;
+    // Toggle active chip
     container.querySelectorAll('.chip').forEach((c) => c.classList.remove('is-active'));
     chip.classList.add('is-active');
+    // Filter products
+    const filter = chip.dataset.filter;
+    const grid = document.getElementById('catalogGrid');
+    if (!grid) return;
+    grid.querySelectorAll('[data-cat]').forEach((card) => {
+      if (filter === 'all' || card.dataset.cat === filter) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
   });
 
   // ----- Hero Video: Lazy-load + Intersection Observer -----
