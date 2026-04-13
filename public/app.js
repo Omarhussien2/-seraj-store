@@ -160,10 +160,15 @@
   // ----- Wizard data localStorage -----
   function saveWizardData() {
     try {
+      var ageNum = state.age;
+      if (typeof ageNum === 'string') {
+        ageNum = parseInt(ageNum, 10);
+      }
+      if (isNaN(ageNum)) ageNum = null;
       localStorage.setItem(WIZARD_KEY, JSON.stringify({
         heroName: state.heroName,
-        age: typeof state.age === 'string' ? parseInt(state.age, 10) : state.age,
-        challenge: state.challenge,
+        age: ageNum,
+        challenge: state.challenge || '',
         photoUrl: state.photoUrl || null
       }));
     } catch (e) { /* silent */ }
@@ -523,13 +528,16 @@
       paymentMethod: 'instapay'
     };
 
-    // Include wizard/custom story data if available
+    // Include wizard/custom story data ONLY if custom-story is in the cart
+    var hasCustomStory = cart.some(function (item) { return item.slug === 'custom-story'; });
     var wizardData = loadWizardData();
-    if (wizardData && wizardData.heroName) {
+    if (hasCustomStory && wizardData && wizardData.heroName) {
+      var wizardAge = typeof wizardData.age === 'string' ? parseInt(wizardData.age, 10) : wizardData.age;
+      if (isNaN(wizardAge)) wizardAge = 5; // fallback
       orderData.customStory = {
         heroName: wizardData.heroName,
-        age: typeof wizardData.age === 'string' ? parseInt(wizardData.age, 10) : wizardData.age,
-        challenge: wizardData.challenge || '',
+        age: wizardAge,
+        challenge: wizardData.challenge || 'شجاعة',
         photoUrl: wizardData.photoUrl || undefined
       };
     }
@@ -568,12 +576,20 @@
           // Navigate to success
           location.hash = '#/success';
         } else {
-          throw new Error(data.error || 'فشل إنشاء الطلب');
+          // Show actual error from server
+          var errorMsg = 'حصلت مشكلة، حاولي تاني ✦';
+          if (data.error === 'Validation failed' && data.details && data.details.length > 0) {
+            var fields = data.details.map(function (d) { return d.field; }).join('، ');
+            errorMsg = 'خطأ في: ' + fields + ' ✦';
+          } else if (data.error) {
+            errorMsg = data.error + ' ✦';
+          }
+          throw new Error(errorMsg);
         }
       })
       .catch(function (err) {
         console.error('Order submission error:', err);
-        showToast('حصلت مشكلة، حاولي تاني ✦');
+        showToast(err.message || 'حصلت مشكلة، حاولي تاني ✦');
         if (btn) {
           btn.disabled = false;
           btn.textContent = 'تأكيد الطلب';
@@ -845,7 +861,8 @@
       chip.addEventListener('click', function () {
         wizardShell.querySelectorAll('.age-chip').forEach(function (c) { c.classList.remove('is-active'); });
         chip.classList.add('is-active');
-        state.age = chip.textContent.trim();
+        // Use data-age (Latin numeral) instead of textContent (Arabic numeral)
+        state.age = parseInt(chip.getAttribute('data-age') || chip.textContent.trim(), 10);
       });
     });
 

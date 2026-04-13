@@ -14,8 +14,8 @@ const OrderItemSchema = z.object({
 
 const CustomStorySchema = z.object({
   heroName: z.string().min(1),
-  age: z.number().int().min(1).max(18),
-  challenge: z.string().min(1),
+  age: z.number().int().min(1).max(18).default(5),
+  challenge: z.string().default("شجاعة"),
   photoUrl: z.string().url().optional(),
 });
 
