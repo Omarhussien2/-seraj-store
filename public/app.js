@@ -1213,10 +1213,12 @@
   });
 
   // ----- Preview → Checkout: ensure custom story is in cart -----
+  // Only auto-add when coming from the preview page (wizard completion flow),
+  // NOT from cart or other pages — prevents forcing custom story on users.
   document.addEventListener('click', function (e) {
     var link = e.target.closest('a[href="#/checkout"]');
     if (!link) return;
-    // If wizard data exists, ensure custom story is added to cart
+    if (location.hash !== '#/preview') return;
     var wizardData = loadWizardData();
     if (wizardData && wizardData.heroName) {
       addCustomStoryToCart();
