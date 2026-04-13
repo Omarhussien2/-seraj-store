@@ -28,7 +28,6 @@
   function showPage(name, sub) {
     let target = name;
     // Map special routes
-    if (name === 'how-it-works') target = 'home';
     if (name === 'product') target = 'product';
 
     pages.forEach((p) => {
@@ -41,15 +40,8 @@
       a.classList.toggle('is-active', a.dataset.tab === name);
     });
 
-    // Scroll to top of new page or to anchor
-    if (name === 'how-it-works') {
-      requestAnimationFrame(() => {
-        const anchor = document.getElementById('how-it-works');
-        if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-    } else {
-      window.scrollTo({ top: 0, behavior: 'instant' });
-    }
+    // Scroll to top of new page
+    window.scrollTo({ top: 0, behavior: 'instant' });
 
     // Replay reveal observer for newly-visible content
     setTimeout(initReveals, 80);
@@ -57,6 +49,7 @@
     // Special page setups
     if (name === 'wizard') setupWizard();
     if (name === 'success') burstConfetti();
+    if (name === 'mama-world') initMamaWorld();
     if (name === 'preview') {
       const heroName = state.heroName || 'بطلنا';
       document.querySelectorAll('#previewName, #previewName2, #previewName3, #previewName4')
@@ -290,6 +283,36 @@
       s.style.height = (10 + Math.random() * 10) + 'px';
       host.appendChild(s);
     }
+  }
+
+  // ----- Mama World Tabs -----
+  let mamaInited = false;
+  function initMamaWorld() {
+    if (!mamaInited) {
+      // Set up tab click listeners once
+      document.querySelectorAll('.mama-tab').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const target = tab.dataset.mamaTab;
+          // Toggle tabs
+          document.querySelectorAll('.mama-tab').forEach((t) => t.classList.remove('is-active'));
+          tab.classList.add('is-active');
+          // Toggle panels
+          document.querySelectorAll('.mama-panel').forEach((p) => p.classList.remove('is-active'));
+          const panel = document.querySelector(`[data-mama-panel="${target}"]`);
+          if (panel) panel.classList.add('is-active');
+          // Re-trigger reveals
+          setTimeout(initReveals, 80);
+        });
+      });
+      mamaInited = true;
+    }
+    // Reset to articles tab on entry
+    document.querySelectorAll('.mama-tab').forEach((t) => t.classList.remove('is-active'));
+    document.querySelectorAll('.mama-panel').forEach((p) => p.classList.remove('is-active'));
+    const articlesTab = document.querySelector('[data-mama-tab="articles"]');
+    const articlesPanel = document.querySelector('[data-mama-panel="articles"]');
+    if (articlesTab) articlesTab.classList.add('is-active');
+    if (articlesPanel) articlesPanel.classList.add('is-active');
   }
 
   // ----- Shake animation hook -----
