@@ -1,0 +1,20 @@
+{
+  "name": "سِراج — متعة القراءة واللعب",
+  "short_name": "سِراج",
+  "description": "قصص مخصصة باسم طفلك — مصنوعة بحب في مصر",
+  "start_url": "/#/home",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#6bbf3f",
+  "dir": "rtl",
+  "lang": "ar",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/seraj.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
