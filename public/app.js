@@ -16,6 +16,8 @@
     heroName: '',
     age: null,
     challenge: null,
+    photoUrl: null,
+    photoFile: null,
     wizardStep: 1,
   };
 
@@ -137,7 +139,8 @@
       localStorage.setItem(WIZARD_KEY, JSON.stringify({
         heroName: state.heroName,
         age: typeof state.age === 'string' ? parseInt(state.age, 10) : state.age,
-        challenge: state.challenge
+        challenge: state.challenge,
+        photoUrl: state.photoUrl || null
       }));
     } catch (e) { /* silent */ }
   }
