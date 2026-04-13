@@ -51,3 +51,6 @@ claude.exe
 
 # temp
 seraj-nextjs-init/
+
+# Duplicate assets (originals in public/assets/)
+public/assets/assets/
