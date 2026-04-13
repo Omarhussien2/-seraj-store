@@ -12,6 +12,9 @@ const PatchOrderSchema = z.object({
     .enum(["unpaid", "deposit_paid", "fully_paid"])
     .optional(),
   notes: z.string().optional(),
+  customStory: z.object({
+    storyStatus: z.enum(["pending", "reviewed", "sent_to_print", "delivered"]),
+  }).optional(),
 });
 
 /**
