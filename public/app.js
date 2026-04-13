@@ -645,8 +645,16 @@
     return { page: page, sub: sub };
   }
 
+  // Valid page names for the SPA router
+  var validPages = ['home', 'products', 'about', 'wizard', 'preview', 'checkout', 'success', 'cart', 'product', 'mama-world'];
+
   function showPage(name, sub) {
     var target = name;
+    // Check if this is a valid page, if not show 404
+    if (validPages.indexOf(name) === -1) {
+      target = 'not-found';
+      name = 'not-found';
+    }
     if (name === 'product') target = 'product';
 
     pages.forEach(function (p) {
