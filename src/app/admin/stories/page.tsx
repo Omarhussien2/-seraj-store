@@ -83,7 +83,7 @@ export default function AdminStoriesPage() {
     fetchStories();
   }, [fetchStories]);
 
-  async function updateStoryStatus(orderId: string, newStatus: string) {
+  async function updateStoryStatus(orderId: string, newStatus: "pending" | "reviewed" | "sent_to_print" | "delivered") {
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
         method: "PATCH",
