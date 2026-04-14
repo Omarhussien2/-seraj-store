@@ -933,55 +933,25 @@
       <!-- PANEL 1: مقالات -->
       <div class="mama-panel is-active" data-mama-panel="articles">
         <div class="mama-search">
-          <input type="text" placeholder="ابحثي في المقالات..." disabled/>
+          <input type="text" id="articles-search" placeholder="ابحثي في المقالات..."/>
         </div>
-        <div class="mama-chips">
-          <button class="chip is-active">الكل</button>
-          <button class="chip">تربية</button>
-          <button class="chip">صحة</button>
-          <button class="chip">تعليم</button>
-          <button class="chip">سلوك</button>
-          <button class="chip">نفسية</button>
+        <div class="mama-chips" id="articles-chips">
+          <!-- Dynamic chips loaded from API -->
         </div>
-        <div class="articles-grid">
-          <article class="article-card reveal" style="--d:.05s">
-            <div class="article-img"></div>
-            <div class="article-body">
-              <h3>إزاي تتعاملي مع العند عند طفلك؟</h3>
-              <p>نصايح عملية من أمهات جربوا الطرق الصحية للتعامل مع مرحلة العند</p>
-              <span class="article-time">٥ دقائق قراءة</span>
-            </div>
-          </article>
-          <article class="article-card reveal" style="--d:.12s">
-            <div class="article-img"></div>
-            <div class="article-body">
-              <h3>أهمية القراءة لطفلك قبل المدرسة</h3>
-              <p>القصة مش مجرد تسلية.. هي أساس بناء الخيال واللغة عند الأطفال</p>
-              <span class="article-time">٤ دقائق قراءة</span>
-            </div>
-          </article>
-          <article class="article-card reveal" style="--d:.19s">
-            <div class="article-img"></div>
-            <div class="article-body">
-              <h3>روتين النوم الصحي لبطلنا الصغير</h3>
-              <p>خطوات بسيطة تخلي طفلك ينام براحته ويصحى نشيط</p>
-              <span class="article-time">٣ دقائق قراءة</span>
-            </div>
-          </article>
-          <article class="article-card reveal" style="--d:.26s">
-            <div class="article-img"></div>
-            <div class="article-body">
-              <h3>إزاي تحفّزي طفلك يحب المذاكرة؟</h3>
-              <p>طرق إبداعية تخلي التعليم يكون متعة مش واجب</p>
-              <span class="article-time">٦ دقائق قراءة</span>
-            </div>
-          </article>
+        <div class="articles-grid" id="articles-grid">
+          <!-- Dynamic article cards loaded from API -->
         </div>
-        <div class="coming-soon-overlay">
-          <svg viewBox="0 0 24 24" width="32" height="32"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM12 17c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM15.1 8H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z" fill="var(--brass)"/></svg>
-          <h3>قريباً إن شاء الله ✦</h3>
-          <p>مقالات من القلب بأيدي أمهات وخبراء تربية.. ستّري قريب!</p>
+        <div id="articles-loading" class="articles-loading" style="display:none">
+          <div class="articles-spinner"></div>
+          <p>جاري التحميل...</p>
         </div>
+        <div id="articles-empty" class="articles-empty" style="display:none">
+          <p>مفيش مقالات بالبحث ده — جربي كلمات تانية</p>
+        </div>
+        <div id="articles-error" class="articles-error" style="display:none">
+          <p>حصلت مشكلة، حاولي تاني</p>
+        </div>
+        <button id="articles-load-more" class="btn btn-outline articles-load-more" style="display:none">عرض المزيد ↓</button>
       </div>
 
       <!-- PANEL 2: فسحة حلوة -->
@@ -1062,6 +1032,13 @@
         </div>
       </div>
 
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- ARTICLE DETAIL                                             -->
+    <!-- ========================================================= -->
+    <section class="page" data-page="article">
+      <div id="article-detail" class="article-detail-page"></div>
     </section>
 
   </main>

@@ -735,7 +735,7 @@
   }
 
   // Valid page names for the SPA router
-  var validPages = ['home', 'products', 'about', 'wizard', 'preview', 'checkout', 'success', 'cart', 'product', 'mama-world'];
+  var validPages = ['home', 'products', 'about', 'wizard', 'preview', 'checkout', 'success', 'cart', 'product', 'mama-world', 'article'];
 
   function showPage(name, sub) {
     var target = name;
@@ -767,6 +767,7 @@
       renderSuccessPage();
     }
     if (name === 'mama-world') initMamaWorld();
+    if (name === 'article') renderArticleDetail(sub);
     if (name === 'preview') {
       var heroName = state.heroName || 'بطلنا';
       var el = document.getElementById('previewName');
@@ -1111,8 +1112,11 @@
     }
   }
 
-  // ----- Mama World Tabs -----
+  // ----- Mama World Tabs & Articles -----
   var mamaInited = false;
+  var articlesState = { page: 1, limit: 12, total: 0, section: '', search: '', sections: [] };
+  var articlesSearchTimer = null;
+
   function initMamaWorld() {
     if (!mamaInited) {
       document.querySelectorAll('.mama-tab').forEach(function (tab) {
@@ -1126,14 +1130,286 @@
           setTimeout(initReveals, 80);
         });
       });
+
+      // Search input with debounce
+      var searchInput = document.getElementById('articles-search');
+      if (searchInput) {
+        searchInput.addEventListener('input', function () {
+          clearTimeout(articlesSearchTimer);
+          articlesSearchTimer = setTimeout(function () {
+            articlesState.search = searchInput.value.trim();
+            articlesState.page = 1;
+            fetchArticles();
+          }, 300);
+        });
+      }
+
+      // Load more button
+      var loadMoreBtn = document.getElementById('articles-load-more');
+      if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', function () {
+          articlesState.page++;
+          fetchArticles(true);
+        });
+      }
+
       mamaInited = true;
     }
+
     document.querySelectorAll('.mama-tab').forEach(function (t) { t.classList.remove('is-active'); });
     document.querySelectorAll('.mama-panel').forEach(function (p) { p.classList.remove('is-active'); });
     var articlesTab = document.querySelector('[data-mama-tab="articles"]');
     var articlesPanel = document.querySelector('[data-mama-panel="articles"]');
     if (articlesTab) articlesTab.classList.add('is-active');
     if (articlesPanel) articlesPanel.classList.add('is-active');
+
+    // Reset and fetch articles
+    articlesState.page = 1;
+    articlesState.section = '';
+    fetchArticles();
+  }
+
+  function fetchArticles(append) {
+    var grid = document.getElementById('articles-grid');
+    var loading = document.getElementById('articles-loading');
+    var empty = document.getElementById('articles-empty');
+    var error = document.getElementById('articles-error');
+    var loadMore = document.getElementById('articles-load-more');
+    if (!grid) return;
+
+    loading.style.display = 'block';
+    empty.style.display = 'none';
+    error.style.display = 'none';
+
+    var params = new URLSearchParams({
+      page: String(articlesState.page),
+      limit: String(articlesState.limit)
+    });
+    if (articlesState.section) params.set('section', articlesState.section);
+    if (articlesState.search) params.set('search', articlesState.search);
+
+    fetch('/api/articles?' + params.toString())
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        loading.style.display = 'none';
+        if (!data.success) {
+          error.style.display = 'block';
+          return;
+        }
+        var html = '';
+        data.data.forEach(function (a, i) {
+          var sectionColor = getSectionColor(a.section);
+          var coverStyle = a.coverImage
+            ? 'background-image:url(' + a.coverImage + ')'
+            : 'background:linear-gradient(135deg,' + sectionColor + ',' + sectionColor + '88)';
+          html += '<article class="article-card reveal" style="--d:.' + ((i % 12) * 5 + 5) + 's" onclick="location.hash=\'#/article/' + a.slug + '\'">';
+          html += '<div class="article-img" style="' + coverStyle + '"></div>';
+          html += '<div class="article-body">';
+          html += '<span class="article-badge" style="background:' + sectionColor + '">' + a.section + '</span>';
+          html += '<h3>' + escHtml(a.title) + '</h3>';
+          html += '<p>' + escHtml(a.excerpt) + '</p>';
+          html += '<span class="article-time">⏱ ' + (a.readingTime || 5) + ' دقائق قراءة</span>';
+          html += '</div></article>';
+        });
+
+        if (append) {
+          grid.insertAdjacentHTML('beforeend', html);
+        } else {
+          grid.innerHTML = html;
+        }
+
+        articlesState.total = data.pagination.total;
+        loadMore.style.display = (articlesState.page * articlesState.limit < articlesState.total) ? 'inline-flex' : 'none';
+        empty.style.display = (data.data.length === 0 && !append) ? 'block' : 'none';
+
+        // Update chips
+        if (data.sections && data.sections.length > 0) {
+          articlesState.sections = data.sections;
+          renderArticleChips(data.sections);
+        }
+
+        setTimeout(initReveals, 80);
+      })
+      .catch(function () {
+        loading.style.display = 'none';
+        error.style.display = 'block';
+      });
+  }
+
+  function renderArticleChips(sections) {
+    var chipsEl = document.getElementById('articles-chips');
+    if (!chipsEl) return;
+    var html = '<button class="chip' + (!articlesState.section ? ' is-active' : '') + '" data-article-section="">الكل</button>';
+    sections.forEach(function (s) {
+      var isActive = articlesState.section === s.name ? ' is-active' : '';
+      html += '<button class="chip' + isActive + '" data-article-section="' + escHtml(s.name) + '">' + escHtml(s.name) + ' (' + s.count + ')</button>';
+    });
+    chipsEl.innerHTML = html;
+
+    // Bind click events
+    chipsEl.querySelectorAll('.chip').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        chipsEl.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('is-active'); });
+        chip.classList.add('is-active');
+        articlesState.section = chip.dataset.articleSection || '';
+        articlesState.page = 1;
+        fetchArticles();
+      });
+    });
+  }
+
+  // Section colors map
+  var SECTION_COLORS_MAP = {
+    'الحمل والرضاعة': '#e85d4c',
+    'من الولادة إلى سنتين': '#f59e42',
+    'من 2 إلى 5 سنوات': '#6bbf3f',
+    'العلاقة مع الأم نفسها': '#c9974e',
+    'الأهل والأسرة الممتدة': '#36a39a',
+    'العدل بين الولد والبنت': '#8b5e2a',
+    'المدرسة والضغط الدراسي': '#5b7fc7',
+    'الشاشات والإنترنت': '#9b59b6',
+    'السلوكيات الصعبة والصحة النفسية': '#e74c3c',
+    'الأب والتربية المشتركة': '#2c3e50',
+    'مشاعر الأم وصورتها عن نفسها': '#e08283',
+    'القيم والمراحل العمرية': '#27ae60'
+  };
+
+  function getSectionColor(section) {
+    return SECTION_COLORS_MAP[section] || '#6bbf3f';
+  }
+
+  function escHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // ----- Article Detail Page -----
+  function renderArticleDetail(slug) {
+    var container = document.getElementById('article-detail');
+    if (!container) return;
+    container.innerHTML = '<div class="articles-loading"><div class="articles-spinner"></div><p>جاري تحميل المقال...</p></div>';
+
+    fetch('/api/articles/' + slug)
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data.success || !data.data) {
+          container.innerHTML = '<div class="articles-error"><p>المقال غير موجود</p><a href="#/mama-world" class="btn btn-outline" style="margin-top:16px;display:inline-block">← رجوع لعالم ماما</a></div>';
+          return;
+        }
+        var a = data.data;
+        var sectionColor = getSectionColor(a.section);
+        var coverHtml = a.coverImage
+          ? '<div class="article-detail-cover" style="background-image:url(' + a.coverImage + ')"></div>'
+          : '';
+
+        // Convert markdown to HTML (simple converter)
+        var contentHtml = simpleMarkdown(a.contentMarkdown || '');
+
+        // Sources
+        var sourcesHtml = '';
+        if (a.sources && a.sources.length > 0) {
+          sourcesHtml = '<div class="article-sources"><h2>📚 المصادر والمراجع</h2><div class="sources-list">';
+          a.sources.forEach(function (s) {
+            sourcesHtml += '<div class="source-item">';
+            sourcesHtml += '<strong>' + escHtml(s.label) + '</strong>';
+            if (s.url) sourcesHtml += ' <a href="' + escHtml(s.url) + '" target="_blank" rel="noopener">↗ رابط المصدر</a>';
+            if (s.note) sourcesHtml += ' <span class="source-note">· ' + escHtml(s.note) + '</span>';
+            sourcesHtml += '</div>';
+          });
+          sourcesHtml += '</div></div>';
+        }
+
+        // Related articles
+        var relatedHtml = '';
+        if (data.related && data.related.length > 0) {
+          relatedHtml = '<div class="article-related"><h2>مقالات ذات صلة</h2><div class="related-grid">';
+          data.related.forEach(function (r) {
+            var rColor = getSectionColor(r.section);
+            var rCover = r.coverImage
+              ? 'background-image:url(' + r.coverImage + ')'
+              : 'background:linear-gradient(135deg,' + rColor + ',' + rColor + '88)';
+            relatedHtml += '<a href="#/article/' + r.slug + '" class="related-card">';
+            relatedHtml += '<div class="related-img" style="' + rCover + '"></div>';
+            relatedHtml += '<div class="related-body"><h4>' + escHtml(r.title) + '</h4>';
+            relatedHtml += '<span class="article-time">⏱ ' + (r.readingTime || 5) + ' دقائق</span>';
+            relatedHtml += '</div></a>';
+          });
+          relatedHtml += '</div></div>';
+        }
+
+        // Format date
+        var dateStr = '';
+        if (a.publishedAt) {
+          try {
+            var d = new Date(a.publishedAt);
+            dateStr = d.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+          } catch (e) { dateStr = ''; }
+        }
+
+        container.innerHTML =
+          '<a href="#/mama-world" class="article-back">← رجوع لعالم ماما</a>' +
+          coverHtml +
+          '<div class="article-detail-content">' +
+          '<span class="article-badge" style="background:' + sectionColor + '">' + escHtml(a.section) + '</span>' +
+          '<h1 class="article-detail-title">' + escHtml(a.title) + '</h1>' +
+          '<div class="article-meta">✏️ ' + escHtml(a.author || 'فريق سراج') + ' · ⏱ ' + (a.readingTime || 5) + ' دقائق قراءة' + (dateStr ? ' · ' + dateStr : '') + '</div>' +
+          '<hr class="article-divider"/>' +
+          '<div class="article-body-content">' + contentHtml + '</div>' +
+          '<hr class="article-divider"/>' +
+          sourcesHtml +
+          relatedHtml +
+          '</div>';
+
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      })
+      .catch(function () {
+        container.innerHTML = '<div class="articles-error"><p>حصلت مشكلة في تحميل المقال</p><a href="#/mama-world" class="btn btn-outline" style="margin-top:16px;display:inline-block">← رجوع لعالم ماما</a></div>';
+      });
+  }
+
+  // Simple Markdown to HTML converter (no external dependency)
+  function simpleMarkdown(md) {
+    if (!md) return '';
+    var html = md;
+    // Headers
+    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    // Bold
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    // Italic
+    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    // Links
+    html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    // Unordered lists
+    html = html.replace(/^\* (.+)$/gm, '<li>$1</li>');
+    html = html.replace(/^\- (.+)$/gm, '<li>$1</li>');
+    html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+    // Ordered lists
+    html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+    // Horizontal rules
+    html = html.replace(/^---+$/gm, '<hr/>');
+    // Tables (simple)
+    html = html.replace(/^\|(.+)\|$/gm, function (match) {
+      if (match.match(/^\|[\s-|]+\|$/)) return '';
+      var cells = match.split('|').filter(function (c) { return c.trim(); });
+      return '<tr>' + cells.map(function (c) { return '<td>' + c.trim() + '</td>'; }).join('') + '</tr>';
+    });
+    html = html.replace(/(<tr>.*<\/tr>\n?)+/g, '<table>$&</table>');
+    // Paragraphs
+    html = html.replace(/\n\n/g, '</p><p>');
+    html = '<p>' + html + '</p>';
+    // Clean up empty paragraphs
+    html = html.replace(/<p>\s*<\/p>/g, '');
+    html = html.replace(/<p>\s*(<h[1-6]>)/g, '$1');
+    html = html.replace(/(<\/h[1-6]>)\s*<\/p>/g, '$1');
+    html = html.replace(/<p>\s*(<ul>)/g, '$1');
+    html = html.replace(/(<\/ul>)\s*<\/p>/g, '$1');
+    html = html.replace(/<p>\s*(<table>)/g, '$1');
+    html = html.replace(/(<\/table>)\s*<\/p>/g, '$1');
+    html = html.replace(/<p>\s*(<hr\/>)/g, '$1');
+    html = html.replace(/(<hr\/>)\s*<\/p>/g, '$1');
+    return html;
   }
 
   // ----- Shake animation hook -----

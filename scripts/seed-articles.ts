@@ -1,0 +1,362 @@
+/**
+ * Seed Articles Script
+ * Reads ARTICALS.md, parses 40 articles, maps them to 12 sections,
+ * and upserts them into MongoDB.
+ *
+ * Usage: npx tsx scripts/seed-articles.ts
+ */
+
+import mongoose from "mongoose";
+import fs from "fs";
+import path from "path";
+
+// ─── Section mapping (from index file) ───
+const SECTION_MAP: Record<number, string> = {
+  1: "الحمل والرضاعة",
+  2: "الحمل والرضاعة",
+  3: "الحمل والرضاعة",
+  4: "الحمل والرضاعة",
+  5: "من الولادة إلى سنتين",
+  6: "من الولادة إلى سنتين",
+  7: "من الولادة إلى سنتين",
+  8: "من الولادة إلى سنتين",
+  9: "من 2 إلى 5 سنوات",
+  10: "من 2 إلى 5 سنوات",
+  11: "من 2 إلى 5 سنوات",
+  12: "من 2 إلى 5 سنوات",
+  13: "العلاقة مع الأم نفسها",
+  14: "العلاقة مع الأم نفسها",
+  15: "العلاقة مع الأم نفسها",
+  16: "العلاقة مع الأم نفسها",
+  17: "الأهل والأسرة الممتدة",
+  18: "الأهل والأسرة الممتدة",
+  19: "العدل بين الولد والبنت",
+  20: "العدل بين الولد والبنت",
+  21: "المدرسة والضغط الدراسي",
+  22: "المدرسة والضغط الدراسي",
+  23: "المدرسة والضغط الدراسي",
+  24: "الشاشات والإنترنت",
+  25: "الشاشات والإنترنت",
+  26: "الشاشات والإنترنت",
+  27: "الشاشات والإنترنت",
+  28: "السلوكيات الصعبة والصحة النفسية",
+  29: "السلوكيات الصعبة والصحة النفسية",
+  30: "السلوكيات الصعبة والصحة النفسية",
+  31: "السلوكيات الصعبة والصحة النفسية",
+  32: "السلوكيات الصعبة والصحة النفسية",
+  33: "الأب والتربية المشتركة",
+  34: "الأب والتربية المشتركة",
+  35: "مشاعر الأم وصورتها عن نفسها",
+  36: "مشاعر الأم وصورتها عن نفسها",
+  37: "القيم والمراحل العمرية",
+  38: "القيم والمراحل العمرية",
+  39: "القيم والمراحل العمرية",
+  40: "القيم والمراحل العمرية",
+};
+
+const AGE_GROUP_MAP: Record<string, string> = {
+  "الحمل والرضاعة": "الحمل",
+  "من الولادة إلى سنتين": "0-2",
+  "من 2 إلى 5 سنوات": "2-5",
+  "العلاقة مع الأم نفسها": "متنوع",
+  "الأهل والأسرة الممتدة": "متنوع",
+  "العدل بين الولد والبنت": "متنوع",
+  "المدرسة والضغط الدراسي": "5-10",
+  "الشاشات والإنترنت": "متنوع",
+  "السلوكيات الصعبة والصحة النفسية": "متنوع",
+  "الأب والتربية المشتركة": "متنوع",
+  "مشاعر الأم وصورتها عن نفسها": "متنوع",
+  "القيم والمراحل العمرية": "متنوع",
+};
+
+// ─── Article Schema (inline for seed script) ───
+const SourceSchema = new mongoose.Schema(
+  {
+    label: { type: String, required: true },
+    url: { type: String },
+    note: { type: String },
+  },
+  { _id: false }
+);
+
+const ArticleSchema = new mongoose.Schema(
+  {
+    slug: { type: String, required: true, unique: true, index: true },
+    title: { type: String, required: true },
+    seoTitle: { type: String },
+    section: { type: String, required: true },
+    ageGroup: { type: String },
+    tags: [{ type: String }],
+    excerpt: { type: String, required: true },
+    contentMarkdown: { type: String, required: true },
+    coverImage: { type: String },
+    coverImageAlt: { type: String, default: "" },
+    sources: [SourceSchema],
+    readingTime: { type: Number, default: 5 },
+    author: { type: String, default: "فريق سراج" },
+    publishedAt: { type: Date },
+    active: { type: Boolean, default: true, index: true },
+    order: { type: Number, default: 0 },
+    metaDescription: { type: String },
+  },
+  { timestamps: true }
+);
+
+ArticleSchema.index({ title: "text", excerpt: "text", contentMarkdown: "text", tags: "text" });
+ArticleSchema.index({ active: 1, section: 1, order: 1 });
+
+const Article =
+  mongoose.models.Article ||
+  mongoose.model("Article", ArticleSchema);
+
+// ─── Parse Articles from Markdown ───
+interface ParsedArticle {
+  id: number;
+  title: string;
+  content: string;
+}
+
+interface SeedArticle {
+  slug: string;
+  title: string;
+  section: string;
+  ageGroup: string;
+  excerpt: string;
+  contentMarkdown: string;
+  sources: { label: string; url?: string; note?: string }[];
+  tags: string[];
+  readingTime: number;
+  author: string;
+  publishedAt: Date;
+  active: boolean;
+  order: number;
+  metaDescription: string;
+}
+
+function parseArticles(content: string): ParsedArticle[] {
+  const articles: ParsedArticle[] = [];
+
+  // Split by article markers: "## **المقال N**" or "مقال N:"
+  const articleRegex = /##\s*\*\*المقال\s+(\d+)\*\*|مقال\s+(\d+)\s*:/g;
+
+  const splits: { id: number; startIndex: number }[] = [];
+  let match;
+
+  while ((match = articleRegex.exec(content)) !== null) {
+    const id = parseInt(match[1] || match[2], 10);
+    splits.push({ id, startIndex: match.index + match[0].length });
+  }
+
+  // Also check for "مقال 21:" format at the end of the file
+  for (let i = 0; i < splits.length; i++) {
+    const start = splits[i].startIndex;
+    const end = i + 1 < splits.length ? splits[i + 1].startIndex : content.length;
+    const articleContent = content.substring(start, end).trim();
+
+    // Extract title: first ## heading after the marker
+    const titleMatch = articleContent.match(/^##\s*\*\*(.+?)\*\*/m);
+    const title = titleMatch ? titleMatch[1].trim() : `مقال ${splits[i].id}`;
+
+    // Remove the title line from content
+    const bodyContent = titleMatch
+      ? articleContent.substring(titleMatch.index! + titleMatch[0].length)
+      : articleContent;
+
+    articles.push({
+      id: splits[i].id,
+      title: title.replace(/[#*]/g, "").trim(),
+      content: bodyContent.trim(),
+    });
+  }
+
+  return articles;
+}
+
+function generateSlug(id: number, title: string): string {
+  // Create a slug from article number + transliterated title keywords
+  const simplified = title
+    .replace(/[^\u0621-\u064A\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .substring(0, 60)
+    .replace(/-+$/, "");
+
+  return `article-${id}-${simplified}`;
+}
+
+function extractExcerpt(content: string): string {
+  // Get the first meaningful paragraph (after the title)
+  const lines = content.split("\n").filter((l) => l.trim());
+  for (const line of lines) {
+    const clean = line.replace(/[#*]/g, "").trim();
+    if (clean.length > 30 && !clean.startsWith("http") && !clean.startsWith("مصادر") && !clean.startsWith("فيديوهات")) {
+      return clean.substring(0, 180).trim() + (clean.length > 180 ? "..." : "");
+    }
+  }
+  return "مقال تربوي من سلسلة عالم ماما";
+}
+
+function extractSources(content: string): { label: string; url?: string; note?: string }[] {
+  const sources: { label: string; url?: string; note?: string }[] = [];
+
+  // Find the sources section
+  const sourcesMatch = content.match(/##\s*\*\*مصادر وروابط مفيدة\*\*([\s\S]*?)(?=##\s*\*\*فيديوهات|$)/i);
+  if (!sourcesMatch) {
+    // Try alternative format
+    const altMatch = content.match(/##\s*\*\*مصادر وروابط\*\*([\s\S]*?)(?=##|$)/i);
+    if (!altMatch) return sources;
+    return extractSourcesFromBlock(altMatch[1]);
+  }
+
+  return extractSourcesFromBlock(sourcesMatch[1]);
+}
+
+function extractSourcesFromBlock(block: string): { label: string; url?: string; note?: string }[] {
+  const sources: { label: string; url?: string; note?: string }[] = [];
+  const lines = block.split("\n");
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#") || trimmed.startsWith("*") && !trimmed.includes("http")) continue;
+
+    // Match: * Label: URL or * [Label](URL)
+    const linkMatch = trimmed.match(/^\*\s*(.+?)\s*:\s*(https?:\/\/\S+)/);
+    if (linkMatch) {
+      sources.push({
+        label: linkMatch[1].replace(/\*/g, "").trim(),
+        url: linkMatch[2],
+      });
+      continue;
+    }
+
+    // Match: * Label:  URL (with extra spaces)
+    const simpleMatch = trimmed.match(/^\*\s*(.+?)(https:\/\/\S+)/);
+    if (simpleMatch) {
+      const label = simpleMatch[1].replace(/[:\-–]\s*$/, "").replace(/\*/g, "").trim();
+      if (label && label.length > 2) {
+        sources.push({ label, url: simpleMatch[2] });
+      }
+    }
+  }
+
+  return sources;
+}
+
+function calculateReadingTime(content: string): number {
+  const wordCount = content.split(/\s+/).filter((w) => w.length > 0).length;
+  return Math.max(1, Math.ceil(wordCount / 200));
+}
+
+function extractTags(title: string, section: string): string[] {
+  const tags: string[] = [section];
+
+  const keywords: Record<string, string[]> = {
+    "الحمل والرضاعة": ["حمل", "رضاعة", "أم جديدة"],
+    "من الولادة إلى سنتين": ["حديثي الولادة", "رضع", "أول سنة"],
+    "من 2 إلى 5 سنوات": ["أطفال صغار", "روضة", "عند"],
+    "العلاقة مع الأم نفسها": ["الأم", "صحة نفسية", "رعاية ذاتية"],
+    "الأهل والأسرة الممتدة": ["أجداد", "عائلة", "حدود"],
+    "العدل بين الولد والبنت": ["مساواة", "بنات", "أولاد"],
+    "المدرسة والضغط الدراسي": ["مدرسة", "دراسة", "دروس"],
+    "الشاشات والإنترنت": ["شاشات", "إنترنت", "ألعاب"],
+    "السلوكيات الصعبة والصحة النفسية": ["سلوك", "صحة نفسية", "قلق"],
+    "الأب والتربية المشتركة": ["أب", "تربية مشتركة", "شراكة"],
+    "مشاعر الأم وصورتها عن نفسها": ["ذنب", "سوشيال", "صورة ذاتية"],
+    "القيم والمراحل العمرية": ["قيم", "مراحل", "توازن"],
+  };
+
+  if (keywords[section]) {
+    tags.push(...keywords[section].slice(0, 2));
+  }
+
+  return [...new Set(tags)];
+}
+
+// ─── Main ───
+async function main() {
+  const MONGODB_URI = process.env.MONGODB_URI;
+  if (!MONGODB_URI) {
+    console.error("❌ MONGODB_URI not set");
+    process.exit(1);
+  }
+
+  console.log("🔌 Connecting to MongoDB...");
+  await mongoose.connect(MONGODB_URI);
+  console.log("✅ Connected");
+
+  // Read ARTICALS.md
+  const articlesPath = path.join(process.cwd(), "docs", "ARTICALS.md");
+  console.log("📖 Reading ARTICALS.md...");
+  const rawContent = fs.readFileSync(articlesPath, "utf-8");
+
+  // Parse articles
+  const parsed = parseArticles(rawContent);
+  console.log(`📋 Found ${parsed.length} articles`);
+
+  // Convert to seed documents
+  const seedArticles: SeedArticle[] = parsed.map((a) => {
+    const section = SECTION_MAP[a.id] || "القيم والمراحل العمرية";
+    const ageGroup = AGE_GROUP_MAP[section] || "متنوع";
+
+    return {
+      slug: generateSlug(a.id, a.title),
+      title: a.title,
+      section,
+      ageGroup,
+      excerpt: extractExcerpt(a.content),
+      contentMarkdown: a.content,
+      sources: extractSources(a.content),
+      tags: extractTags(a.title, section),
+      readingTime: calculateReadingTime(a.content),
+      author: "فريق سراج",
+      publishedAt: new Date(),
+      active: true,
+      order: a.id,
+      metaDescription: extractExcerpt(a.content),
+    };
+  });
+
+  // Upsert each article
+  let created = 0;
+  let updated = 0;
+  let skipped = 0;
+
+  for (const article of seedArticles) {
+    try {
+      const existing = await Article.findOne({ slug: article.slug });
+      if (existing) {
+        // Only update if content is different (don't overwrite admin edits)
+        if (existing.contentMarkdown === article.contentMarkdown) {
+          skipped++;
+          continue;
+        }
+        await Article.updateOne({ slug: article.slug }, { $set: article });
+        updated++;
+        console.log(`  🔄 Updated: ${article.slug}`);
+      } else {
+        await Article.create(article);
+        created++;
+        console.log(`  ✅ Created: ${article.slug} (${article.section})`);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`  ❌ Error with article ${article.slug}: ${msg}`);
+    }
+  }
+
+  console.log("\n📊 Seed complete:");
+  console.log(`  ✅ Created: ${created}`);
+  console.log(`  🔄 Updated: ${updated}`);
+  console.log(`  ⏭️  Skipped (unchanged): ${skipped}`);
+
+  // Verify
+  const total = await Article.countDocuments({ active: true });
+  console.log(`  📚 Total active articles in DB: ${total}`);
+
+  await mongoose.disconnect();
+  console.log("👋 Done");
+}
+
+main().catch((err) => {
+  console.error("Fatal error:", err);
+  process.exit(1);
+});
