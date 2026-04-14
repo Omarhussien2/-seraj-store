@@ -48,6 +48,14 @@ interface Product {
     title?: string;
     bg: string;
   };
+  gallery: {
+    _id?: string;
+    url: string;
+    publicId?: string;
+    resourceType: "image" | "video";
+    alt?: string;
+    sortOrder: number;
+  }[];
   action: string;
   ctaText: string;
   comingSoon: boolean;
@@ -67,6 +75,7 @@ const emptyProduct: Partial<Product> = {
   longDesc: "",
   features: [],
   media: { type: "book3d", bg: "emerald" },
+  gallery: [],
   action: "cart",
   ctaText: "أضف للسلة",
   comingSoon: false,
@@ -83,6 +92,7 @@ export default function AdminProductsPage() {
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -117,9 +127,13 @@ export default function AdminProductsPage() {
     setSaving(true);
 
     try {
+      const payload: any = { ...editingProduct };
+      if (payload.originalPrice === "") payload.originalPrice = null;
+      if (payload.originalPriceText === "") payload.originalPriceText = null;
+
       if (isEditing) {
         // PATCH existing product
-        const { slug, _id, createdAt, updatedAt, ...cleanData } = editingProduct as Product & { createdAt?: unknown; updatedAt?: unknown };
+        const { slug, _id, createdAt, updatedAt, ...cleanData } = payload as Product & { createdAt?: unknown; updatedAt?: unknown };
         void _id; void createdAt; void updatedAt; // unused — excluded intentionally
         const res = await fetch(`/api/products/${slug}`, {
           method: "PATCH",
@@ -136,7 +150,7 @@ export default function AdminProductsPage() {
         const res = await fetch("/api/products", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(editingProduct),
+          body: JSON.stringify(payload),
         });
         const json = await res.json();
         if (!json.success) {
@@ -182,6 +196,47 @@ export default function AdminProductsPage() {
     setEditingProduct((prev) =>
       prev ? { ...prev, media: updatedMedia as Product["media"] } : prev
     );
+  }
+
+  async function handleGalleryUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files?.length || !editingProduct) return;
+    setUploadingGallery(true);
+    try {
+      const formData = new FormData();
+      Array.from(e.target.files).forEach((file) => formData.append("files", file));
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const result = await res.json();
+
+      if (result.success && result.data) {
+        const newItems = result.data.map((item: any, i: number) => ({
+          url: item.url,
+          publicId: item.publicId,
+          resourceType: item.resourceType,
+          alt: "",
+          sortOrder: (editingProduct.gallery?.length || 0) + i,
+        }));
+        updateField("gallery", [...(editingProduct.gallery || []), ...newItems]);
+      } else {
+        alert(result.error || "Upload failed");
+      }
+    } catch (error) {
+      console.error("Gallery upload error:", error);
+      alert("حدث خطأ أثناء رفع الملفات");
+    } finally {
+      setUploadingGallery(false);
+      e.target.value = ""; // Reset file input
+    }
+  }
+
+  function removeGalleryItem(index: number) {
+    if (!editingProduct?.gallery) return;
+    const newGallery = [...editingProduct.gallery];
+    newGallery.splice(index, 1);
+    updateField("gallery", newGallery);
   }
 
   return (
@@ -336,7 +391,7 @@ export default function AdminProductsPage() {
                     onChange={(e) =>
                       updateField(
                         "originalPrice",
-                        e.target.value ? Number(e.target.value) : null
+                        e.target.value === "" ? null : Number(e.target.value)
                       )
                     }
                     placeholder="اتركه فارغ لو مفيش خصم"
@@ -356,7 +411,7 @@ export default function AdminProductsPage() {
                   <Label>نص السعر الأصلي</Label>
                   <Input
                     value={editingProduct.originalPriceText || ""}
-                    onChange={(e) => updateField("originalPriceText", e.target.value)}
+                    onChange={(e) => updateField("originalPriceText", e.target.value === "" ? null : e.target.value)}
                     placeholder="اتركه فارغ لو مفيش خصم"
                   />
                 </div>
@@ -456,6 +511,57 @@ export default function AdminProductsPage() {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              {/* Gallery */}
+              <div className="space-y-4 border rounded-lg p-4 bg-gray-50/50">
+                <div className="flex items-center justify-between">
+                  <Label>معرض الصور والفيديو (Gallery)</Label>
+                  <div className="relative">
+                    <Input
+                      type="file"
+                      multiple
+                      accept="image/*,video/*"
+                      onChange={handleGalleryUpload}
+                      disabled={uploadingGallery}
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                    />
+                    <Button type="button" variant="outline" size="sm" disabled={uploadingGallery}>
+                      {uploadingGallery ? "جاري الرفع..." : "رفع ملفات..."}
+                    </Button>
+                  </div>
+                </div>
+
+                {editingProduct.gallery && editingProduct.gallery.length > 0 ? (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 mt-4">
+                    {editingProduct.gallery.map((item, idx) => (
+                      <div key={idx} className="relative group rounded-md overflow-hidden bg-gray-100 border aspect-square flex items-center justify-center">
+                        {item.resourceType === "video" ? (
+                          <video src={item.url} className="w-full h-full object-cover" />
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={item.url} alt="Gallery item" className="w-full h-full object-cover" />
+                        )}
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 left-1 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeGalleryItem(idx)}
+                        >
+                          ✕
+                        </Button>
+                        {item.resourceType === "video" && (
+                          <div className="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded">
+                            فيديو
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">لم يتم رفع أي ملفات للمعرض</p>
+                )}
               </div>
 
               {/* Toggles */}

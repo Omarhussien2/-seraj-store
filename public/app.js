@@ -101,6 +101,38 @@
     }
   };
 
+  // ----- Dynamic Price Update -----
+  function updateDOMPrices() {
+    var cards = document.querySelectorAll('.product-card');
+    cards.forEach(function (card) {
+      if (card.classList.contains('coming-soon')) return;
+      var slug = null;
+      var href = card.getAttribute('href');
+      if (href) {
+        if (href.indexOf('#/product/') === 0) slug = href.replace('#/product/', '');
+        else if (href === '#/wizard') slug = 'custom-story';
+      }
+      if (slug && PRODUCTS[slug]) {
+        var p = PRODUCTS[slug];
+        var foot = card.querySelector('.product-foot');
+        if (foot) {
+          var cta = foot.querySelector('.cta-mini');
+          var ctaHTML = cta ? cta.outerHTML : '';
+          var priceText = p.priceText || (toArabicNum(p.price) + ' ج.م');
+          var priceHTML = '';
+          if (p.originalPriceText) {
+            priceHTML = '<div class="price-group" style="display:flex;align-items:center;gap:6px"><span class="price old-price" style="text-decoration:line-through;color:var(--ink-mute);font-size:0.85em">' + p.originalPriceText + '</span><span class="price">' + priceText + '</span></div>';
+          } else {
+            priceHTML = '<span class="price">' + priceText + '</span>';
+          }
+          foot.innerHTML = priceHTML + ctaHTML;
+        }
+        var bodyH3 = card.querySelector('.product-body h3');
+        // if (bodyH3 && p.name) bodyH3.textContent = p.name;
+      }
+    });
+  }
+
   // ----- Fetch Products from API (graceful fallback) -----
   function fetchProducts() {
     fetch('/api/products')
@@ -112,9 +144,11 @@
           PRODUCTS = apiProducts;
           console.log('✅ Products loaded from API (' + data.data.length + ')');
         }
+        updateDOMPrices();
       })
       .catch(function () {
         console.warn('⚠️ API fetch failed, using fallback products');
+        updateDOMPrices();
       });
   }
 

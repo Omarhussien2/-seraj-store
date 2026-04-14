@@ -14,46 +14,43 @@ export async function GET() {
 
     await connectDB();
 
-    const [
-      totalOrders,
-      pendingOrders,
-      pendingStories,
-      revenueResult,
-      recentOrders,
-    ] = await Promise.all([
-      // Total orders count
-      Order.countDocuments(),
-
-      // Pending orders count
-      Order.countDocuments({ orderStatus: "pending" }),
-
-      // Orders with custom stories pending review
-      Order.countDocuments({
-        "customStory.heroName": { $exists: true },
-        orderStatus: { $in: ["pending", "in_progress"] },
-      }),
-
-      // Total revenue (sum of all totals)
-      Order.aggregate<{ total: number }>([
-        { $group: { _id: null, total: { $sum: "$total" } } },
-      ]),
-
-      // Last 5 orders
-      Order.find()
-        .sort({ createdAt: -1 })
-        .limit(5)
-        .select("orderNumber customerName total orderStatus paymentStatus createdAt")
-        .lean(),
+    const [stats] = await Order.aggregate([
+      {
+        $facet: {
+          totalOrders: [{ $count: "count" }],
+          pendingOrders: [
+            { $match: { orderStatus: "pending" } },
+            { $count: "count" },
+          ],
+          pendingStories: [
+            {
+              $match: {
+                "customStory.heroName": { $exists: true },
+                orderStatus: { $in: ["pending", "in_progress"] },
+              },
+            },
+            { $count: "count" },
+          ],
+          totalRevenue: [
+            { $group: { _id: null, total: { $sum: "$total" } } },
+          ],
+          recentOrders: [
+            { $sort: { createdAt: -1 } },
+            { $limit: 5 },
+            { $project: { orderNumber: 1, customerName: 1, total: 1, orderStatus: 1, paymentStatus: 1, createdAt: 1 } },
+          ],
+        },
+      },
     ]);
 
     return NextResponse.json({
       success: true,
       data: {
-        totalOrders,
-        pendingOrders,
-        pendingStories,
-        totalRevenue: revenueResult[0]?.total || 0,
-        recentOrders,
+        totalOrders: stats.totalOrders[0]?.count || 0,
+        pendingOrders: stats.pendingOrders[0]?.count || 0,
+        pendingStories: stats.pendingStories[0]?.count || 0,
+        totalRevenue: stats.totalRevenue[0]?.total || 0,
+        recentOrders: stats.recentOrders || [],
       },
     });
   } catch (error) {

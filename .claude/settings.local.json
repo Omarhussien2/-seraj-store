@@ -10,7 +10,17 @@
       "Bash(cp \"charachters images/شخصيات ثانوي/Prompt__A_full-body_202604111800.png\" \"demo/assets/layla.png\")",
       "Bash(cp \"charachters images/شخصيات ثانوي/A_slightly_plump_202604111720.png\" \"demo/assets/grandma-fatima-seated.png\")",
       "Bash(cp \"charachters images/شخصيات ثانوي/اجعله_بنفس_الملابس_202604111826.png\" \"demo/assets/khaled-v2.png\")",
-      "Bash(cp \"charachters images/اجعل_الشخصية_فقط_202604111801.png\" \"demo/assets/layla-nobook.png\")"
+      "Bash(cp \"charachters images/اجعل_الشخصية_فقط_202604111801.png\" \"demo/assets/layla-nobook.png\")",
+      "Bash(npx tsc:*)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(grep -v \"^$\")",
+      "Bash(npx next:*)",
+      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\('next:', p.dependencies.next\\); console.log\\('next-auth:', p.dependencies['next-auth']\\)\")",
+      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\('next-auth:', p.dependencies['next-auth']\\)\")",
+      "Bash(node -e \"console.log\\(require\\('next/package.json'\\).version\\)\")",
+      "Bash(node -e \"const p = require\\('./node_modules/next-auth/package.json'\\); console.log\\('installed next-auth:', p.version\\)\")",
+      "Bash(curl:*)",
+      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\(JSON.stringify\\(p.scripts, null, 2\\)\\)\")"
     ]
   }
 }

@@ -50,7 +50,7 @@ interface Order {
   remaining: number;
   paymentMethod: string;
   paymentStatus: "unpaid" | "deposit_paid" | "fully_paid";
-  orderStatus: "pending" | "in_progress" | "shipped" | "delivered";
+  orderStatus: "pending" | "in_progress" | "shipped" | "delivered" | "cancelled";
   customStory?: CustomStory;
   customerName: string;
   customerPhone: string;
@@ -66,6 +66,7 @@ const orderStatusLabels: Record<string, string> = {
   in_progress: "جاري التنفيذ",
   shipped: "تم الشحن",
   delivered: "تم التسليم",
+  cancelled: "ملغى",
 };
 
 const paymentStatusLabels: Record<string, string> = {
@@ -79,6 +80,7 @@ const statusColors: Record<string, string> = {
   in_progress: "bg-blue-100 text-blue-800",
   shipped: "bg-purple-100 text-purple-800",
   delivered: "bg-green-100 text-green-800",
+  cancelled: "bg-gray-100 text-gray-800",
 };
 
 const paymentColors: Record<string, string> = {
@@ -106,6 +108,7 @@ export default function AdminOrdersPage() {
   const [total, setTotal] = useState(0);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [newOrdersCount, setNewOrdersCount] = useState(0);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const prevTotalRef = useRef(0);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -140,6 +143,7 @@ export default function AdminOrdersPage() {
   // Reset to page 1 when filter changes
   useEffect(() => {
     setPage(1);
+    setSelectedIds([]);
   }, [filter]);
 
   // Polling: refresh current page every 30 seconds
@@ -174,6 +178,60 @@ export default function AdminOrdersPage() {
     }
   }
 
+  async function handleBulkDelete() {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`هل أنت متأكد من حذف ${selectedIds.length} طلب نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.`)) return;
+    
+    try {
+      const res = await fetch("/api/orders", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selectedIds }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setSelectedIds([]);
+        fetchOrders(page);
+      } else {
+        alert(json.error || "خطأ أثناء الحذف");
+      }
+    } catch (err) {
+      console.error("Bulk delete error:", err);
+      alert("حدث خطأ في النظام");
+    }
+  }
+
+  async function handleDeleteSingle(id: string) {
+    if (!confirm("هل أنت متأكد من حذف هذا الطلب نهائياً؟")) return;
+    try {
+      const res = await fetch(`/api/orders/${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (json.success) {
+        // Remove from selection if previously selected
+        setSelectedIds(prev => prev.filter(vid => vid !== id));
+        fetchOrders(page);
+      } else {
+        alert(json.error || "خطأ أثناء الحذف");
+      }
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.length === orders.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(orders.map(o => o._id));
+    }
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(vid => vid !== id) : [...prev, id]
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -186,7 +244,12 @@ export default function AdminOrdersPage() {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => { fetchOrders(page); setNewOrdersCount(0); }}>
+          {selectedIds.length > 0 && (
+            <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
+              حذف المحدد ({selectedIds.length})
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={() => { fetchOrders(page); setNewOrdersCount(0); setSelectedIds([]); }}>
             🔄 تحديث
           </Button>
           <Select value={filter} onValueChange={(v) => { if (v) setFilter(v); }}>
@@ -199,6 +262,7 @@ export default function AdminOrdersPage() {
               <SelectItem value="in_progress">جاري التنفيذ</SelectItem>
               <SelectItem value="shipped">تم الشحن</SelectItem>
               <SelectItem value="delivered">تم التسليم</SelectItem>
+              <SelectItem value="cancelled">ملغى</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -217,6 +281,14 @@ export default function AdminOrdersPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 cursor-pointer align-middle"
+                    checked={orders.length > 0 && selectedIds.length === orders.length}
+                    onChange={toggleSelectAll}
+                  />
+                </TableHead>
                 <TableHead>رقم الطلب</TableHead>
                 <TableHead>اسم العميل</TableHead>
                 <TableHead>التليفون</TableHead>
@@ -229,7 +301,15 @@ export default function AdminOrdersPage() {
             </TableHeader>
             <TableBody>
               {orders.map((order) => (
-                <TableRow key={order._id}>
+                <TableRow key={order._id} className={selectedIds.includes(order._id) ? "bg-muted/50" : ""}>
+                  <TableCell>
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 cursor-pointer align-middle"
+                      checked={selectedIds.includes(order._id)}
+                      onChange={() => toggleSelect(order._id)}
+                    />
+                  </TableCell>
                   <TableCell className="font-mono text-sm">
                     {order.orderNumber}
                   </TableCell>
@@ -280,6 +360,7 @@ export default function AdminOrdersPage() {
                         <SelectItem value="in_progress">جاري التنفيذ</SelectItem>
                         <SelectItem value="shipped">تم الشحن</SelectItem>
                         <SelectItem value="delivered">تم التسليم</SelectItem>
+                        <SelectItem value="cancelled">ملغى</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
@@ -300,10 +381,19 @@ export default function AdminOrdersPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <Button variant="outline" size="sm" className="text-green-600 hover:text-green-700 hover:bg-green-50">
+                        <Button variant="outline" size="sm" title="مراسلة" className="text-green-600 hover:text-green-700 hover:bg-green-50">
                           💬
                         </Button>
                       </a>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        title="حذف"
+                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                        onClick={() => handleDeleteSingle(order._id)}
+                      >
+                        🗑️
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>

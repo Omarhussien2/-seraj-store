@@ -25,7 +25,10 @@ export async function GET(request: Request) {
       filter.category = category;
     }
 
-    const products = await Product.find(filter).sort({ order: 1 }).lean();
+    const products = await Product.find(filter)
+      .sort({ order: 1 })
+      .select("-longDesc -reviews -gallery -related")
+      .lean();
 
     return NextResponse.json({
       success: true,
@@ -57,19 +60,28 @@ const MediaSchema = z.object({
   bg: z.enum(["emerald", "sand", "teal"]),
 });
 
+const GalleryItemSchema = z.object({
+  url: z.string().url(),
+  publicId: z.string().optional(),
+  resourceType: z.enum(["image", "video"]).default("image"),
+  alt: z.string().optional().default(""),
+  sortOrder: z.number().optional().default(0),
+});
+
 const CreateProductSchema = z.object({
   slug: z.string().min(1),
   name: z.string().min(1),
   badge: z.string().min(1),
   badgeSoon: z.boolean().optional(),
   price: z.number().min(0),
-  originalPrice: z.number().min(0).optional(),
+  originalPrice: z.number().min(0).nullable().optional(),
   priceText: z.string().min(1),
-  originalPriceText: z.string().optional(),
+  originalPriceText: z.string().nullable().optional(),
   category: z.enum(["قصص جاهزة", "قصص مخصصة", "فلاش كاردز", "مجموعات"]),
   longDesc: z.string().min(1),
   features: z.array(z.string()),
   media: MediaSchema,
+  gallery: z.array(GalleryItemSchema).optional().default([]),
   action: z.enum(["cart", "wizard", "none"]),
   ctaText: z.string().min(1),
   comingSoon: z.boolean().optional(),

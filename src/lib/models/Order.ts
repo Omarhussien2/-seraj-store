@@ -42,7 +42,7 @@ export interface IOrder extends Document {
   remaining: number;
   paymentMethod: string;
   paymentStatus: "unpaid" | "deposit_paid" | "fully_paid";
-  orderStatus: "pending" | "in_progress" | "shipped" | "delivered";
+  orderStatus: "pending" | "in_progress" | "shipped" | "delivered" | "cancelled";
   customStory?: {
     heroName: string;
     age: number;
@@ -87,7 +87,7 @@ const OrderSchema = new mongoose.Schema<IOrder>(
       type: String,
       required: true,
       default: "pending",
-      enum: ["pending", "in_progress", "shipped", "delivered"],
+      enum: ["pending", "in_progress", "shipped", "delivered", "cancelled"],
     },
     customStory: { type: CustomStorySchema },
     customerName: { type: String, required: true, trim: true },
@@ -102,15 +102,47 @@ const OrderSchema = new mongoose.Schema<IOrder>(
 OrderSchema.index({ orderStatus: 1, createdAt: -1 });
 OrderSchema.index({ customerPhone: 1 });
 
+// ---------- Counter schema for atomic order numbers ----------
+interface ICounter {
+  _id: string; // e.g., "order-2024"
+  seq: number;
+}
+const CounterSchema = new mongoose.Schema<ICounter>({
+  _id: { type: String, required: true },
+  seq: { type: Number, default: 0 },
+});
+const Counter: Model<ICounter> =
+  mongoose.models.Counter || mongoose.model<ICounter>("Counter", CounterSchema);
+
 /**
  * Generate a unique order number: SRJ-YYYY-XXXX
+ * Uses a Counter collection to prevent race conditions during concurrent orders.
  */
 export async function generateOrderNumber(): Promise<string> {
   const year = new Date().getFullYear();
-  const count = await Order.countDocuments({
-    orderNumber: new RegExp(`^SRJ-${year}-`),
-  });
-  const seq = String(count + 1).padStart(4, "0");
+  const counterId = `order-${year}`;
+
+  // Check if counter for this year exists, if not initialize it from existing orders
+  let counter = await Counter.findById(counterId);
+  if (!counter) {
+    const existingCount = await Order.countDocuments({
+      orderNumber: new RegExp(`^SRJ-${year}-`),
+    });
+    try {
+      await Counter.create({ _id: counterId, seq: existingCount });
+    } catch (e) {
+      // Ignore E11000 duplicate key error in case another request created it first
+    }
+  }
+
+  // Atomically increment the counter
+  counter = await Counter.findByIdAndUpdate(
+    counterId,
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true }
+  );
+
+  const seq = String(counter!.seq).padStart(4, "0");
   return `SRJ-${year}-${seq}`;
 }
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import Order, { generateOrderNumber } from "@/lib/models/Order";
 import Product from "@/lib/models/Product";
@@ -131,7 +132,7 @@ export async function POST(request: Request) {
     }
 
     const orderNumber = await generateOrderNumber();
-    const remaining = calculatedTotal - validated.deposit;
+    const remaining = Math.max(0, calculatedTotal - validated.deposit);
 
     const order = await Order.create({
       orderNumber,
@@ -192,6 +193,65 @@ export async function POST(request: Request) {
     console.error("POST /api/orders error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to create order" },
+      { status: 500 }
+    );
+  }
+}
+
+// ---------- Zod schema for bulk DELETE ----------
+const BulkDeleteSchema = z.object({
+  ids: z.array(z.string().min(1)).min(1, "At least one order ID required").max(100),
+});
+
+/**
+ * DELETE /api/orders
+ * Bulk-delete orders by IDs (admin only).
+ * Body: { "ids": ["id1", "id2", ...] }
+ */
+export async function DELETE(request: Request) {
+  try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
+    await connectDB();
+
+    const body = await request.json();
+    const { ids } = BulkDeleteSchema.parse(body);
+
+    // Validate all IDs are valid ObjectIds
+    const invalidIds = ids.filter((id) => !mongoose.Types.ObjectId.isValid(id));
+    if (invalidIds.length > 0) {
+      return NextResponse.json(
+        { success: false, error: `Invalid order IDs: ${invalidIds.join(", ")}` },
+        { status: 400 }
+      );
+    }
+
+    const result = await Order.deleteMany({ _id: { $in: ids } });
+
+    return NextResponse.json({
+      success: true,
+      message: `${result.deletedCount} order(s) deleted permanently`,
+      data: { deletedCount: result.deletedCount, requestedCount: ids.length },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Validation failed",
+          details: error.issues.map((e) => ({
+            field: e.path.join("."),
+            message: e.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+
+    console.error("DELETE /api/orders error:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to delete orders" },
       { status: 500 }
     );
   }

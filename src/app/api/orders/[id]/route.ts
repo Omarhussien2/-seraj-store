@@ -8,7 +8,7 @@ import { requireAdmin } from "@/lib/requireAdmin";
 // ---------- Zod schema for PATCH ----------
 const PatchOrderSchema = z.object({
   orderStatus: z
-    .enum(["pending", "in_progress", "shipped", "delivered"])
+    .enum(["pending", "in_progress", "shipped", "delivered", "cancelled"])
     .optional(),
   paymentStatus: z
     .enum(["unpaid", "deposit_paid", "fully_paid"])
@@ -132,6 +132,52 @@ export async function PATCH(
     console.error("PATCH /api/orders/[id] error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to update order" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE /api/orders/[id]
+ * Permanently delete an order (admin only)
+ * Use for removing test/junk orders.
+ */
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
+    await connectDB();
+    const { id } = await params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid order ID" },
+        { status: 400 }
+      );
+    }
+
+    const order = await Order.findByIdAndDelete(id).lean();
+
+    if (!order) {
+      return NextResponse.json(
+        { success: false, error: "Order not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Order ${order.orderNumber} deleted permanently`,
+      data: { orderNumber: order.orderNumber, _id: order._id },
+    });
+  } catch (error) {
+    console.error("DELETE /api/orders/[id] error:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to delete order" },
       { status: 500 }
     );
   }

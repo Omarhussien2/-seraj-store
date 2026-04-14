@@ -12,7 +12,7 @@ const ReviewSchema = new mongoose.Schema(
   { _id: false }
 );
 
-// ---------- Media sub-schema ----------
+// ---------- Media sub-schema (hero display) ----------
 const MediaSchema = new mongoose.Schema(
   {
     type: {
@@ -31,16 +31,42 @@ const MediaSchema = new mongoose.Schema(
   { _id: false }
 );
 
+// ---------- Gallery item sub-schema (multiple images/videos) ----------
+const GalleryItemSchema = new mongoose.Schema(
+  {
+    url: { type: String, required: true },
+    publicId: { type: String },
+    resourceType: {
+      type: String,
+      required: true,
+      enum: ["image", "video"],
+      default: "image",
+    },
+    alt: { type: String, default: "" },
+    sortOrder: { type: Number, default: 0 },
+  },
+  { _id: true }
+);
+
 // ---------- Product schema ----------
+export interface IGalleryItem {
+  _id?: string;
+  url: string;
+  publicId?: string;
+  resourceType: "image" | "video";
+  alt?: string;
+  sortOrder: number;
+}
+
 export interface IProduct extends Document {
   slug: string;
   name: string;
   badge: string;
   badgeSoon?: boolean;
   price: number;
-  originalPrice?: number;
+  originalPrice?: number | null;
   priceText: string;
-  originalPriceText?: string;
+  originalPriceText?: string | null;
   category: string;
   longDesc: string;
   features: string[];
@@ -50,6 +76,7 @@ export interface IProduct extends Document {
     title?: string;
     bg: string;
   };
+  gallery: IGalleryItem[];
   action: string;
   ctaText: string;
   comingSoon: boolean;
@@ -85,6 +112,7 @@ const ProductSchema = new mongoose.Schema<IProduct>(
     longDesc: { type: String, required: true },
     features: [{ type: String }],
     media: { type: MediaSchema, required: true },
+    gallery: { type: [GalleryItemSchema], default: [] },
     action: {
       type: String,
       required: true,
