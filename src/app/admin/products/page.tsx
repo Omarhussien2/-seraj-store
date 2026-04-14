@@ -93,6 +93,7 @@ export default function AdminProductsPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -196,6 +197,30 @@ export default function AdminProductsPage() {
     setEditingProduct((prev) =>
       prev ? { ...prev, media: updatedMedia as Product["media"] } : prev
     );
+  }
+
+  async function handleMediaImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files?.length || !editingProduct) return;
+    setUploadingMedia(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", e.target.files[0]);
+
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const result = await res.json();
+
+      if (result.success && result.data?.[0]) {
+        updateMedia("image", result.data[0].url);
+      } else {
+        alert(result.error || "فشل رفع الصورة");
+      }
+    } catch (error) {
+      console.error("Media image upload error:", error);
+      alert("حدث خطأ أثناء رفع الصورة");
+    } finally {
+      setUploadingMedia(false);
+      e.target.value = "";
+    }
   }
 
   async function handleGalleryUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -489,46 +514,92 @@ export default function AdminProductsPage() {
               </div>
 
               {/* Media */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>نوع الوسائط</Label>
-                  <Select
-                    value={editingProduct.media?.type || "book3d"}
-                    onValueChange={(v) => { if (v) updateMedia("type", v); }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="book3d">كتاب 3D</SelectItem>
-                      <SelectItem value="cards-fan">بطاقات</SelectItem>
-                      <SelectItem value="bundle-stack">حزمة</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <div className="space-y-4 border rounded-lg p-4 bg-gray-50/50">
+                <Label className="text-base font-semibold">الصورة الرئيسية للمنتج</Label>
+
+                {/* Image preview + upload */}
+                <div className="flex items-start gap-4">
+                  <div className="w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden border-2 border-dashed border-gray-300 bg-white flex items-center justify-center">
+                    {editingProduct.media?.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={editingProduct.media.image}
+                        alt="صورة المنتج"
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <span className="text-xs text-muted-foreground text-center px-2">لا توجد صورة</span>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <div className="relative">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleMediaImageUpload}
+                        disabled={uploadingMedia}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
+                      <Button type="button" variant="outline" size="sm" disabled={uploadingMedia} className="w-full">
+                        {uploadingMedia ? "جاري الرفع..." : "رفع صورة جديدة"}
+                      </Button>
+                    </div>
+                    {editingProduct.media?.image && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full"
+                        onClick={() => updateMedia("image", "")}
+                      >
+                        إزالة الصورة
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>الصورة</Label>
-                  <Input
-                    value={editingProduct.media?.image || ""}
-                    onChange={(e) => updateMedia("image", e.target.value)}
-                    placeholder="khaled-v2.png"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>الخلفية</Label>
-                  <Select
-                    value={editingProduct.media?.bg || "emerald"}
-                    onValueChange={(v) => { if (v) updateMedia("bg", v); }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="emerald">أخضر</SelectItem>
-                      <SelectItem value="sand">رملي</SelectItem>
-                      <SelectItem value="teal">تركوازي</SelectItem>
-                    </SelectContent>
-                  </Select>
+
+                {/* Media type + bg + title */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>نوع العرض</Label>
+                    <Select
+                      value={editingProduct.media?.type || "book3d"}
+                      onValueChange={(v) => { if (v) updateMedia("type", v); }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="book3d">كتاب 3D</SelectItem>
+                        <SelectItem value="cards-fan">بطاقات</SelectItem>
+                        <SelectItem value="bundle-stack">حزمة</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>الخلفية</Label>
+                    <Select
+                      value={editingProduct.media?.bg || "emerald"}
+                      onValueChange={(v) => { if (v) updateMedia("bg", v); }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="emerald">أخضر</SelectItem>
+                        <SelectItem value="sand">رملي</SelectItem>
+                        <SelectItem value="teal">تركوازي</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>عنوان الغلاف</Label>
+                    <Input
+                      value={editingProduct.media?.title || ""}
+                      onChange={(e) => updateMedia("title", e.target.value)}
+                      placeholder="خالد بن الوليد"
+                    />
+                  </div>
                 </div>
               </div>
 
