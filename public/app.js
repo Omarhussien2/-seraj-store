@@ -1343,6 +1343,10 @@
          if(h2) h2.textContent = SITE_CONTENT[key];
        }
     });
+
+    // Re-initialize any dynamic components like counters
+    // that might have been recreated when innerHTML was injected!
+    initCounter();
   }
 
   // ----- Init -----
