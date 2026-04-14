@@ -18,8 +18,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/assets/share-banner.jpg",
-        width: 1200,
-        height: 630,
+        width: 2400,
+        height: 1792,
         alt: "سِراج — متعة القراءة واللعب",
       },
     ],
