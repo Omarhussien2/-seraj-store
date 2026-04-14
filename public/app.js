@@ -101,7 +101,7 @@
     }
   };
 
-  // ----- Dynamic Price Update -----
+  // ----- Dynamic Price & Image Update -----
   function updateDOMPrices() {
     var cards = document.querySelectorAll('.product-card');
     cards.forEach(function (card) {
@@ -127,8 +127,19 @@
           }
           foot.innerHTML = priceHTML + ctaHTML;
         }
-        var bodyH3 = card.querySelector('.product-body h3');
-        // if (bodyH3 && p.name) bodyH3.textContent = p.name;
+        // Replace CSS mockup with real product image when available
+        if (p.imageUrl) {
+          var mediaDiv = card.querySelector('.product-media');
+          if (mediaDiv) {
+            var mockup = mediaDiv.querySelector('.book3d, .cards-fan, .bundle-stack');
+            if (mockup) {
+              var existing = mediaDiv.querySelector('.product-photo');
+              if (!existing) {
+                mockup.outerHTML = renderMedia(p.media, false, p.imageUrl);
+              }
+            }
+          }
+        }
       }
     });
   }
@@ -317,7 +328,7 @@
         h += '<section class="section pd-gallery-section"><div class="section-head"><span class="kicker">صور المنتج</span><h2>شوفي المنتج بالتفصيل</h2></div>';
         h += '<div class="pd-gallery">';
         for (var g = 0; g < images.length; g++) {
-          h += '<div class="pd-gallery-item"><img src="' + images[g].url + '" alt="' + (images[g].alt || product.name) + '" loading="lazy"/></div>';
+          h += '<div class="pd-gallery-item"><img src="' + cloudinaryUrl(images[g].url, 500) + '" alt="' + (images[g].alt || product.name) + '" loading="lazy"/></div>';
         }
         h += '</div></section>';
       }
@@ -363,10 +374,21 @@
     setTimeout(initReveals, 100);
   }
 
+  // Cloudinary URL transform: serve optimally sized images per context
+  function cloudinaryUrl(url, width) {
+    if (!url || url.indexOf('res.cloudinary.com') === -1) return url;
+    // Insert transformation before /upload/ or /v1234/
+    return url.replace(/\/upload\//, '/upload/w_' + width + ',c_limit,f_auto,q_auto/');
+  }
+
   function renderMedia(media, big, imageUrl) {
     var size = big ? ' big' : '';
     // If product has a real uploaded image, show it instead of mockup
-    if (imageUrl) return '<div class="product-photo' + size + '"><img src="' + imageUrl + '" alt="" loading="lazy"/></div>';
+    if (imageUrl) {
+      var w = big ? 600 : 400;
+      var optimized = cloudinaryUrl(imageUrl, w);
+      return '<div class="product-photo' + size + '"><img src="' + optimized + '" alt="" loading="lazy"/></div>';
+    }
     if (media.type === 'book3d') return '<div class="book3d' + size + '"><div class="book3d-cover"><span class="book3d-title">' + media.title + '</span><img src="' + media.image + '" class="book3d-mascot" alt="" loading="lazy"/></div></div>';
     if (media.type === 'cards-fan') { var c = ['#e85d4c', '#c9974e', '#36a39a', '#6bbf3f', '#8b5e2a'], f = '<div class="cards-fan">'; for (var i = 0; i < c.length; i++) f += '<i style="--i:' + i + ';--c:' + c[i] + '"></i>'; return f + '</div>'; }
     if (media.type === 'bundle-stack') return '<div class="bundle-stack"><div class="bundle-i"></div><div class="bundle-i"></div><div class="bundle-i"></div></div>';

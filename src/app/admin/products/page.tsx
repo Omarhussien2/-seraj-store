@@ -500,8 +500,8 @@ export default function AdminProductsPage() {
                               body: formData,
                             });
                             const json = await res.json();
-                            if (json.success) {
-                              updateField("imageUrl", json.data.url);
+                            if (json.success && json.data?.[0]) {
+                              updateField("imageUrl", json.data[0].url);
                             } else {
                               alert(json.error || "فشل رفع الصورة");
                             }
