@@ -767,7 +767,7 @@ input, textarea { font-family: inherit; }
   z-index: 3;
 }
 
-/* Book 3D CSS mockup */
+/* Book 3D CSS mockup (fallback when no imageUrl) */
 .book3d {
   position: relative;
   width: 130px;
@@ -819,6 +819,44 @@ input, textarea { font-family: inherit; }
   width: 80%;
   margin: auto auto 0;
   filter: drop-shadow(0 3px 0 rgba(0,0,0,.3));
+}
+
+/* Product real photo (replaces mockup when imageUrl exists) */
+.product-photo {
+  width: 160px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .4s;
+}
+.product-photo.big {
+  width: 280px;
+  height: 340px;
+}
+.product-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 3px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink), -2px -2px 0 rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.15);
+  transition: transform .4s;
+}
+.product-card:hover .product-photo img {
+  transform: scale(1.05) rotate(-1deg);
+}
+.cart-item-media .product-photo {
+  width: 60px;
+  height: 76px;
+}
+.cart-item-media .product-photo img {
+  border-radius: 8px;
+  border-width: 2px;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.pd-media .product-photo.big img {
+  border-radius: 20px;
 }
 
 /* Cards fan */

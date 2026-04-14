@@ -277,7 +277,7 @@
     h += '<span></span></div>';
     // Hero
     h += '<div class="pd-wrap">';
-    h += '<div class="pd-media ' + product.media.bg + ' reveal">' + renderMedia(product.media, true) + '</div>';
+    h += '<div class="pd-media ' + product.media.bg + ' reveal">' + renderMedia(product.media, true, product.imageUrl) + '</div>';
     h += '<div class="pd-body reveal">';
     if (product.badgeSoon) {
       h += '<span class="kicker" style="background:var(--cream-2);color:var(--ink-mute);border-color:var(--line)">' + product.badge + '</span>';
@@ -355,7 +355,7 @@
         if (!rp) continue;
         var href = rp.action === 'wizard' ? '#/wizard' : '#/product/' + rs;
         var rpPrice = rp.priceText || (toArabicNum(rp.price) + ' ج.م');
-        h += '<a href="' + href + '" data-link class="product-card"><div class="product-media ' + rp.media.bg + '">' + renderMedia(rp.media, false) + '</div><div class="product-body"><h3>' + rp.name + '</h3><div class="product-foot"><span class="price">' + rpPrice + '</span><span class="cta-mini">شوفيها →</span></div></div></a>';
+        h += '<a href="' + href + '" data-link class="product-card"><div class="product-media ' + rp.media.bg + '">' + renderMedia(rp.media, false, rp.imageUrl) + '</div><div class="product-body"><h3>' + rp.name + '</h3><div class="product-foot"><span class="price">' + rpPrice + '</span><span class="cta-mini">شوفيها →</span></div></div></a>';
       }
       h += '</div></section>';
     }
@@ -363,8 +363,10 @@
     setTimeout(initReveals, 100);
   }
 
-  function renderMedia(media, big) {
+  function renderMedia(media, big, imageUrl) {
     var size = big ? ' big' : '';
+    // If product has a real uploaded image, show it instead of mockup
+    if (imageUrl) return '<div class="product-photo' + size + '"><img src="' + imageUrl + '" alt="" loading="lazy"/></div>';
     if (media.type === 'book3d') return '<div class="book3d' + size + '"><div class="book3d-cover"><span class="book3d-title">' + media.title + '</span><img src="' + media.image + '" class="book3d-mascot" alt="" loading="lazy"/></div></div>';
     if (media.type === 'cards-fan') { var c = ['#e85d4c', '#c9974e', '#36a39a', '#6bbf3f', '#8b5e2a'], f = '<div class="cards-fan">'; for (var i = 0; i < c.length; i++) f += '<i style="--i:' + i + ';--c:' + c[i] + '"></i>'; return f + '</div>'; }
     if (media.type === 'bundle-stack') return '<div class="bundle-stack"><div class="bundle-i"></div><div class="bundle-i"></div><div class="bundle-i"></div></div>';
@@ -420,7 +422,7 @@
       total += lineTotal;
       var bgClass = product.media.bg === 'emerald' ? 'emerald-bg' : product.media.bg === 'sand' ? 'sand-bg' : 'teal-bg';
       h += '<div class="cart-item">';
-      h += '<div class="cart-item-media ' + bgClass + '">' + renderMedia(product.media, false) + '</div>';
+      h += '<div class="cart-item-media ' + bgClass + '">' + renderMedia(product.media, false, product.imageUrl) + '</div>';
       h += '<div class="cart-item-info"><h3>' + item.name + '</h3>';
       h += '<span class="price">' + toArabicNum(item.price) + ' ج.م</span>';
       if (item.qty > 1) {
@@ -477,7 +479,7 @@
       var bgClass = product && product.media ? (product.media.bg === 'emerald' ? 'emerald-bg' : product.media.bg === 'sand' ? 'sand-bg' : 'teal-bg') : '';
       h += '<div class="cart-item" style="margin-bottom:8px">';
       if (product && product.media) {
-        h += '<div class="cart-item-media ' + bgClass + '" style="width:48px;height:48px;min-width:48px">' + renderMedia(product.media, false) + '</div>';
+        h += '<div class="cart-item-media ' + bgClass + '" style="width:48px;height:48px;min-width:48px">' + renderMedia(product.media, false, product.imageUrl) + '</div>';
       }
       h += '<div class="cart-item-info"><h3 style="font-size:14px">' + item.name;
       if (item.qty > 1) h += ' × ' + toArabicNum(item.qty);

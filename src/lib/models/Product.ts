@@ -70,6 +70,7 @@ export interface IProduct extends Document {
   category: string;
   longDesc: string;
   features: string[];
+  imageUrl?: string;
   media: {
     type: string;
     image?: string;
@@ -111,6 +112,7 @@ const ProductSchema = new mongoose.Schema<IProduct>(
     },
     longDesc: { type: String, required: true },
     features: [{ type: String }],
+    imageUrl: { type: String },
     media: { type: MediaSchema, required: true },
     gallery: { type: [GalleryItemSchema], default: [] },
     action: {

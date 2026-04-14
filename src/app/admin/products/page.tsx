@@ -42,6 +42,7 @@ interface Product {
   category: string;
   longDesc: string;
   features: string[];
+  imageUrl?: string;
   media: {
     type: string;
     image?: string;
@@ -74,6 +75,7 @@ const emptyProduct: Partial<Product> = {
   category: "قصص جاهزة",
   longDesc: "",
   features: [],
+  imageUrl: "",
   media: { type: "book3d", bg: "emerald" },
   gallery: [],
   action: "cart",
@@ -469,6 +471,58 @@ export default function AdminProductsPage() {
                   onChange={(e) => updateField("longDesc", e.target.value)}
                   rows={3}
                 />
+              </div>
+
+              {/* Product Image */}
+              <div className="space-y-2">
+                <Label>صورة المنتج</Label>
+                <div className="flex gap-3 items-start">
+                  <div className="flex-1">
+                    <Input
+                      value={editingProduct.imageUrl || ""}
+                      onChange={(e) => updateField("imageUrl", e.target.value)}
+                      placeholder="رابط الصورة (بعد الرفع هيظهر هنا تلقائي)"
+                    />
+                    <label className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 text-sm border rounded-md cursor-pointer hover:bg-gray-50 transition-colors">
+                      📁 رفع صورة
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const formData = new FormData();
+                          formData.append("file", file);
+                          try {
+                            const res = await fetch("/api/upload", {
+                              method: "POST",
+                              body: formData,
+                            });
+                            const json = await res.json();
+                            if (json.success) {
+                              updateField("imageUrl", json.data.url);
+                            } else {
+                              alert(json.error || "فشل رفع الصورة");
+                            }
+                          } catch {
+                            alert("حدث خطأ أثناء رفع الصورة");
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                  {editingProduct.imageUrl && (
+                    <img
+                      src={editingProduct.imageUrl}
+                      alt="معاينة"
+                      className="w-20 h-24 object-cover rounded-lg border"
+                    />
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  الصورة دي هي اللي هتظهر للعملاء في الكتالوج وصفحة المنتج
+                </p>
               </div>
 
               {/* Features */}

@@ -59,6 +59,7 @@ const PatchProductSchema = z.object({
   category: z.enum(["قصص جاهزة", "قصص مخصصة", "فلاش كاردز", "مجموعات"]).optional(),
   longDesc: z.string().min(1).optional(),
   features: z.array(z.string()).optional(),
+  imageUrl: z.string().optional(),
   media: z.object({
     type: z.enum(["book3d", "cards-fan", "bundle-stack"]).optional(),
     image: z.string().optional(),

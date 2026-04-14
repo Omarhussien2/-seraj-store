@@ -79,6 +79,7 @@ const CreateProductSchema = z.object({
   category: z.enum(["قصص جاهزة", "قصص مخصصة", "فلاش كاردز", "مجموعات"]),
   longDesc: z.string().min(1),
   features: z.array(z.string()),
+  imageUrl: z.string().optional(),
   media: MediaSchema,
   gallery: z.array(GalleryItemSchema).optional().default([]),
   action: z.enum(["cart", "wizard", "none"]),
