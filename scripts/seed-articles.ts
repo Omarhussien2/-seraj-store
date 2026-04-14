@@ -10,55 +10,56 @@ import mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
 
-// ─── Section mapping (from index file) ───
+// ─── Section mapping (corrected by actual article content) ───
 const SECTION_MAP: Record<number, string> = {
-  1: "الحمل والرضاعة",
-  2: "الحمل والرضاعة",
-  3: "الحمل والرضاعة",
-  4: "الحمل والرضاعة",
-  5: "من الولادة إلى سنتين",
-  6: "من الولادة إلى سنتين",
-  7: "من الولادة إلى سنتين",
-  8: "من الولادة إلى سنتين",
-  9: "من 2 إلى 5 سنوات",
-  10: "من 2 إلى 5 سنوات",
-  11: "من 2 إلى 5 سنوات",
-  12: "من 2 إلى 5 سنوات",
-  13: "العلاقة مع الأم نفسها",
-  14: "العلاقة مع الأم نفسها",
-  15: "العلاقة مع الأم نفسها",
-  16: "العلاقة مع الأم نفسها",
-  17: "الأهل والأسرة الممتدة",
-  18: "الأهل والأسرة الممتدة",
-  19: "العدل بين الولد والبنت",
-  20: "العدل بين الولد والبنت",
-  21: "المدرسة والضغط الدراسي",
-  22: "المدرسة والضغط الدراسي",
-  23: "المدرسة والضغط الدراسي",
-  24: "الشاشات والإنترنت",
-  25: "الشاشات والإنترنت",
-  26: "الشاشات والإنترنت",
-  27: "الشاشات والإنترنت",
-  28: "السلوكيات الصعبة والصحة النفسية",
-  29: "السلوكيات الصعبة والصحة النفسية",
-  30: "السلوكيات الصعبة والصحة النفسية",
-  31: "السلوكيات الصعبة والصحة النفسية",
-  32: "السلوكيات الصعبة والصحة النفسية",
-  33: "الأب والتربية المشتركة",
-  34: "الأب والتربية المشتركة",
-  35: "مشاعر الأم وصورتها عن نفسها",
-  36: "مشاعر الأم وصورتها عن نفسها",
-  37: "القيم والمراحل العمرية",
-  38: "القيم والمراحل العمرية",
-  39: "القيم والمراحل العمرية",
-  40: "القيم والمراحل العمرية",
+  1: "العلاقة مع الأم نفسيا",    // توازن أدوار الأم
+  2: "العلاقة مع الأم نفسيا",    // عبء الشيفت الثاني
+  3: "العلاقة مع الأم نفسيا",    // الإرهاق النفسي والجسدي
+  4: "الحمل والرضاعة",           // الغلاء والمصاريف
+  5: "الحمل والرضاعة",           // الأم المعيلة/المطلقة
+  6: "المدرسة والضغط الدراسي",   // نظام التعليم والحفظ
+  7: "المدرسة والضغط الدراسي",   // الدروس الخصوصية والمذاكرة
+  8: "القيم والمراحل العمرية",   // طبيعة كل مرحلة عمرية
+  9: "من 2 إلى 5 سنوات",        // الحزم vs العنف
+  10: "من 2 إلى 5 سنوات",       // وقف الضرب والعقاب البدني
+  11: "من 2 إلى 5 سنوات",       // الضرب غلط لكن الحولي بيضربوا
+  12: "من 2 إلى 5 سنوات",       // التساهل والقسوة والتذبذب
+  13: "العلاقة مع الأم نفسيا",   // التحكم في العصبية والصراخ
+  14: "من 2 إلى 5 سنوات",       // نوبات الغضب والعناد 2-5 سنوات
+  15: "من 2 إلى 5 سنوات",       // تنظيم النوم والأكل والحمام
+  16: "العلاقة مع الأم نفسيا",   // خوف كلام الناس
+  17: "الأهل والأسرة الممتدة",   // حدود تدخل الأهل
+  18: "الأهل والأسرة الممتدة",   // هدم الكلام قدام الأولاد
+  19: "العدل بين الولد والبنت",  // العدالة والمساواة
+  20: "العدل بين الولد والبنت",  // فرص البنات
+  21: "المدرسة والضغط الدراسي",  // الضغط المدرسي
+  22: "المدرسة والضغط الدراسي",  // المدرسة الضعيفة
+  23: "المدرسة والضغط الدراسي",  // علاقة مع المعلمين
+  24: "الشاشات والإنترنت",       // تنظيم الشاشات
+  25: "الشاشات والإنترنت",       // حماية من المحتوى الضار
+  26: "الشاشات والإنترنت",       // إدمان الألعاب والفيديوهات
+  27: "الشاشات والإنترنت",       // التنمر الإلكتروني
+  28: "السلوكيات الصعبة والصحة النفسية", // العدوان والكذب وفرط الحركة
+  29: "السلوكيات الصعبة والصحة النفسية", // القلق والاكتئاب
+  30: "السلوكيات الصعبة والصحة النفسية", // المساعدة النفسية
+  31: "السلوكيات الصعبة والصحة النفسية", // وصمة الأخصائي النفسي
+  32: "السلوكيات الصعبة والصحة النفسية", // الخلافات قدام الأولاد
+  33: "الأب والتربية المشتركة",  // اتفاق على أسلوب تربية
+  34: "الأب والتربية المشتركة",  // غياب الأب
+  35: "مشاعر الأم وصورتها عن نفسها", // شعور الذنب
+  36: "مشاعر الأم وصورتها عن نفسها", // صورة الأم المثالية في السوشيال
+  37: "القيم والمراحل العمرية",   // توازن القيم
+  38: "من 2 إلى 5 سنوات",       // التعلق والخوف من الحضانة 2-5
+  39: "من 5 إلى 10 سنوات",      // التركيز والتنمر 6-9 سنوات
+  40: "القيم والمراحل العمرية",   // بداية المراهقة 10-12
 };
 
 const AGE_GROUP_MAP: Record<string, string> = {
   "الحمل والرضاعة": "الحمل",
   "من الولادة إلى سنتين": "0-2",
   "من 2 إلى 5 سنوات": "2-5",
-  "العلاقة مع الأم نفسها": "متنوع",
+  "من 5 إلى 10 سنوات": "5-10",
+  "العلاقة مع الأم نفسيا": "متنوع",
   "الأهل والأسرة الممتدة": "متنوع",
   "العدل بين الولد والبنت": "متنوع",
   "المدرسة والضغط الدراسي": "5-10",
@@ -224,27 +225,41 @@ function extractExcerpt(content: string): string {
 function extractSources(content: string): { label: string; url?: string; note?: string }[] {
   const sources: { label: string; url?: string; note?: string }[] = [];
 
-  // Find the sources section
-  const sourcesMatch = content.match(/##\s*\*\*مصادر وروابط مفيدة\*\*([\s\S]*?)(?=##\s*\*\*فيديوهات|$)/i);
-  if (!sourcesMatch) {
-    // Try alternative format
-    const altMatch = content.match(/##\s*\*\*مصادر وروابط\*\*([\s\S]*?)(?=##|$)/i);
-    if (!altMatch) return sources;
-    return extractSourcesFromBlock(altMatch[1]);
+  // Truncate content at "فيديوهات" or "شكل المقالات الجاية" or next article marker
+  let cleanContent = content
+    .replace(/##\s*\*\*فيديوهات وروابط سوشيال في نفس الموضوع\*\*[\s\S]*?(?=##\s*\*\*المقال\s+\d+\*\*|$)/gi, "")
+    .replace(/##\s*\*\*شكل المقالات الجاية\*\*[\s\S]*?(?=##\s*\*\*المقال\s+\d+\*\*|$)/gi, "");
+
+  // Find all source sections
+  const sourcePatterns = [
+    /##\s*\*\*مصادر وروابط مفيدة\*\*([\s\S]*?)(?=##|$)/i,
+    /##\s*\*\*مصادر وروابط\*\*([\s\S]*?)(?=##|$)/i,
+  ];
+
+  for (const pattern of sourcePatterns) {
+    const match = cleanContent.match(pattern);
+    if (match) {
+      extractSourcesFromBlock(match[1], sources);
+    }
   }
 
-  return extractSourcesFromBlock(sourcesMatch[1]);
+  // Also catch bare "مصادر وروابط" without ## (inline format in some articles)
+  const bareMatch = cleanContent.match(/(?:^|\n)مصادر وروابط\s*\n([\s\S]*?)(?=\n##|$)/i);
+  if (bareMatch) {
+    extractSourcesFromBlock(bareMatch[1], sources);
+  }
+
+  return sources;
 }
 
-function extractSourcesFromBlock(block: string): { label: string; url?: string; note?: string }[] {
-  const sources: { label: string; url?: string; note?: string }[] = [];
+function extractSourcesFromBlock(block: string, sources: { label: string; url?: string; note?: string }[]) {
   const lines = block.split("\n");
 
   for (const line of lines) {
     const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#") || trimmed.startsWith("*") && !trimmed.includes("http")) continue;
+    if (!trimmed || trimmed.startsWith("#")) continue;
 
-    // Match: * Label: URL or * [Label](URL)
+    // Match: * Label: URL
     const linkMatch = trimmed.match(/^\*\s*(.+?)\s*:\s*(https?:\/\/\S+)/);
     if (linkMatch) {
       sources.push({
@@ -254,17 +269,23 @@ function extractSourcesFromBlock(block: string): { label: string; url?: string; 
       continue;
     }
 
-    // Match: * Label:  URL (with extra spaces)
+    // Match: * Label:  URL (label ends with separator, then URL)
     const simpleMatch = trimmed.match(/^\*\s*(.+?)(https:\/\/\S+)/);
     if (simpleMatch) {
       const label = simpleMatch[1].replace(/[:\-–]\s*$/, "").replace(/\*/g, "").trim();
       if (label && label.length > 2) {
         sources.push({ label, url: simpleMatch[2] });
       }
+      continue;
+    }
+
+    // Match bare URLs on their own line (some articles have this format)
+    const bareUrl = trimmed.match(/^(https?:\/\/\S+)/);
+    if (bareUrl) {
+      sources.push({ label: bareUrl[1], url: bareUrl[1] });
+      continue;
     }
   }
-
-  return sources;
 }
 
 function calculateReadingTime(content: string): number {
@@ -279,7 +300,8 @@ function extractTags(title: string, section: string): string[] {
     "الحمل والرضاعة": ["حمل", "رضاعة", "أم جديدة"],
     "من الولادة إلى سنتين": ["حديثي الولادة", "رضع", "أول سنة"],
     "من 2 إلى 5 سنوات": ["أطفال صغار", "روضة", "عند"],
-    "العلاقة مع الأم نفسها": ["الأم", "صحة نفسية", "رعاية ذاتية"],
+    "من 5 إلى 10 سنوات": ["مدرسة", "أطفال", "تعليم"],
+    "العلاقة مع الأم نفسيا": ["الأم", "صحة نفسية", "رعاية ذاتية"],
     "الأهل والأسرة الممتدة": ["أجداد", "عائلة", "حدود"],
     "العدل بين الولد والبنت": ["مساواة", "بنات", "أولاد"],
     "المدرسة والضغط الدراسي": ["مدرسة", "دراسة", "دروس"],
@@ -323,38 +345,42 @@ async function main() {
     const section = SECTION_MAP[a.id] || "القيم والمراحل العمرية";
     const ageGroup = AGE_GROUP_MAP[section] || "متنوع";
 
+    // Clean content: remove everything after sources + videos sections
+    let cleanContent = a.content;
+    // Remove "فيديوهات وروابط سوشيال" section and everything after
+    cleanContent = cleanContent.replace(/##\s*\*\*فيديوهات وروابط سوشيال في نفس الموضوع\*\*[\s\S]*$/i, "");
+    // Remove "شكل المقالات الجاية" section and everything after
+    cleanContent = cleanContent.replace(/##\s*\*\*شكل المقالات الجاية\*\*[\s\S]*$/i, "");
+    // Trim trailing whitespace
+    cleanContent = cleanContent.trim();
+
     return {
       slug: generateSlug(a.id, a.title),
       title: a.title,
       section,
       ageGroup,
-      excerpt: extractExcerpt(a.content),
-      contentMarkdown: a.content,
+      excerpt: extractExcerpt(cleanContent),
+      contentMarkdown: cleanContent,
       sources: extractSources(a.content),
       tags: extractTags(a.title, section),
-      readingTime: calculateReadingTime(a.content),
+      readingTime: calculateReadingTime(cleanContent),
       author: "فريق سراج",
       publishedAt: new Date(),
       active: true,
       order: a.id,
-      metaDescription: extractExcerpt(a.content),
+      metaDescription: extractExcerpt(cleanContent),
     };
   });
 
-  // Upsert each article
+  // Force update all articles (section/content/sources may have changed)
   let created = 0;
   let updated = 0;
-  let skipped = 0;
 
   for (const article of seedArticles) {
     try {
       const existing = await Article.findOne({ slug: article.slug });
       if (existing) {
-        // Only update if content is different (don't overwrite admin edits)
-        if (existing.contentMarkdown === article.contentMarkdown) {
-          skipped++;
-          continue;
-        }
+        // Always update — section/content/sources may have been corrected
         await Article.updateOne({ slug: article.slug }, { $set: article });
         updated++;
         console.log(`  🔄 Updated: ${article.slug}`);
@@ -372,7 +398,6 @@ async function main() {
   console.log("\n📊 Seed complete:");
   console.log(`  ✅ Created: ${created}`);
   console.log(`  🔄 Updated: ${updated}`);
-  console.log(`  ⏭️  Skipped (unchanged): ${skipped}`);
 
   // Verify
   const total = await Article.countDocuments({ active: true });
