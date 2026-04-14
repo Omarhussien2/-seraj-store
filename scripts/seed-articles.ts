@@ -175,7 +175,7 @@ function parseArticles(content: string): ParsedArticle[] {
 
     if (splits[i].rawTitle) {
       // Article 34 — the marker itself is the title
-      title = splits[i].rawTitle;
+      title = splits[i].rawTitle!;
       bodyStart = 0;
     } else {
       const titleMatch = articleContent.match(/^##\s*\*\*(.+?)\*\*/m);
