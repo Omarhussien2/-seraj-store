@@ -1345,7 +1345,9 @@ input, textarea { font-family: inherit; }
   margin-bottom: 10px;
   color: var(--ink);
 }
-.field input[type="text"] {
+.field input[type="text"],
+.field input[type="tel"],
+.field input[type="email"] {
   width: 100%;
   padding: 18px 20px;
   background: var(--paper);
@@ -1358,7 +1360,9 @@ input, textarea { font-family: inherit; }
   box-shadow: 0 4px 0 var(--ink);
   transition: box-shadow .15s;
 }
-.field input[type="text"]:focus { outline: none; box-shadow: 0 4px 0 var(--seraj-dark), 0 0 0 4px var(--seraj-wash); }
+.field input[type="text"]:focus,
+.field input[type="tel"]:focus,
+.field input[type="email"]:focus { outline: none; box-shadow: 0 4px 0 var(--seraj-dark), 0 0 0 4px var(--seraj-wash); }
 .field input::placeholder { color: var(--ink-mute); font-weight: 500; }
 
 .age-grid {

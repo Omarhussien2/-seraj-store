@@ -457,8 +457,11 @@
     h += '<form id="checkoutForm" class="checkout-form" onsubmit="return false">';
     h += '<label class="field"><span>اسم الأم <small style="color:var(--ember)">*</small></span>';
     h += '<input type="text" id="custName" required placeholder="الاسم بالكامل" autocomplete="name"/></label>';
-    h += '<label class="field"><span>رقم الموبايل <small style="color:var(--ember)">*</small></span>';
-    h += '<input type="tel" id="custPhone" required pattern="01[0-9]{9}" placeholder="01xxxxxxxxx" autocomplete="tel" dir="ltr" style="text-align:left"/></label>';
+    h += '<label class="field"><span>رقم الموبايل (واتساب) <small style="color:var(--ember)">*</small></span>';
+    h += '<div style="position:relative">';
+    h += '<span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--ink-mute);font-weight:600;pointer-events:none">🇪🇬</span>';
+    h += '<input type="tel" id="custPhone" required pattern="01[0-9]{9}" placeholder="01xxxxxxxxx" autocomplete="tel" dir="ltr" style="text-align:left;padding-left:48px"/></label>';
+    h += '</div>';
     h += '<label class="field"><span>العنوان <small style="color:var(--ember)">*</small></span>';
     h += '<textarea id="custAddress" required placeholder="العنوان بالتفصيل: المدينة، المنطقة، الشارع..." rows="2"></textarea></label>';
     h += '<label class="field"><span>ملاحظات <small style="color:var(--ink-mute)">(اختياري)</small></span>';
@@ -696,7 +699,7 @@
     if (name === 'mama-world') initMamaWorld();
     if (name === 'preview') {
       var heroName = state.heroName || 'بطلنا';
-      document.querySelectorAll('#previewName, #previewName2, #previewName3, #previewName4')
+      document.querySelectorAll('#previewName, #previewName2')
         .forEach(function (el) { el.textContent = heroName; });
     }
   }
