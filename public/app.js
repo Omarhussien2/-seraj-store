@@ -699,8 +699,8 @@
     if (name === 'mama-world') initMamaWorld();
     if (name === 'preview') {
       var heroName = state.heroName || 'بطلنا';
-      document.querySelectorAll('#previewName, #previewName2')
-        .forEach(function (el) { el.textContent = heroName; });
+      var el = document.getElementById('previewName');
+      if (el) el.textContent = heroName;
     }
   }
 
