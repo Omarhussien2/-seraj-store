@@ -1304,7 +1304,16 @@
           : '';
 
         // Convert markdown to HTML (simple converter)
-        var contentHtml = simpleMarkdown(a.contentMarkdown || '');
+        // Strip duplicate sources section from markdown (we render sources separately from the sources[] array)
+        var cleanedMd = (a.contentMarkdown || '')
+          .replace(/---\s*##\s*\*{0,2}مصادر وروابط\*{0,2}[\s\S]*$/, '')
+          .replace(/##\s*\*{0,2}مصادر وروابط\*{0,2}[\s\S]*$/, '')
+          .replace(/---\s*##\s*\*{0,2}المصادر والمراجع\*{0,2}[\s\S]*$/, '')
+          .replace(/##\s*\*{0,2}المصادر والمراجع\*{0,2}[\s\S]*$/, '')
+          .replace(/---\s*##\s*\*{0,2}المصادر\*{0,2}\s[\s\S]*$/, '')
+          .replace(/##\s*\*{0,2}المصادر\*{0,2}\s[\s\S]*$/, '')
+          .trim();
+        var contentHtml = simpleMarkdown(cleanedMd);
 
         // Sources
         var sourcesHtml = '';
@@ -1396,7 +1405,7 @@
       var cells = match.split('|').filter(function (c) { return c.trim(); });
       return '<tr>' + cells.map(function (c) { return '<td>' + c.trim() + '</td>'; }).join('') + '</tr>';
     });
-    html = html.replace(/(<tr>.*<\/tr>\n?)+/g, '<table>$&</table>');
+    html = html.replace(/(<tr>.*<\/tr>\n?)+/g, '<div class="table-scroll-wrap"><table>$&</table></div>');
     // Paragraphs
     html = html.replace(/\n\n/g, '</p><p>');
     html = '<p>' + html + '</p>';

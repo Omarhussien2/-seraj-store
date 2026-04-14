@@ -2655,7 +2655,7 @@ input, textarea { font-family: inherit; }
 .articles-load-more:hover { background: var(--seraj); color: #fff; }
 
 /* Article Detail Page */
-.article-detail-page { max-width: 780px; margin: 0 auto; padding: 0 20px 40px; }
+.article-detail-page { max-width: 780px; margin: 0 auto; padding: 0 20px 40px; overflow-x: hidden; }
 .article-back {
   display: inline-flex; align-items: center; gap: 6px;
   color: var(--seraj); font-weight: 600; font-size: 15px;
@@ -2669,7 +2669,7 @@ input, textarea { font-family: inherit; }
   margin-bottom: 24px; box-shadow: 0 4px 16px rgba(0,0,0,.08);
 }
 
-.article-detail-content { line-height: 1.9; color: var(--ink); }
+.article-detail-content { line-height: 1.9; color: var(--ink); overflow-x: hidden; word-wrap: break-word; overflow-wrap: break-word; }
 .article-detail-title {
   font-family: var(--display); font-size: 28px; font-weight: 700;
   line-height: 1.4; margin: 12px 0 8px; color: var(--ink);
@@ -2688,11 +2688,29 @@ input, textarea { font-family: inherit; }
 .article-body-content p { margin: 0 0 16px; }
 .article-body-content ul, .article-body-content ol { margin: 0 0 16px; padding-right: 24px; }
 .article-body-content li { margin-bottom: 6px; }
-.article-body-content a { color: var(--seraj); text-decoration: underline; }
+.article-body-content a { color: var(--seraj); text-decoration: underline; word-break: break-all; }
 .article-body-content strong { font-weight: 700; }
+.article-body-content img { max-width: 100%; height: auto; border-radius: 12px; }
 .article-body-content table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 15px; }
 .article-body-content td, .article-body-content th { border: 1px solid var(--line); padding: 8px 12px; text-align: right; }
 .article-body-content hr { border: none; border-top: 1px solid var(--line); margin: 16px 0; }
+
+/* Scrollable table wrapper for mobile */
+.table-scroll-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 16px 0;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+.table-scroll-wrap table {
+  margin: 0;
+  min-width: 400px;
+}
+
+/* Source item links should also break */
+.source-item a { word-break: break-all; }
 
 /* Sources section */
 .article-sources { margin: 24px 0; }
