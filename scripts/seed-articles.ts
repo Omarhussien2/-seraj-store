@@ -136,30 +136,54 @@ interface SeedArticle {
 function parseArticles(content: string): ParsedArticle[] {
   const articles: ParsedArticle[] = [];
 
-  // Split by article markers: "## **المقال N**" or "مقال N:"
-  const articleRegex = /##\s*\*\*المقال\s+(\d+)\*\*|مقال\s+(\d+)\s*:/g;
+  // Split by article markers:
+  // 1. "## **المقال N**"
+  // 2. "مقال N:" (inline format used in some sections)
+  // 3. "## **أتعامل إزاي لما الأب غايب**" — article 34 has no header, we detect by position
+  const articleRegex = /(?:##\s*\*\*المقال\s+(\d+)\*\*|مقال\s+(\d+)\s*[:：]|^##\s*\*\*(أتعامل إزاي لما الأب غايب))/gm;
 
-  const splits: { id: number; startIndex: number }[] = [];
+  const splits: { id: number; startIndex: number; rawTitle?: string }[] = [];
   let match;
 
   while ((match = articleRegex.exec(content)) !== null) {
-    const id = parseInt(match[1] || match[2], 10);
-    splits.push({ id, startIndex: match.index + match[0].length });
+    const id = match[1]
+      ? parseInt(match[1], 10)
+      : match[2]
+        ? parseInt(match[2], 10)
+        : 34; // The father absence article
+    const rawTitle = match[3]; // For article 34
+    splits.push({ id, startIndex: match.index, rawTitle });
   }
 
   // Also check for "مقال 21:" format at the end of the file
   for (let i = 0; i < splits.length; i++) {
-    const start = splits[i].startIndex;
+    // For most articles, content starts after the "المقال N" header line
+    // For article 34, the header IS the title, so content starts after it
+    const markerEnd = splits[i].rawTitle
+      ? splits[i].startIndex + content.substring(splits[i].startIndex).indexOf("\n")
+      : content.indexOf("\n", splits[i].startIndex);
+
+    const start = markerEnd + 1;
     const end = i + 1 < splits.length ? splits[i + 1].startIndex : content.length;
     const articleContent = content.substring(start, end).trim();
 
     // Extract title: first ## heading after the marker
-    const titleMatch = articleContent.match(/^##\s*\*\*(.+?)\*\*/m);
-    const title = titleMatch ? titleMatch[1].trim() : `مقال ${splits[i].id}`;
+    let title: string;
+    let bodyStart = 0;
+
+    if (splits[i].rawTitle) {
+      // Article 34 — the marker itself is the title
+      title = splits[i].rawTitle;
+      bodyStart = 0;
+    } else {
+      const titleMatch = articleContent.match(/^##\s*\*\*(.+?)\*\*/m);
+      title = titleMatch ? titleMatch[1].trim() : `مقال ${splits[i].id}`;
+      bodyStart = titleMatch ? titleMatch.index! + titleMatch[0].length : 0;
+    }
 
     // Remove the title line from content
-    const bodyContent = titleMatch
-      ? articleContent.substring(titleMatch.index! + titleMatch[0].length)
+    const bodyContent = bodyStart > 0
+      ? articleContent.substring(bodyStart)
       : articleContent;
 
     articles.push({
