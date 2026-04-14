@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://seraj-store.vercel.app"
+  ),
   title: "سِراج — متعة القراءة واللعب",
   description:
     "قصص مخصصة باسم طفلك — مصنوعة بحب في مصر. كتب أطفال بجودة عالية بتعلّم القيم والمغامرة. اطلبي قصة بطلك النهاردة!",
@@ -14,7 +17,7 @@ export const metadata: Metadata = {
     siteName: "سِراج",
     images: [
       {
-        url: "/assets/sharelinkbannar.png",
+        url: "/assets/share-banner.jpg",
         width: 1200,
         height: 630,
         alt: "سِراج — متعة القراءة واللعب",
@@ -26,7 +29,7 @@ export const metadata: Metadata = {
     title: "سِراج — متعة القراءة واللعب",
     description:
       "قصص مخصصة باسم طفلك — مصنوعة بحب في مصر.",
-    images: ["/assets/sharelinkbannar.png"],
+    images: ["/assets/share-banner.jpg"],
   },
   robots: {
     index: true,
