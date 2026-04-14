@@ -134,6 +134,7 @@
   }
 
   // ----- Fetch Products from API (graceful fallback) -----
+  var productsLoaded = false;
   function fetchProducts() {
     fetch('/api/products')
       .then(function (res) { return res.json(); })
@@ -142,9 +143,12 @@
           var apiProducts = {};
           data.data.forEach(function (p) { apiProducts[p.slug] = p; });
           PRODUCTS = apiProducts;
+          productsLoaded = true;
           console.log('✅ Products loaded from API (' + data.data.length + ')');
         }
         updateDOMPrices();
+        // Re-render current page so product detail picks up API data
+        handleRoute();
       })
       .catch(function () {
         console.warn('⚠️ API fetch failed, using fallback products');
@@ -301,9 +305,23 @@
       h += '<button class="btn btn-primary btn-xl" data-add-cart="' + slug + '">' + product.ctaText + ' <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/></svg></button>';
     }
     h += '</div></div></div>';
-    // Video placeholder
-    h += '<section class="section pd-video-section"><div class="section-head"><span class="kicker">فيديو المنتج</span><h2>شوفي المنتج بالتفصيل</h2><p>فيديو هيوريك المنتج عن قرب</p></div>';
-    h += '<div class="pd-video-placeholder"><svg viewBox="0 0 48 48" width="48" height="48"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2.5"/><polygon points="20,16 34,24 20,32" fill="currentColor"/></svg><p>الفيديو هيتوفر قريباً</p></div></section>';
+    // Gallery — show uploaded images/videos from backend, fallback to placeholder
+    if (product.gallery && product.gallery.length > 0) {
+      h += '<section class="section pd-video-section"><div class="section-head"><span class="kicker">صور وفيديوهات المنتج</span><h2>شوفي المنتج بالتفصيل</h2></div>';
+      h += '<div class="pd-gallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;padding:0 20px">';
+      for (var g = 0; g < product.gallery.length; g++) {
+        var gi = product.gallery[g];
+        if (gi.resourceType === 'video') {
+          h += '<div style="border-radius:12px;overflow:hidden;background:#f5f0e8;aspect-ratio:16/9"><video src="' + gi.url + '" controls playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover" poster=""></video></div>';
+        } else {
+          h += '<div style="border-radius:12px;overflow:hidden;background:#f5f0e8;aspect-ratio:1/1"><img src="' + gi.url + '" alt="' + (gi.alt || product.name) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover"/></div>';
+        }
+      }
+      h += '</div></section>';
+    } else {
+      h += '<section class="section pd-video-section"><div class="section-head"><span class="kicker">فيديو المنتج</span><h2>شوفي المنتج بالتفصيل</h2><p>فيديو هيوريك المنتج عن قرب</p></div>';
+      h += '<div class="pd-video-placeholder"><svg viewBox="0 0 48 48" width="48" height="48"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2.5"/><polygon points="20,16 34,24 20,32" fill="currentColor"/></svg><p>الفيديو هيتوفر قريباً</p></div></section>';
+    }
     // Reviews
     h += '<section class="section pd-reviews-section"><div class="section-head"><span class="kicker">آراء الأمهات</span><h2>اللي جربوا المنتج ده</h2></div><div class="testimonials-grid">';
     for (var r = 0; r < product.reviews.length; r++) {

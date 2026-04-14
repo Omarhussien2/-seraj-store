@@ -27,7 +27,6 @@ export async function GET(request: Request) {
 
     const products = await Product.find(filter)
       .sort({ order: 1 })
-      .select("-longDesc -reviews -gallery -related")
       .lean();
 
     return NextResponse.json({
