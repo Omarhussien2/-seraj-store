@@ -1302,7 +1302,7 @@
   // CMS CONTENT / DOM INJECTION
   // ---------------------------------------------------------
   var SITE_CONTENT = {};
-  var HTML_KEYS = ['hero.title', 'hero.subtitle', 'counter.heading', 'about.quote'];
+  var HTML_KEYS = ['hero.title', 'hero.subtitle', 'about.quote'];
 
   function fetchSiteContent() {
     fetch('/api/content')
@@ -1328,6 +1328,13 @@
     document.querySelectorAll('[data-content-key]').forEach(function (el) {
       var key = el.getAttribute('data-content-key');
       if (SITE_CONTENT[key]) {
+        // Special Case: Counter Number
+        if (key === 'counter.number') {
+          el.setAttribute('data-to', SITE_CONTENT[key]);
+          el.textContent = '٠';
+          return;
+        }
+
         if (HTML_KEYS.indexOf(key) !== -1) {
           el.innerHTML = SITE_CONTENT[key];
         } else {
