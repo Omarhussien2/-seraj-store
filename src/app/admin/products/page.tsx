@@ -236,6 +236,25 @@ export default function AdminProductsPage() {
     if (!editingProduct?.gallery) return;
     const newGallery = [...editingProduct.gallery];
     newGallery.splice(index, 1);
+    // Re-index sortOrder
+    newGallery.forEach((item, i) => (item.sortOrder = i));
+    updateField("gallery", newGallery);
+  }
+
+  function moveGalleryItem(index: number, direction: "up" | "down") {
+    if (!editingProduct?.gallery) return;
+    const newGallery = [...editingProduct.gallery];
+    const target = direction === "up" ? index - 1 : index + 1;
+    if (target < 0 || target >= newGallery.length) return;
+    [newGallery[index], newGallery[target]] = [newGallery[target], newGallery[index]];
+    newGallery.forEach((item, i) => (item.sortOrder = i));
+    updateField("gallery", newGallery);
+  }
+
+  function updateGalleryAlt(index: number, alt: string) {
+    if (!editingProduct?.gallery) return;
+    const newGallery = [...editingProduct.gallery];
+    newGallery[index] = { ...newGallery[index], alt };
     updateField("gallery", newGallery);
   }
 
@@ -533,29 +552,70 @@ export default function AdminProductsPage() {
                 </div>
 
                 {editingProduct.gallery && editingProduct.gallery.length > 0 ? (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 mt-4">
+                  <div className="space-y-3 mt-4">
                     {editingProduct.gallery.map((item, idx) => (
-                      <div key={idx} className="relative group rounded-md overflow-hidden bg-gray-100 border aspect-square flex items-center justify-center">
-                        {item.resourceType === "video" ? (
-                          <video src={item.url} className="w-full h-full object-cover" />
-                        ) : (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={item.url} alt="Gallery item" className="w-full h-full object-cover" />
-                        )}
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-1 left-1 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => removeGalleryItem(idx)}
-                        >
-                          ✕
-                        </Button>
-                        {item.resourceType === "video" && (
-                          <div className="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded">
-                            فيديو
+                      <div key={idx} className="flex items-start gap-3 p-3 bg-white border rounded-lg">
+                        {/* Thumbnail */}
+                        <div className="w-24 h-24 flex-shrink-0 rounded-md overflow-hidden bg-gray-100 border">
+                          {item.resourceType === "video" ? (
+                            <video src={item.url} controls muted className="w-full h-full object-cover" />
+                          ) : (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={item.url} alt={item.alt || "Gallery item"} className="w-full h-full object-cover" />
+                          )}
+                        </div>
+
+                        {/* Info & Alt text */}
+                        <div className="flex-1 min-w-0 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Badge variant={item.resourceType === "video" ? "secondary" : "default"}>
+                              {item.resourceType === "video" ? "فيديو" : "صورة"}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground truncate">#{idx + 1}</span>
                           </div>
-                        )}
+                          <Input
+                            placeholder="وصف الصورة (Alt text)"
+                            value={item.alt || ""}
+                            onChange={(e) => updateGalleryAlt(idx, e.target.value)}
+                            className="h-8 text-sm"
+                          />
+                        </div>
+
+                        {/* Actions: reorder + delete */}
+                        <div className="flex flex-col gap-1 flex-shrink-0">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="w-7 h-7"
+                            disabled={idx === 0}
+                            onClick={() => moveGalleryItem(idx, "up")}
+                            title="نقل لأعلى"
+                          >
+                            ▲
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="w-7 h-7"
+                            disabled={idx === editingProduct.gallery!.length - 1}
+                            onClick={() => moveGalleryItem(idx, "down")}
+                            title="نقل لأسفل"
+                          >
+                            ▼
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="w-7 h-7"
+                            onClick={() => removeGalleryItem(idx)}
+                            title="حذف"
+                          >
+                            ✕
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>

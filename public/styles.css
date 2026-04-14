@@ -1876,11 +1876,71 @@ input, textarea { font-family: inherit; }
   text-decoration-thickness: 2.5px;
 }
 
-/* Video placeholder */
+/* ---- Product Images Gallery ---- */
+.pd-gallery-section {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.pd-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  padding: 0 20px;
+}
+.pd-gallery-item {
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--cream-2);
+  aspect-ratio: 1 / 1;
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.pd-gallery-item:hover {
+  transform: scale(1.03);
+  box-shadow: 0 8px 24px rgba(0,0,0,.1);
+}
+.pd-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+@media (max-width: 600px) {
+  .pd-gallery {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 0 12px;
+  }
+}
+
+/* ---- Product Video Section ---- */
 .pd-video-section {
   max-width: 800px;
   margin: 0 auto;
 }
+.pd-videos {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 0 20px;
+}
+.pd-video-wrap {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--cream-2);
+  box-shadow: 0 4px 20px rgba(0,0,0,.08);
+}
+.pd-video-wrap video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+}
+
+/* Video placeholder (no gallery) */
 .pd-video-placeholder {
   width: 100%;
   aspect-ratio: 16 / 9;

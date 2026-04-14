@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
@@ -63,7 +63,7 @@
       <svg viewBox="0 0 24 24" width="24" height="24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="cart-count" id="cartCount" hidden>0</span>
     </a>
-    <a href="#/wizard" data-link class="pill-btn">اصنع قصة لابنك</a>
+    <a href="#/wizard" data-link class="pill-btn" data-content-key="ribbon.cta">اصنع قصة لابنك</a>
   </header>
 
   <!-- ============ PAGES ============ -->
@@ -100,18 +100,18 @@
 
           <!-- TEXT — Duolingo-style: clean headline + green highlight + 2 CTAs + whitespace -->
           <div class="hero-copy">
-            <h1 class="display reveal" style="--d:.05s">
+            <h1 class="display reveal" style="--d:.05s" data-content-key="hero.title">
               متعة القراءة واللعب..
               <br/><span class="highlight">في حكايات بتصنع</span>
               <br/><span class="highlight">أبطال بجد!</span>
             </h1>
             <div class="hero-ctas reveal" style="--d:.22s">
               <a href="#/wizard" data-link class="btn btn-primary">
-                <span>يلا يا سراج.. ألف قصة لبطلنا</span>
+                <span data-content-key="hero.cta_primary">يلا يا سراج.. ألف قصة لبطلنا</span>
                 <svg viewBox="0 0 24 24" width="20" height="20"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </a>
               <a href="#/products" data-link class="btn btn-secondary">
-                <span>شوفي المنتجات</span>
+                <span data-content-key="hero.cta_secondary">شوفي المنتجات</span>
                 <svg viewBox="0 0 24 24" width="20" height="20"><path d="M6 12h12M12 6l6 6-6 6" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </a>
             </div>
@@ -138,8 +138,8 @@
       <!-- PRODUCTS PREVIEW — الأكتر طلباً -->
       <section class="section products-section">
         <header class="section-head reveal">
-          <span class="kicker">أبطالنا الصغار بيحبوهم</span>
-          <h2>منتجات سِراج الأكتر طلباً</h2>
+          <span class="kicker" data-content-key="products.kicker">أبطالنا الصغار بيحبوهم</span>
+          <h2 data-content-key="products.heading">منتجات سِراج الأكتر طلباً</h2>
         </header>
 
         <div class="products-grid">
@@ -214,7 +214,7 @@
       <section class="section counter-section">
         <div class="counter-card reveal">
           <div class="counter-left">
-            <span class="kicker">من قلب البيوت المصرية</span>
+            <span class="kicker" data-content-key="counter.kicker">من قلب البيوت المصرية</span>
             <h2>أكتر من <span class="counter" data-to="842">٠</span> قصة اتألفت لأبطالنا الصغار</h2>
             <p>صور حقيقية من أمهات جربوا سِراج وبعتوا لنا كتب بطلهم في إيديه</p>
           </div>
@@ -229,8 +229,8 @@
       <!-- HOW IT WORKS — خطوات القصص المخصصة -->
       <section class="section zigzag-section" id="how-it-works">
         <header class="section-head reveal">
-          <span class="kicker">٣ خطوات بس</span>
-          <h2>إزاي سراج بيعمل قصة بصورة ابنك؟</h2>
+          <span class="kicker" data-content-key="how.kicker">٣ خطوات بس</span>
+          <h2 data-content-key="how.heading">إزاي سراج بيعمل قصة بصورة ابنك؟</h2>
         </header>
 
         <!-- STEP 1: Video RIGHT (RTL), Text LEFT -->
@@ -250,7 +250,7 @@
           </div>
           <div class="zz-text">
             <span class="zz-num">١</span>
-            <h3>قولي لسراج اسم بطلنا وسنه</h3>
+            <h3 data-content-key="how.step1_title">قولي لسراج اسم بطلنا وسنه</h3>
             <p>ادخلي اسم طفلك وسنّه، واختاري القيمة اللي عايزاه يتعلمها.. وسراج هيبدأ الشغل.</p>
           </div>
         </article>
@@ -310,8 +310,8 @@
       <!-- CHALLENGES / VALUES — اختاري القيمة -->
       <section class="section values-section">
         <header class="section-head reveal">
-          <span class="kicker">القيم اللي هيتعلمها</span>
-          <h2>اختاري القيمة اللي بطلنا محتاجها النهاردة</h2>
+          <span class="kicker" data-content-key="values.kicker">القيم اللي هيتعلمها</span>
+          <h2 data-content-key="values.heading">اختاري القيمة اللي بطلنا محتاجها النهاردة</h2>
           <p>كل قيمة ليها قصة ومغامرة مختلفة</p>
         </header>
 
@@ -347,8 +347,8 @@
       <!-- TESTIMONIALS -->
       <section class="section testimonials-section">
         <header class="section-head reveal">
-          <span class="kicker">كلام أمهاتنا</span>
-          <h2>اللي قالتوه عن سِراج</h2>
+          <span class="kicker" data-content-key="testimonials.kicker">كلام أمهاتنا</span>
+          <h2 data-content-key="testimonials.heading">اللي قالتوه عن سِراج</h2>
         </header>
         <div class="testimonials-grid">
           <figure class="t-card reveal" style="--d:.05s">
@@ -380,10 +380,10 @@
         <div class="ribbon-inner">
           <img src="assets/seraj.png" class="ribbon-mascot" alt="سِراج" loading="lazy"/>
           <div class="ribbon-copy">
-            <h2>مستنية إيه؟ خلّي بطلنا يبدأ حكايته النهاردة!</h2>
+            <h2 data-content-key="ribbon.heading">مستنية إيه؟ خلّي بطلنا يبدأ حكايته النهاردة!</h2>
             <p>بس ٣ خطوات صغيرة، وسِراج هيقعد يشتغل في الورشة</p>
           </div>
-          <a href="#/wizard" data-link class="btn btn-primary btn-xl">
+          <a href="#/wizard" data-link class="btn btn-primary btn-xl" data-content-key="ribbon.cta">
             اصنع قصة لابنك
             <svg viewBox="0 0 24 24" width="22" height="22"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </a>
@@ -419,7 +419,7 @@
           </div>
         </div>
         <div class="footer-bot">
-          <span>© ٢٠٢٦ سِراج. صُنع بحب في مصر.</span>
+          <span data-content-key="footer.copyright">© ٢٠٢٦ سِراج. صُنع بحب في مصر.</span>
           <span>كل الحقوق محفوظة</span>
         </div>
       </footer>
@@ -504,8 +504,8 @@
     <!-- ========================================================= -->
     <section class="page" data-page="about">
       <div class="page-head">
-        <span class="kicker">قصتنا من قلب قرية الابتكار</span>
-        <h1>حكاية سِراج وعيلته</h1>
+        <span class="kicker" data-content-key="about.kicker">قصتنا من قلب قرية الابتكار</span>
+        <h1 data-content-key="about.heading">حكاية سِراج وعيلته</h1>
       </div>
 
       <section class="about-hero">
@@ -904,8 +904,8 @@
         <div class="mama-hero-inner">
           <img src="assets/grandma-fatima-seated.png" alt="الجدة زينب" class="mama-hero-img reveal" style="--d:.05s" loading="lazy"/>
           <div class="mama-hero-copy reveal" style="--d:.15s">
-            <h1>أهلاً بِكِ في عالم ماما</h1>
-            <p>مساحة من القلب للأم.. مقالات، نصايح، وأماكن تحبيها لبطلنا الصغير ✦</p>
+            <h1 data-content-key="mama.hero_title">أهلاً بِكِ في عالم ماما</h1>
+            <p data-content-key="mama.hero_desc">مساحة من القلب للأم.. مقالات، نصايح، وأماكن تحبيها لبطلنا الصغير ✦</p>
           </div>
         </div>
       </section>

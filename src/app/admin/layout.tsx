@@ -10,6 +10,7 @@ const navItems = [
   { href: "/admin/orders", label: "الطلبات", icon: "📦" },
   { href: "/admin/products", label: "المنتجات", icon: "📚" },
   { href: "/admin/stories", label: "القصص", icon: "📖" },
+  { href: "/admin/content", label: "المحتوى", icon: "✏️" },
 ];
 
 export default function AdminLayout({

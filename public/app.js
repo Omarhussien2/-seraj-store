@@ -305,19 +305,37 @@
       h += '<button class="btn btn-primary btn-xl" data-add-cart="' + slug + '">' + product.ctaText + ' <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/></svg></button>';
     }
     h += '</div></div></div>';
-    // Gallery — show uploaded images/videos from backend, fallback to placeholder
+    // Gallery — split into images grid + featured video section
     if (product.gallery && product.gallery.length > 0) {
-      h += '<section class="section pd-video-section"><div class="section-head"><span class="kicker">صور وفيديوهات المنتج</span><h2>شوفي المنتج بالتفصيل</h2></div>';
-      h += '<div class="pd-gallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;padding:0 20px">';
-      for (var g = 0; g < product.gallery.length; g++) {
-        var gi = product.gallery[g];
-        if (gi.resourceType === 'video') {
-          h += '<div style="border-radius:12px;overflow:hidden;background:#f5f0e8;aspect-ratio:16/9"><video src="' + gi.url + '" controls playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover" poster=""></video></div>';
-        } else {
-          h += '<div style="border-radius:12px;overflow:hidden;background:#f5f0e8;aspect-ratio:1/1"><img src="' + gi.url + '" alt="' + (gi.alt || product.name) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover"/></div>';
+      // Sort by sortOrder
+      var sorted = product.gallery.slice().sort(function(a, b) { return (a.sortOrder || 0) - (b.sortOrder || 0); });
+      var images = sorted.filter(function(gi) { return gi.resourceType !== 'video'; });
+      var videos = sorted.filter(function(gi) { return gi.resourceType === 'video'; });
+
+      // Images gallery
+      if (images.length > 0) {
+        h += '<section class="section pd-gallery-section"><div class="section-head"><span class="kicker">صور المنتج</span><h2>شوفي المنتج بالتفصيل</h2></div>';
+        h += '<div class="pd-gallery">';
+        for (var g = 0; g < images.length; g++) {
+          h += '<div class="pd-gallery-item"><img src="' + images[g].url + '" alt="' + (images[g].alt || product.name) + '" loading="lazy"/></div>';
         }
+        h += '</div></section>';
       }
-      h += '</div></section>';
+
+      // Video section
+      if (videos.length > 0) {
+        h += '<section class="section pd-video-section"><div class="section-head"><span class="kicker">فيديو تجربة المنتج</span><h2>شوفي المنتج على الحقيقي</h2></div>';
+        h += '<div class="pd-videos">';
+        for (var v = 0; v < videos.length; v++) {
+          h += '<div class="pd-video-wrap"><video src="' + videos[v].url + '" controls playsinline preload="metadata"></video></div>';
+        }
+        h += '</div></section>';
+      }
+
+      if (images.length === 0 && videos.length === 0) {
+        h += '<section class="section pd-video-section"><div class="section-head"><span class="kicker">فيديو المنتج</span><h2>شوفي المنتج بالتفصيل</h2></div>';
+        h += '<div class="pd-video-placeholder"><svg viewBox="0 0 48 48" width="48" height="48"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2.5"/><polygon points="20,16 34,24 20,32" fill="currentColor"/></svg><p>الفيديو هيتوفر قريباً</p></div></section>';
+      }
     } else {
       h += '<section class="section pd-video-section"><div class="section-head"><span class="kicker">فيديو المنتج</span><h2>شوفي المنتج بالتفصيل</h2><p>فيديو هيوريك المنتج عن قرب</p></div>';
       h += '<div class="pd-video-placeholder"><svg viewBox="0 0 48 48" width="48" height="48"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2.5"/><polygon points="20,16 34,24 20,32" fill="currentColor"/></svg><p>الفيديو هيتوفر قريباً</p></div></section>';
@@ -1280,12 +1298,60 @@
     }
   });
 
+  // ---------------------------------------------------------
+  // CMS CONTENT / DOM INJECTION
+  // ---------------------------------------------------------
+  var SITE_CONTENT = {};
+  var HTML_KEYS = ['hero.title', 'hero.subtitle', 'counter.heading', 'about.quote'];
+
+  function fetchSiteContent() {
+    fetch('/api/content')
+      .then(function (res) { return res.json(); })
+      .then(function (json) {
+        if (json.success && json.data) {
+          var flat = {};
+          Object.keys(json.data).forEach(function (section) {
+            Object.keys(json.data[section]).forEach(function (key) {
+              flat[key] = json.data[section][key];
+            });
+          });
+          SITE_CONTENT = flat;
+          injectSiteContent();
+        }
+      })
+      .catch(function (err) {
+        console.warn("Failed to fetch site content, using default local HTML.", err);
+      });
+  }
+
+  function injectSiteContent() {
+    document.querySelectorAll('[data-content-key]').forEach(function (el) {
+      var key = el.getAttribute('data-content-key');
+      if (SITE_CONTENT[key]) {
+        if (HTML_KEYS.indexOf(key) !== -1) {
+          el.innerHTML = SITE_CONTENT[key];
+        } else {
+          el.textContent = SITE_CONTENT[key];
+        }
+      }
+    });
+
+    // Special handling for wizard inputs
+    ['wizard.step1_q', 'wizard.step2_q', 'wizard.step3_q'].forEach(function(key, index) {
+       if (SITE_CONTENT[key]) {
+         var h2 = document.querySelector('.wizard-step[data-step="' + (index + 1) + '"] h2');
+         if(h2) h2.textContent = SITE_CONTENT[key];
+       }
+    });
+  }
+
   // ----- Init -----
   window.addEventListener('DOMContentLoaded', function () {
     loadCart();
     updateCartBadge();
     fetchProducts();
     fetchConfig();
+    fetchSiteContent();
     if (!location.hash) location.hash = '#/home';
     handleRoute();
     initReveals();
