@@ -140,7 +140,9 @@ function parseArticles(content: string): ParsedArticle[] {
   // 1. "## **المقال N**"
   // 2. "مقال N:" (inline format used in some sections)
   // 3. "## **أتعامل إزاي لما الأب غايب**" — article 34 has no header, we detect by position
-  const articleRegex = /(?:##\s*\*\*المقال\s+(\d+)\*\*|مقال\s+(\d+)\s*[:：]|^##\s*\*\*(أتعامل إزاي لما الأب غايب))/gm;
+  // Only match real article headers (## heading with "المقال N" or article 34's exact title)
+  // Must be at start of line — avoids matching inline references inside content
+  const articleRegex = /(?:^##\s*\*\*المقال\s+(\d+)\*\*|^##\s*\*\*أتعامل إزاي لما الأب غايب\s*\*\*)/gm;
 
   const splits: { id: number; startIndex: number; rawTitle?: string }[] = [];
   let match;
