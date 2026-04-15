@@ -473,9 +473,12 @@ export default function AdminProductsPage() {
                 />
               </div>
 
-              {/* Product Image */}
-              <div className="space-y-2">
-                <Label>صورة المنتج</Label>
+              {/* Product Image — this is what customers see */}
+              <div className="space-y-2 border-2 border-green-200 rounded-lg p-4 bg-green-50/30">
+                <Label className="text-base font-semibold text-green-800">صورة المنتج للعملاء</Label>
+                <p className="text-xs text-green-700 mb-2">
+                  الصورة دي هي اللي هتظهر للعملاء في الكتالوج وصفحة المنتج بدل الموك آب
+                </p>
                 <div className="flex gap-3 items-start">
                   <div className="flex-1">
                     <Input
@@ -483,8 +486,8 @@ export default function AdminProductsPage() {
                       onChange={(e) => updateField("imageUrl", e.target.value)}
                       placeholder="رابط الصورة (بعد الرفع هيظهر هنا تلقائي)"
                     />
-                    <label className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 text-sm border rounded-md cursor-pointer hover:bg-gray-50 transition-colors">
-                      📁 رفع صورة
+                    <label className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 text-sm border border-green-300 rounded-md cursor-pointer hover:bg-green-50 transition-colors bg-white">
+                      📁 رفع صورة المنتج
                       <input
                         type="file"
                         accept="image/*"
@@ -513,16 +516,14 @@ export default function AdminProductsPage() {
                     </label>
                   </div>
                   {editingProduct.imageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={editingProduct.imageUrl}
                       alt="معاينة"
-                      className="w-20 h-24 object-cover rounded-lg border"
+                      className="w-20 h-24 object-contain rounded-lg border"
                     />
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  الصورة دي هي اللي هتظهر للعملاء في الكتالوج وصفحة المنتج
-                </p>
               </div>
 
               {/* Features */}
@@ -567,9 +568,10 @@ export default function AdminProductsPage() {
                 </div>
               </div>
 
-              {/* Media */}
+              {/* Media — mockup fallback config */}
               <div className="space-y-4 border rounded-lg p-4 bg-gray-50/50">
-                <Label className="text-base font-semibold">الصورة الرئيسية للمنتج</Label>
+                <Label className="text-base font-semibold">إعدادات الموك آب (تظهر لو مفيش صورة منتج)</Label>
+                <p className="text-xs text-muted-foreground">الشكل الاحتياطي لما المنتج ميكونش عنده صورة حقيقية — الكتاب ثلاثي الأبعاد</p>
 
                 {/* Image preview + upload */}
                 <div className="flex items-start gap-4">

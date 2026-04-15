@@ -128,7 +128,8 @@
           foot.innerHTML = priceHTML + ctaHTML;
         }
         // Replace CSS mockup with real product image when available
-        if (p.imageUrl) {
+        var photoUrl = resolvePhotoUrl(p.imageUrl, p.media);
+        if (photoUrl) {
           var mediaDiv = card.querySelector('.product-media');
           if (mediaDiv) {
             mediaDiv.style.background = 'var(--cream-2)';
@@ -289,7 +290,8 @@
     h += '<span></span></div>';
     // Hero
     h += '<div class="pd-wrap">';
-    var heroBg = product.imageUrl ? ' style="background:var(--cream-2)"' : ' ' + product.media.bg;
+    var heroPhoto = resolvePhotoUrl(product.imageUrl, product.media);
+    var heroBg = heroPhoto ? ' style="background:var(--cream-2)"' : ' ' + product.media.bg;
     h += '<div class="pd-media reveal' + heroBg + '">' + renderMedia(product.media, true, product.imageUrl) + '</div>';
     h += '<div class="pd-body reveal">';
     if (product.badgeSoon) {
@@ -318,10 +320,11 @@
       h += '<button class="btn btn-primary btn-xl" data-add-cart="' + slug + '">' + product.ctaText + ' <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/></svg></button>';
     }
     h += '</div></div></div>';
-    // Gallery — build gallery from imageUrl + gallery[] images, then video section
+    // Gallery — build gallery from product photo + gallery[] images, then video section
     var galleryImages = [];
-    if (product.imageUrl) {
-      galleryImages.push({ url: product.imageUrl, alt: product.name });
+    var mainPhoto = resolvePhotoUrl(product.imageUrl, product.media);
+    if (mainPhoto) {
+      galleryImages.push({ url: mainPhoto, alt: product.name });
     }
     if (product.gallery && product.gallery.length > 0) {
       var sorted = product.gallery.slice().sort(function(a, b) { return (a.sortOrder || 0) - (b.sortOrder || 0); });
@@ -596,11 +599,20 @@
     return videoUrl.replace(/\/upload\//, '/upload/so_0,w_720,c_limit,f_auto,q_auto/');
   }
 
+  // Resolve the actual product photo URL: imageUrl takes priority,
+  // then media.image if it's a Cloudinary upload (not a local asset)
+  function resolvePhotoUrl(imageUrl, media) {
+    if (imageUrl) return imageUrl;
+    if (media && media.image && media.image.indexOf('res.cloudinary.com') !== -1) return media.image;
+    return null;
+  }
+
   function renderMedia(media, big, imageUrl) {
     var size = big ? ' big' : '';
-    if (imageUrl) {
+    var photoUrl = resolvePhotoUrl(imageUrl, media);
+    if (photoUrl) {
       var w = big ? 600 : 400;
-      var optimized = cloudinaryUrl(imageUrl, w);
+      var optimized = cloudinaryUrl(photoUrl, w);
       return '<div class="product-photo' + size + '"><img src="' + optimized + '" alt="" loading="lazy"/></div>';
     }
     if (media.type === 'book3d') return '<div class="book3d' + size + '"><div class="book3d-cover"><span class="book3d-title">' + media.title + '</span><img src="' + media.image + '" class="book3d-mascot" alt="" loading="lazy"/></div></div>';
@@ -610,8 +622,9 @@
   }
 
   function renderCartMedia(media, imageUrl) {
-    if (imageUrl) {
-      var optimized = cloudinaryUrl(imageUrl, 100);
+    var photoUrl = resolvePhotoUrl(imageUrl, media);
+    if (photoUrl) {
+      var optimized = cloudinaryUrl(photoUrl, 100);
       return '<div class="product-photo" style="width:60px;height:76px"><img src="' + optimized + '" alt="" loading="lazy"/></div>';
     }
     return renderMedia(media, false, null);
