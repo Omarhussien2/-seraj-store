@@ -11,6 +11,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 interface Stats {
   totalOrders: number;
@@ -45,6 +48,10 @@ const statusColors: Record<string, string> = {
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [shippingFee, setShippingFee] = useState(35);
+  const [freeShippingAbove, setFreeShippingAbove] = useState(0);
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsSaved, setSettingsSaved] = useState(false);
 
   useEffect(() => {
     fetch("/api/stats")
@@ -53,7 +60,32 @@ export default function AdminDashboard() {
         if (json.success) setStats(json.data);
       })
       .finally(() => setLoading(false));
+
+    fetch("/api/admin/settings")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          setShippingFee(json.data.shippingFee);
+          setFreeShippingAbove(json.data.freeShippingAbove);
+        }
+      })
+      .catch(() => {});
   }, []);
+
+  function saveSettings() {
+    setSettingsLoading(true);
+    setSettingsSaved(false);
+    fetch("/api/admin/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ shippingFee, freeShippingAbove }),
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success) setSettingsSaved(true);
+      })
+      .finally(() => setSettingsLoading(false));
+  }
 
   if (loading) {
     return <div className="text-center py-12 text-muted-foreground">جاري التحميل...</div>;
@@ -134,6 +166,43 @@ export default function AdminDashboard() {
               </TableBody>
             </Table>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Shipping Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle>🚚 إعدادات الشحن</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>رسوم الشحن (ج.م)</Label>
+              <Input
+                type="number"
+                min="0"
+                value={shippingFee}
+                onChange={(e) => setShippingFee(parseInt(e.target.value, 10) || 0)}
+              />
+              <p className="text-xs text-muted-foreground">رسوم الشحن لكل طلب. ضع 0 للشحن المجاني.</p>
+            </div>
+            <div className="space-y-2">
+              <Label>شحن مجاني فوق (ج.م)</Label>
+              <Input
+                type="number"
+                min="0"
+                value={freeShippingAbove}
+                onChange={(e) => setFreeShippingAbove(parseInt(e.target.value, 10) || 0)}
+              />
+              <p className="text-xs text-muted-foreground">لو الطلب فوق هذا المبلغ الشحن يكون مجاني. ضع 0 عشان مفيش شحن مجاني أبداً.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button onClick={saveSettings} disabled={settingsLoading}>
+              {settingsLoading ? "جاري الحفظ..." : "حفظ الإعدادات"}
+            </Button>
+            {settingsSaved && <span className="text-sm text-green-600 font-semibold">تم الحفظ ✓</span>}
+          </div>
         </CardContent>
       </Card>
     </div>
