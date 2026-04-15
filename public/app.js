@@ -12,6 +12,8 @@
   var CART_KEY = 'seraj-cart';
   var WIZARD_KEY = 'seraj-wizard';
   var ORDER_KEY = 'seraj-last-order';
+  var SHIPPING_FEE = 35; // fallback — overridden by /api/config
+  var FREE_SHIPPING_ABOVE = 0; // 0 = never free unless fee is 0
 
   // ----- Cloudinary Config -----
   var CLOUD_NAME = 'dkhndsrhr';
@@ -178,6 +180,8 @@
           if (data.data.whatsappNumber) WHATSAPP_NUMBER = data.data.whatsappNumber;
           if (data.data.instaPayNumber) INSTAPAY_NUMBER = data.data.instaPayNumber;
           if (data.data.instaPayLink) INSTAPAY_LINK = data.data.instaPayLink;
+          if (typeof data.data.shippingFee === 'number') SHIPPING_FEE = data.data.shippingFee;
+          if (typeof data.data.freeShippingAbove === 'number') FREE_SHIPPING_ABOVE = data.data.freeShippingAbove;
           console.log('✅ Config loaded from API');
         }
       })
@@ -247,6 +251,12 @@
     return total;
   }
 
+  function getShippingFee(subtotal) {
+    if (SHIPPING_FEE === 0) return 0;
+    if (FREE_SHIPPING_ABOVE > 0 && subtotal >= FREE_SHIPPING_ABOVE) return 0;
+    return SHIPPING_FEE;
+  }
+
   function cartItemCount() {
     var count = 0;
     cart.forEach(function (item) { count += item.qty; });
@@ -255,16 +265,6 @@
 
   function isCustomStory(slug) {
     return slug === 'custom-story';
-  }
-
-  // VIP price = total + 50 per regular item + 70 per custom story item
-  function calculateVIPPrice() {
-    var vipTotal = 0;
-    cart.forEach(function (item) {
-      var fee = isCustomStory(item.slug) ? 70 : 50;
-      vipTotal += (item.price + fee) * item.qty;
-    });
-    return vipTotal;
   }
 
   function toArabicNum(n) {
@@ -340,44 +340,49 @@
       videos = sortedAll.filter(function(gi) { return gi.resourceType === 'video'; });
     }
 
-    // Gallery section — show when any gallery images exist
-    if (galleryImages.length > 0) {
-      h += '<section class="section pd-gallery-section"><div class="section-head"><span class="kicker">صور المنتج</span><h2>شوفي المنتج بالتفصيل</h2></div>';
+    // Gallery section — images + videos together
+    // Merge videos into gallery items for unified display
+    var allGalleryItems = galleryImages.slice();
+    for (var vi = 0; vi < videos.length; vi++) {
+      allGalleryItems.push({ url: videos[vi].url, alt: videos[vi].alt || product.name, isVideo: true });
+    }
+
+    if (allGalleryItems.length > 0) {
+      h += '<section class="section pd-gallery-section"><div class="section-head"><span class="kicker">معرض المنتج</span><h2>شوفي المنتج بالتفصيل</h2></div>';
       h += '<div class="pd-gallery-wrap">';
+      // Main display — show first item
       h += '<div class="pd-gallery-main" data-gallery-main>';
-      h += '<img src="' + cloudinaryUrl(galleryImages[0].url, 800) + '" alt="' + escHtml(galleryImages[0].alt) + '" data-gallery-idx="0"/>';
-      if (galleryImages.length > 1) {
+      if (allGalleryItems[0].isVideo) {
+        var firstPoster = getVideoPoster(allGalleryItems[0].url);
+        h += '<video src="' + allGalleryItems[0].url + '" controls playsinline preload="none" poster="' + firstPoster + '" data-gallery-idx="0" style="width:100%;height:auto;display:block;border-radius:20px"></video>';
+      } else {
+        h += '<img src="' + cloudinaryUrl(allGalleryItems[0].url, 800) + '" alt="' + escHtml(allGalleryItems[0].alt) + '" data-gallery-idx="0"/>';
+      }
+      if (allGalleryItems.length > 1) {
         h += '<button class="gallery-arrow prev" data-gallery-prev><svg viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
         h += '<button class="gallery-arrow next" data-gallery-next><svg viewBox="0 0 24 24"><path d="M10 6l6 6-6 6" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
       }
-      h += '<span class="pd-gallery-counter" data-gallery-counter>١ / ' + toArabicNum(galleryImages.length) + '</span>';
+      h += '<span class="pd-gallery-counter" data-gallery-counter>١ / ' + toArabicNum(allGalleryItems.length) + '</span>';
       h += '</div>';
-      if (galleryImages.length > 1) {
+      // Thumbnails
+      if (allGalleryItems.length > 1) {
         h += '<div class="pd-gallery-thumbs" data-gallery-thumbs>';
-        for (var t = 0; t < galleryImages.length; t++) {
+        for (var t = 0; t < allGalleryItems.length; t++) {
           var thumbClass = t === 0 ? ' is-active' : '';
-          h += '<div class="pd-gallery-thumb' + thumbClass + '" data-gallery-thumb="' + t + '"><img src="' + cloudinaryUrl(galleryImages[t].url, 120) + '" alt="' + escHtml(galleryImages[t].alt) + '" loading="lazy"/></div>';
+          var thumbSrc = allGalleryItems[t].isVideo
+            ? getVideoPoster(allGalleryItems[t].url)
+            : cloudinaryUrl(allGalleryItems[t].url, 120);
+          h += '<div class="pd-gallery-thumb' + thumbClass + '" data-gallery-thumb="' + t + '" data-is-video="' + (allGalleryItems[t].isVideo ? '1' : '0') + '" data-src="' + allGalleryItems[t].url + '"><img src="' + thumbSrc + '" alt="' + escHtml(allGalleryItems[t].alt) + '" loading="lazy"/>';
+          if (allGalleryItems[t].isVideo) h += '<span class="thumb-play-icon">▶</span>';
+          h += '</div>';
         }
         h += '</div>';
       }
       h += '</div>';
-      // Hidden data store for gallery URLs
-      h += '<script type="application/json" data-gallery-json>' + JSON.stringify(galleryImages.map(function(img) { return cloudinaryUrl(img.url, 1200); })) + '</script>';
+      // Hidden data store for gallery URLs (images only for lightbox)
+      h += '<script type="application/json" data-gallery-json>' + JSON.stringify(allGalleryItems.map(function(item) { return item.isVideo ? item.url : cloudinaryUrl(item.url, 1200); })) + '</script>';
+      h += '<script type="application/json" data-gallery-types>' + JSON.stringify(allGalleryItems.map(function(item) { return item.isVideo ? 'video' : 'image'; })) + '</script>';
       h += '</section>';
-    }
-
-    // Video section
-    if (videos.length > 0) {
-      h += '<section class="section pd-video-section"><div class="section-head"><span class="kicker">فيديو تجربة المنتج</span><h2>شوفي المنتج على الحقيقي</h2></div>';
-      h += '<div class="pd-videos">';
-      for (var v = 0; v < videos.length; v++) {
-        var posterUrl = getVideoPoster(videos[v].url);
-        h += '<div class="pd-video-wrap"><video src="' + videos[v].url + '" controls playsinline preload="none" poster="' + posterUrl + '"></video></div>';
-      }
-      h += '</div></section>';
-    } else {
-      h += '<section class="section pd-video-section"><div class="section-head"><span class="kicker">فيديو المنتج</span><h2>شوفي المنتج بالتفصيل</h2><p>فيديو هيوريك المنتج عن قرب</p></div>';
-      h += '<div class="pd-video-placeholder"><svg viewBox="0 0 48 48" width="48" height="48"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2.5"/><polygon points="20,16 34,24 20,32" fill="currentColor"/></svg><p>الفيديو هيتوفر قريباً</p></div></section>';
     }
     // Reviews
     h += '<section class="section pd-reviews-section"><div class="section-head"><span class="kicker">آراء الأمهات</span><h2>اللي جربوا المنتج ده</h2></div><div class="testimonials-grid">';
@@ -411,15 +416,16 @@
     if (!mainEl) return;
 
     var jsonEl = container.querySelector('[data-gallery-json]');
+    var typesEl = container.querySelector('[data-gallery-types]');
     if (!jsonEl) return;
 
     try {
       galleryState.urls = JSON.parse(jsonEl.textContent);
+      galleryState.types = typesEl ? JSON.parse(typesEl.textContent) : galleryState.urls.map(function() { return 'image'; });
     } catch (e) { return; }
     galleryState.total = galleryState.urls.length;
     galleryState.current = 0;
 
-    var mainImg = mainEl.querySelector('img');
     var counterEl = mainEl.querySelector('[data-gallery-counter]');
     var thumbsWrap = container.querySelector('[data-gallery-thumbs]');
 
@@ -428,14 +434,32 @@
       if (idx >= galleryState.total) idx = 0;
       galleryState.current = idx;
 
-      if (mainImg) {
-        mainImg.classList.add('is-switching');
-        setTimeout(function() {
-          mainImg.src = galleryState.urls[idx].replace('/w_1200,', '/w_800,');
-          mainImg.setAttribute('data-gallery-idx', idx);
-          mainImg.classList.remove('is-switching');
-        }, 150);
+      var isVideo = galleryState.types[idx] === 'video';
+      var url = galleryState.urls[idx];
+
+      // Replace main content (image or video)
+      var currentMain = mainEl.querySelector('img, video');
+      if (currentMain) {
+        if (currentMain.tagName === 'VIDEO') currentMain.pause();
+        if (isVideo) {
+          var vid = document.createElement('video');
+          vid.src = url;
+          vid.controls = true;
+          vid.playsInline = true;
+          vid.preload = 'none';
+          vid.poster = getVideoPoster(url);
+          vid.setAttribute('data-gallery-idx', idx);
+          vid.style.cssText = 'width:100%;height:auto;display:block;border-radius:20px';
+          currentMain.replaceWith(vid);
+        } else {
+          var img = document.createElement('img');
+          img.src = url.replace('/w_1200,', '/w_800,');
+          img.setAttribute('data-gallery-idx', idx);
+          img.alt = '';
+          currentMain.replaceWith(img);
+        }
       }
+
       if (counterEl) {
         counterEl.textContent = toArabicNum(idx + 1) + ' / ' + toArabicNum(galleryState.total);
       }
@@ -444,7 +468,7 @@
           thumb.classList.toggle('is-active', i === idx);
         });
       }
-      if (galleryState.lightboxOpen) updateLightboxImage(idx);
+      if (galleryState.lightboxOpen && !isVideo) updateLightboxImage(idx);
     }
 
     // Arrow buttons
@@ -693,13 +717,17 @@
     h += '</div>';
 
     // Summary
-    var deposit = 50;
+    var shipping = getShippingFee(total);
+    var grandTotal = total + shipping;
     h += '<div class="cart-summary">';
     h += '<div class="cart-summary-row"><span>المجموع الفرعي</span><span>' + toArabicNum(total) + ' ج.م</span></div>';
-    h += '<div class="cart-summary-row"><span>الشحن</span><span style="color:var(--seraj-dark);font-weight:700">مجاناً ✦</span></div>';
-    h += '<div class="cart-summary-row total"><span>الإجمالي</span><span>' + toArabicNum(total) + ' ج.م</span></div>';
+    if (shipping === 0) {
+      h += '<div class="cart-summary-row"><span>الشحن</span><span style="color:var(--seraj-dark);font-weight:700">مجاناً ✦</span></div>';
+    } else {
+      h += '<div class="cart-summary-row"><span>الشحن</span><span>' + toArabicNum(shipping) + ' ج.م</span></div>';
+    }
+    h += '<div class="cart-summary-row total"><span>الإجمالي</span><span>' + toArabicNum(grandTotal) + ' ج.م</span></div>';
     h += '</div>';
-    h += '<p class="cart-note">🎯 عربون جدية ' + toArabicNum(deposit) + ' ج.م بس عشان نبدأ، والباقي بعد الاستلام</p>';
 
     h += '<a href="#/checkout" data-link class="btn btn-primary btn-xl btn-fullrow" style="margin-top:24px">إتمام الطلب</a>';
     h += '<a href="#/products" data-link class="btn btn-ghost btn-fullrow" style="margin-top:8px">كملي التسوق</a>';
@@ -723,8 +751,8 @@
     }
 
     var total = calculateTotal();
-    var vipTotal = calculateVIPPrice();
-    var deposit = 50;
+    var shipping = getShippingFee(total);
+    var grandTotal = total + shipping;
 
     var h = '';
 
@@ -745,33 +773,16 @@
       h += '</div></div>';
     });
     h += '<div class="cart-summary" style="margin-top:12px">';
-    h += '<div class="cart-summary-row total"><span>الإجمالي</span><span>' + toArabicNum(total) + ' ج.م</span></div>';
+    h += '<div class="cart-summary-row"><span>المجموع الفرعي</span><span>' + toArabicNum(total) + ' ج.م</span></div>';
+    if (shipping === 0) {
+      h += '<div class="cart-summary-row"><span>الشحن</span><span style="color:var(--seraj-dark);font-weight:700">مجاناً ✦</span></div>';
+    } else {
+      h += '<div class="cart-summary-row"><span>الشحن</span><span>' + toArabicNum(shipping) + ' ج.م</span></div>';
+    }
+    h += '<div class="cart-summary-row total"><span>الإجمالي</span><span>' + toArabicNum(grandTotal) + ' ج.م</span></div>';
     h += '</div></div>';
 
-    // Payment options
-    h += '<div class="pay-stack">';
-    h += '<label class="pay-option reveal">';
-    h += '<input type="radio" name="pay" value="deposit" checked/>';
-    h += '<div class="pay-media"><img src="assets/seraj.png" alt="" class="tiny-mascot" loading="lazy"/></div>';
-    h += '<div class="pay-body">';
-    h += '<span class="pay-kicker">الأكثر راحة</span>';
-    h += '<h3>عربون جدية — ' + toArabicNum(deposit) + ' جنيه</h3>';
-    h += '<p>ادفعي ' + toArabicNum(deposit) + ' جنيه بس وسِراج هيبدأ شغل، والباقي بعد ما تشوفي البروفة.</p>';
-    h += '<strong class="pay-price">' + toArabicNum(deposit) + ' ج.م الآن</strong>';
-    h += '</div><span class="pay-check">✓</span></label>';
-
-    h += '<label class="pay-option reveal">';
-    h += '<input type="radio" name="pay" value="vip"/>';
-    h += '<div class="pay-media ember"><span class="vip-badge">VIP</span></div>';
-    h += '<div class="pay-body">';
-    h += '<span class="pay-kicker">أولوية في الطابور</span>';
-    h += '<h3>أولوية VIP — ' + toArabicNum(vipTotal) + ' جنيه</h3>';
-    h += '<p>خلصي الدفع دلوقتي وطلباتك هتخلص أول واحدة!</p>';
-    h += '<strong class="pay-price">' + toArabicNum(vipTotal) + ' ج.م بالكامل</strong>';
-    h += '</div><span class="pay-check">✓</span></label>';
-    h += '</div>';
-
-    // InstaPay card — real QR image
+    // InstaPay card
     h += '<div class="insta-card reveal">';
     h += '<div class="insta-head"><span>ادفعي على InstaPay</span></div>';
     h += '<div class="insta-body">';
@@ -835,12 +846,9 @@
       return;
     }
 
-    var paymentType = 'deposit';
-    var payRadio = document.querySelector('input[name="pay"]:checked');
-    if (payRadio && payRadio.value === 'vip') paymentType = 'vip';
-
     var total = calculateTotal();
-    var deposit = paymentType === 'vip' ? total : 50;
+    var shipping = getShippingFee(total);
+    var grandTotal = total + shipping;
 
     var orderData = {
       customerName: nameEl.value.trim(),
@@ -855,8 +863,9 @@
           qty: item.qty
         };
       }),
-      total: paymentType === 'vip' ? calculateVIPPrice() : total,
-      deposit: deposit,
+      total: grandTotal,
+      shippingFee: shipping,
+      deposit: 0,
       paymentMethod: 'instapay'
     };
 

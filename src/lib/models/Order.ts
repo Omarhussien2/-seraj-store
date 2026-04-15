@@ -38,6 +38,8 @@ export interface IOrder extends Document {
     qty: number;
   }[];
   total: number;
+  subtotal: number;
+  shippingFee: number;
   deposit: number;
   remaining: number;
   paymentMethod: string;
@@ -69,7 +71,9 @@ const OrderSchema = new mongoose.Schema<IOrder>(
     },
     items: { type: [OrderItemSchema], required: true, validate: (v: unknown[]) => v.length > 0 },
     total: { type: Number, required: true, min: 0 },
-    deposit: { type: Number, required: true, min: 0, default: 50 },
+    subtotal: { type: Number, min: 0, default: 0 },
+    shippingFee: { type: Number, min: 0, default: 0 },
+    deposit: { type: Number, required: true, min: 0, default: 0 },
     remaining: { type: Number, required: true, min: 0 },
     paymentMethod: {
       type: String,
