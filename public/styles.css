@@ -1324,14 +1324,31 @@ input, textarea { font-family: inherit; }
   align-items: center;
   gap: 16px;
   margin-bottom: 32px;
-  padding-top: 10px;
+  padding: 30px 20px 20px;
 }
 .wizard-character img {
   width: 170px;
   filter: drop-shadow(0 15px 25px rgba(0,0,0,.12));
   animation: bob 3s ease-in-out infinite;
   order: 2;
-  mix-blend-mode: multiply;
+  position: relative;
+  z-index: 2;
+}
+.wizard-character::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.25);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 2px solid rgba(255,255,255,.4);
+  box-shadow: 0 8px 32px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.5);
+  z-index: 1;
 }
 .wizard-character .speech {
   position: relative;
