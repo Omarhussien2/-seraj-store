@@ -131,6 +131,7 @@
         if (p.imageUrl) {
           var mediaDiv = card.querySelector('.product-media');
           if (mediaDiv) {
+            mediaDiv.style.background = 'var(--cream-2)';
             var mockup = mediaDiv.querySelector('.book3d, .cards-fan, .bundle-stack');
             if (mockup) {
               var existing = mediaDiv.querySelector('.product-photo');
@@ -288,7 +289,8 @@
     h += '<span></span></div>';
     // Hero
     h += '<div class="pd-wrap">';
-    h += '<div class="pd-media ' + product.media.bg + ' reveal">' + renderMedia(product.media, true, product.imageUrl) + '</div>';
+    var heroBg = product.imageUrl ? ' style="background:var(--cream-2)"' : ' ' + product.media.bg;
+    h += '<div class="pd-media reveal' + heroBg + '">' + renderMedia(product.media, true, product.imageUrl) + '</div>';
     h += '<div class="pd-body reveal">';
     if (product.badgeSoon) {
       h += '<span class="kicker" style="background:var(--cream-2);color:var(--ink-mute);border-color:var(--line)">' + product.badge + '</span>';
@@ -316,37 +318,60 @@
       h += '<button class="btn btn-primary btn-xl" data-add-cart="' + slug + '">' + product.ctaText + ' <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/></svg></button>';
     }
     h += '</div></div></div>';
-    // Gallery — split into images grid + featured video section
+    // Gallery — build gallery from imageUrl + gallery[] images, then video section
+    var galleryImages = [];
+    if (product.imageUrl) {
+      galleryImages.push({ url: product.imageUrl, alt: product.name });
+    }
     if (product.gallery && product.gallery.length > 0) {
-      // Sort by sortOrder
       var sorted = product.gallery.slice().sort(function(a, b) { return (a.sortOrder || 0) - (b.sortOrder || 0); });
       var images = sorted.filter(function(gi) { return gi.resourceType !== 'video'; });
-      var videos = sorted.filter(function(gi) { return gi.resourceType === 'video'; });
+      for (var gi = 0; gi < images.length; gi++) {
+        galleryImages.push({ url: images[gi].url, alt: images[gi].alt || product.name });
+      }
+    }
 
-      // Images gallery
-      if (images.length > 0) {
-        h += '<section class="section pd-gallery-section"><div class="section-head"><span class="kicker">صور المنتج</span><h2>شوفي المنتج بالتفصيل</h2></div>';
-        h += '<div class="pd-gallery">';
-        for (var g = 0; g < images.length; g++) {
-          h += '<div class="pd-gallery-item"><img src="' + cloudinaryUrl(images[g].url, 500) + '" alt="' + (images[g].alt || product.name) + '" loading="lazy"/></div>';
+    var videos = [];
+    if (product.gallery && product.gallery.length > 0) {
+      var sortedAll = product.gallery.slice().sort(function(a, b) { return (a.sortOrder || 0) - (b.sortOrder || 0); });
+      videos = sortedAll.filter(function(gi) { return gi.resourceType === 'video'; });
+    }
+
+    // Gallery section — show when any gallery images exist
+    if (galleryImages.length > 0) {
+      h += '<section class="section pd-gallery-section"><div class="section-head"><span class="kicker">صور المنتج</span><h2>شوفي المنتج بالتفصيل</h2></div>';
+      h += '<div class="pd-gallery-wrap">';
+      h += '<div class="pd-gallery-main" data-gallery-main>';
+      h += '<img src="' + cloudinaryUrl(galleryImages[0].url, 800) + '" alt="' + escHtml(galleryImages[0].alt) + '" data-gallery-idx="0"/>';
+      if (galleryImages.length > 1) {
+        h += '<button class="gallery-arrow prev" data-gallery-prev><svg viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
+        h += '<button class="gallery-arrow next" data-gallery-next><svg viewBox="0 0 24 24"><path d="M10 6l6 6-6 6" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
+      }
+      h += '<span class="pd-gallery-counter" data-gallery-counter>١ / ' + toArabicNum(galleryImages.length) + '</span>';
+      h += '</div>';
+      if (galleryImages.length > 1) {
+        h += '<div class="pd-gallery-thumbs" data-gallery-thumbs>';
+        for (var t = 0; t < galleryImages.length; t++) {
+          var thumbClass = t === 0 ? ' is-active' : '';
+          h += '<div class="pd-gallery-thumb' + thumbClass + '" data-gallery-thumb="' + t + '"><img src="' + cloudinaryUrl(galleryImages[t].url, 120) + '" alt="' + escHtml(galleryImages[t].alt) + '" loading="lazy"/></div>';
         }
-        h += '</div></section>';
+        h += '</div>';
       }
+      h += '</div>';
+      // Hidden data store for gallery URLs
+      h += '<script type="application/json" data-gallery-json>' + JSON.stringify(galleryImages.map(function(img) { return cloudinaryUrl(img.url, 1200); })) + '</script>';
+      h += '</section>';
+    }
 
-      // Video section
-      if (videos.length > 0) {
-        h += '<section class="section pd-video-section"><div class="section-head"><span class="kicker">فيديو تجربة المنتج</span><h2>شوفي المنتج على الحقيقي</h2></div>';
-        h += '<div class="pd-videos">';
-        for (var v = 0; v < videos.length; v++) {
-          h += '<div class="pd-video-wrap"><video src="' + videos[v].url + '" controls playsinline preload="metadata"></video></div>';
-        }
-        h += '</div></section>';
+    // Video section
+    if (videos.length > 0) {
+      h += '<section class="section pd-video-section"><div class="section-head"><span class="kicker">فيديو تجربة المنتج</span><h2>شوفي المنتج على الحقيقي</h2></div>';
+      h += '<div class="pd-videos">';
+      for (var v = 0; v < videos.length; v++) {
+        var posterUrl = getVideoPoster(videos[v].url);
+        h += '<div class="pd-video-wrap"><video src="' + videos[v].url + '" controls playsinline preload="none" poster="' + posterUrl + '"></video></div>';
       }
-
-      if (images.length === 0 && videos.length === 0) {
-        h += '<section class="section pd-video-section"><div class="section-head"><span class="kicker">فيديو المنتج</span><h2>شوفي المنتج بالتفصيل</h2></div>';
-        h += '<div class="pd-video-placeholder"><svg viewBox="0 0 48 48" width="48" height="48"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2.5"/><polygon points="20,16 34,24 20,32" fill="currentColor"/></svg><p>الفيديو هيتوفر قريباً</p></div></section>';
-      }
+      h += '</div></section>';
     } else {
       h += '<section class="section pd-video-section"><div class="section-head"><span class="kicker">فيديو المنتج</span><h2>شوفي المنتج بالتفصيل</h2><p>فيديو هيوريك المنتج عن قرب</p></div>';
       h += '<div class="pd-video-placeholder"><svg viewBox="0 0 48 48" width="48" height="48"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2.5"/><polygon points="20,16 34,24 20,32" fill="currentColor"/></svg><p>الفيديو هيتوفر قريباً</p></div></section>';
@@ -372,18 +397,207 @@
     }
     container.innerHTML = h;
     setTimeout(initReveals, 100);
+    initProductGallery(container);
+  }
+
+  // ----- Product Gallery Interaction -----
+  var galleryState = { current: 0, total: 0, urls: [], lightboxOpen: false };
+
+  function initProductGallery(container) {
+    var mainEl = container.querySelector('[data-gallery-main]');
+    if (!mainEl) return;
+
+    var jsonEl = container.querySelector('[data-gallery-json]');
+    if (!jsonEl) return;
+
+    try {
+      galleryState.urls = JSON.parse(jsonEl.textContent);
+    } catch (e) { return; }
+    galleryState.total = galleryState.urls.length;
+    galleryState.current = 0;
+
+    var mainImg = mainEl.querySelector('img');
+    var counterEl = mainEl.querySelector('[data-gallery-counter]');
+    var thumbsWrap = container.querySelector('[data-gallery-thumbs]');
+
+    function goTo(idx) {
+      if (idx < 0) idx = galleryState.total - 1;
+      if (idx >= galleryState.total) idx = 0;
+      galleryState.current = idx;
+
+      if (mainImg) {
+        mainImg.classList.add('is-switching');
+        setTimeout(function() {
+          mainImg.src = galleryState.urls[idx].replace('/w_1200,', '/w_800,');
+          mainImg.setAttribute('data-gallery-idx', idx);
+          mainImg.classList.remove('is-switching');
+        }, 150);
+      }
+      if (counterEl) {
+        counterEl.textContent = toArabicNum(idx + 1) + ' / ' + toArabicNum(galleryState.total);
+      }
+      if (thumbsWrap) {
+        thumbsWrap.querySelectorAll('.pd-gallery-thumb').forEach(function(thumb, i) {
+          thumb.classList.toggle('is-active', i === idx);
+        });
+      }
+      if (galleryState.lightboxOpen) updateLightboxImage(idx);
+    }
+
+    // Arrow buttons
+    var prevBtn = mainEl.querySelector('[data-gallery-prev]');
+    var nextBtn = mainEl.querySelector('[data-gallery-next]');
+    if (prevBtn) prevBtn.addEventListener('click', function(e) { e.stopPropagation(); goTo(galleryState.current - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function(e) { e.stopPropagation(); goTo(galleryState.current + 1); });
+
+    // Thumbnail clicks
+    if (thumbsWrap) {
+      thumbsWrap.querySelectorAll('.pd-gallery-thumb').forEach(function(thumb) {
+        thumb.addEventListener('click', function() {
+          var idx = parseInt(thumb.getAttribute('data-gallery-thumb'), 10);
+          goTo(idx);
+        });
+      });
+    }
+
+    // Main image click → open lightbox
+    mainEl.addEventListener('click', function(e) {
+      if (e.target.closest('.gallery-arrow')) return;
+      openLightbox(galleryState.current);
+    });
+
+    // Swipe support on main image
+    var swipeStartX = 0;
+    var swipeStartY = 0;
+    var swipeThreshold = 50;
+
+    mainEl.addEventListener('touchstart', function(e) {
+      swipeStartX = e.changedTouches[0].clientX;
+      swipeStartY = e.changedTouches[0].clientY;
+    }, { passive: true });
+
+    mainEl.addEventListener('touchend', function(e) {
+      var dx = e.changedTouches[0].clientX - swipeStartX;
+      var dy = e.changedTouches[0].clientY - swipeStartY;
+      if (Math.abs(dx) > swipeThreshold && Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 0) goTo(galleryState.current - 1);
+        else goTo(galleryState.current + 1);
+      }
+    }, { passive: true });
+
+    // Keyboard navigation
+    function onKey(e) {
+      if (!galleryState.lightboxOpen) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') goTo(galleryState.current + 1);
+      if (e.key === 'ArrowRight') goTo(galleryState.current - 1);
+    }
+    document.addEventListener('keydown', onKey);
+
+    // Clean up on page change
+    var observer = new MutationObserver(function() {
+      if (!container.closest('.is-active')) {
+        closeLightbox();
+        document.removeEventListener('keydown', onKey);
+        observer.disconnect();
+      }
+    });
+    observer.observe(container, { attributes: false, childList: true, subtree: false });
+    var page = container.closest('.page');
+    if (page) {
+      var pageObs = new MutationObserver(function() {
+        if (!page.classList.contains('is-active')) {
+          closeLightbox();
+          document.removeEventListener('keydown', onKey);
+          pageObs.disconnect();
+        }
+      });
+      pageObs.observe(page, { attributes: true, attributeFilter: ['class'] });
+    }
+  }
+
+  function openLightbox(idx) {
+    var existing = document.getElementById('pdLightbox');
+    if (existing) existing.remove();
+
+    galleryState.lightboxOpen = true;
+
+    var lb = document.createElement('div');
+    lb.id = 'pdLightbox';
+    lb.className = 'pd-lightbox is-open';
+    lb.innerHTML =
+      '<button class="pd-lightbox-close" data-lightbox-close>&times;</button>' +
+      '<button class="pd-lightbox-arrow prev" data-lightbox-prev><svg viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
+      '<div class="pd-lightbox-img-wrap"><img src="" alt="" data-lightbox-img/></div>' +
+      '<button class="pd-lightbox-arrow next" data-lightbox-next><svg viewBox="0 0 24 24"><path d="M10 6l6 6-6 6" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
+      '<span class="pd-lightbox-counter" data-lightbox-counter></span>';
+
+    document.body.appendChild(lb);
+    document.body.style.overflow = 'hidden';
+
+    updateLightboxImage(idx);
+
+    lb.querySelector('[data-lightbox-close]').addEventListener('click', closeLightbox);
+    lb.querySelector('[data-lightbox-prev]').addEventListener('click', function() {
+      goTo(galleryState.current - 1);
+    });
+    lb.querySelector('[data-lightbox-next]').addEventListener('click', function() {
+      goTo(galleryState.current + 1);
+    });
+
+    lb.addEventListener('click', function(e) {
+      if (e.target === lb) closeLightbox();
+    });
+
+    // Swipe in lightbox
+    var lbSwipeX = 0;
+    var lbSwipeY = 0;
+    lb.addEventListener('touchstart', function(e) {
+      lbSwipeX = e.changedTouches[0].clientX;
+      lbSwipeY = e.changedTouches[0].clientY;
+    }, { passive: true });
+    lb.addEventListener('touchend', function(e) {
+      var dx = e.changedTouches[0].clientX - lbSwipeX;
+      var dy = e.changedTouches[0].clientY - lbSwipeY;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 0) goTo(galleryState.current - 1);
+        else goTo(galleryState.current + 1);
+      }
+    }, { passive: true });
+  }
+
+  function updateLightboxImage(idx) {
+    var lb = document.getElementById('pdLightbox');
+    if (!lb) return;
+    var img = lb.querySelector('[data-lightbox-img]');
+    var counter = lb.querySelector('[data-lightbox-counter]');
+    if (img) img.src = galleryState.urls[idx];
+    if (counter) counter.textContent = toArabicNum(idx + 1) + ' / ' + toArabicNum(galleryState.total);
+  }
+
+  function closeLightbox() {
+    var lb = document.getElementById('pdLightbox');
+    if (lb) lb.remove();
+    galleryState.lightboxOpen = false;
+    document.body.style.overflow = '';
   }
 
   // Cloudinary URL transform: serve optimally sized images per context
   function cloudinaryUrl(url, width) {
     if (!url || url.indexOf('res.cloudinary.com') === -1) return url;
-    // Insert transformation before /upload/ or /v1234/
     return url.replace(/\/upload\//, '/upload/w_' + width + ',c_limit,f_auto,q_auto/');
+  }
+
+  function getVideoPoster(videoUrl) {
+    if (!videoUrl || videoUrl.indexOf('res.cloudinary.com') === -1) return '';
+    if (videoUrl.indexOf('/video/upload/') !== -1) {
+      return videoUrl.replace(/\/video\/upload\//, '/video/upload/so_0,w_720,c_limit,f_auto,q_auto/');
+    }
+    return videoUrl.replace(/\/upload\//, '/upload/so_0,w_720,c_limit,f_auto,q_auto/');
   }
 
   function renderMedia(media, big, imageUrl) {
     var size = big ? ' big' : '';
-    // If product has a real uploaded image, show it instead of mockup
     if (imageUrl) {
       var w = big ? 600 : 400;
       var optimized = cloudinaryUrl(imageUrl, w);
@@ -393,6 +607,14 @@
     if (media.type === 'cards-fan') { var c = ['#e85d4c', '#c9974e', '#36a39a', '#6bbf3f', '#8b5e2a'], f = '<div class="cards-fan">'; for (var i = 0; i < c.length; i++) f += '<i style="--i:' + i + ';--c:' + c[i] + '"></i>'; return f + '</div>'; }
     if (media.type === 'bundle-stack') return '<div class="bundle-stack"><div class="bundle-i"></div><div class="bundle-i"></div><div class="bundle-i"></div></div>';
     return '';
+  }
+
+  function renderCartMedia(media, imageUrl) {
+    if (imageUrl) {
+      var optimized = cloudinaryUrl(imageUrl, 100);
+      return '<div class="product-photo" style="width:60px;height:76px"><img src="' + optimized + '" alt="" loading="lazy"/></div>';
+    }
+    return renderMedia(media, false, null);
   }
 
   // ----- Cart helpers -----
@@ -444,7 +666,7 @@
       total += lineTotal;
       var bgClass = product.media.bg === 'emerald' ? 'emerald-bg' : product.media.bg === 'sand' ? 'sand-bg' : 'teal-bg';
       h += '<div class="cart-item">';
-      h += '<div class="cart-item-media ' + bgClass + '">' + renderMedia(product.media, false, product.imageUrl) + '</div>';
+      h += '<div class="cart-item-media ' + bgClass + '">' + renderCartMedia(product.media, product.imageUrl) + '</div>';
       h += '<div class="cart-item-info"><h3>' + item.name + '</h3>';
       h += '<span class="price">' + toArabicNum(item.price) + ' ج.م</span>';
       if (item.qty > 1) {
@@ -501,7 +723,7 @@
       var bgClass = product && product.media ? (product.media.bg === 'emerald' ? 'emerald-bg' : product.media.bg === 'sand' ? 'sand-bg' : 'teal-bg') : '';
       h += '<div class="cart-item" style="margin-bottom:8px">';
       if (product && product.media) {
-        h += '<div class="cart-item-media ' + bgClass + '" style="width:48px;height:48px;min-width:48px">' + renderMedia(product.media, false, product.imageUrl) + '</div>';
+        h += '<div class="cart-item-media ' + bgClass + '" style="width:48px;height:48px;min-width:48px">' + renderCartMedia(product.media, product.imageUrl) + '</div>';
       }
       h += '<div class="cart-item-info"><h3 style="font-size:14px">' + item.name;
       if (item.qty > 1) h += ' × ' + toArabicNum(item.qty);
