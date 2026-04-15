@@ -839,7 +839,7 @@
     if (!addressEl.value.trim()) { addressEl.classList.add('shake'); valid = false; }
 
     if (!valid) {
-      showToast('لو سمحتي compléti البيانات المطلوبة ✦');
+      showToast('لو سمحتي كمّلي البيانات المطلوبة ✦');
       setTimeout(function () {
         [nameEl, phoneEl, addressEl].forEach(function (el) { el.classList.remove('shake'); });
       }, 600);

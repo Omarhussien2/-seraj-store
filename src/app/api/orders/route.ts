@@ -133,7 +133,6 @@ export async function POST(request: Request) {
     }
 
     const orderNumber = await generateOrderNumber();
-    const remaining = Math.max(0, calculatedTotal - validated.deposit);
 
     const order = await Order.create({
       orderNumber,
