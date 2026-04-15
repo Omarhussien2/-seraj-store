@@ -25,7 +25,9 @@
 
 **توليد القصص:** يدوي — لا API توليد. الأدمن يستلم بيانات المعالج ويرسل عينة يدوياً عبر واتساب.
 
-**الدفع:** InstaPay فقط — عربون إلزامي (٥٠ ج.م) + الباقي كاش عند الاستلام. لا فودافون كاش.
+**الدفع:** InstaPay فقط — الدفع بالكامل عبر InstaPay + إرسال إيصال عبر واتساب. لا فودافون كاش. لا عربون. لا VIP.
+
+**الشحن:** رسوم شحن قابلة للتعديل من لوحة الأدمن (افتراضي 35 ج.م). يمكن تعيين حد للشحن المجاني (مثلاً فوق 300 ج.م).
 
 ---
 
@@ -71,7 +73,7 @@ C:\Users\omarh\Downloads\code projects\seraj-store\
 | `#/about` | حكايتنا + العيلة (9 شخصيات) | ✅ كامل |
 | `#/wizard` | معالج التأليف (4 خطوات) | ✅ كامل |
 | `#/preview` | معاينة القصة | ✅ كامل |
-| `#/checkout` | الدفع (عربون + VIP + InstaPay QR) | ✅ كامل |
+| `#/checkout` | الدفع (InstaPay QR + بيانات التوصيل) | ✅ كامل |
 | `#/success` | النجاح + كونفيتي | ✅ كامل |
 | `#/how-it-works` | scroll لقسم في home | ✅ كامل |
 | `#/mama-world` | عالم ماما (مقالات+فسحة+شات) | ✅ كامل |
@@ -150,8 +152,8 @@ C:\Users\omarh\Downloads\code projects\seraj-store\
 - **خطوة 4:** ثواني.. ورشة سِراج بدأت شغل!
 
 ### الدفع
-- **عربون:** ادفعي ٥٠ جنيه بس والباقي بعد البروفة
-- **VIP:** خلصي الدفع دلوقتي وطلباتك هتخلص أول واحدة!
+- **InstaPay:** الدفع بالكامل عبر InstaPay + إرسال إيصال واتساب
+- **الشحن:** رسوم شحن ديناميكية من لوحة الأدمن (افتراضي 35 ج.م، مجاني فوق حد معين)
 
 ### النجاح
 - **سِراج استلم الإيصال.. الحكاية بدأت!**
@@ -264,7 +266,7 @@ PRODUCTS = {
 3. Badge counter بيتحدث في التوب بار
 4. Toast بتظهر: "اسم المنتج اتضاف للسلة ✦"
 5. المستخدم يضغط أيقونة السلة → صفحة `#/cart`
-6. الصفحة بتعرد: منتجات + ملخص (إجمالي + شحن + عربون)
+6. الصفحة بتعرد: منتجات + ملخص (المجموع الفرعي + الشحن + الإجمالي)
 7. "إتمام الطلب" → `#/checkout` → InstaPay QR → `#/success`
 
 ### الصفحة بتعرض:
@@ -275,7 +277,7 @@ PRODUCTS = {
 - الدنيا دلوقتي **client-side only** (لا session, لا DB)
 - لما نربط الباك إند: `cart` هيحصل في MongoDB session أو localStorage
 - الأسعار حالياً hardcoded في JS — لازم تتحط في DB
-- Arabون (٥٠ ج.م) ثابت — لازم يكون configurable من admin
+- رسوم الشحن متحكمة من لوحة الأدمن عبر `/api/admin/settings`
 
 ---
 
@@ -389,11 +391,14 @@ orders {
   _id: ObjectId,
   orderNumber: "SRJ-2026-0847",
   items: [{ productSlug, productName, price, qty }],
-  total: 420,
-  deposit: 50,                    // العربون المدفوع
+  subtotal: 420,                   // مجموع المنتجات فقط
+  shippingFee: 35,                 // رسوم الشحن (من admin settings)
+  total: 455,                      // subtotal + shippingFee
+  deposit: 0,                      // دائماً 0 — لا عربون
+  remaining: 455,                  // المبلغ المتبقي (= total)
   paymentMethod: "instapay",
-  paymentStatus: "deposit_paid",  // deposit_paid | fully_paid | unpaid
-  orderStatus: "pending",         // pending | in_progress | shipped | delivered
+  paymentStatus: "unpaid",         // unpaid | deposit_paid | fully_paid
+  orderStatus: "pending",          // pending | in_progress | shipped | delivered
   // لو فيها قصة مخصصة:
   customStory: {
     heroName: "يوسف",
@@ -470,24 +475,24 @@ POST   /api/reviews               → إضافة رأي (admin approve)
 
 ### Cart Flow (الإنتاج)
 ```
-User يضيف منتج → POST /api/orders (create draft)
-                → localStorage يحتفظ بالـ cart ID
-                → كل إضافة/حذف → PATCH /api/orders/[id]/items
+User يضيف منتج → cart[] في localStorage
+                 → ملخص: المجموع الفرعي + الشحن + الإجمالي
 
 Checkout:
-  1. POST /api/orders/[id]/checkout
-  2. → InstaPay payment link (50 ج.م عربون)
-  3. → User يدفع → InstaPay webhook → PATCH order status
-  4. → WhatsApp notification للأدمن
-  5. → Success page مع رقم الطلب
+  1. ملخص الطلب + رسوم الشحن
+  2. InstaPay QR + بيانات التوصيل (اسم + موبايل + عنوان)
+  3. POST /api/orders (deposit: 0, shippingFee from config)
+  4. → Success page مع رقم الطلب
+  5. → WhatsApp link لإرسال الإيصال
 ```
 
 ### ملاحظات مهمة للباك إند
 - **الأسعار:** لازم تكون في DB مش hardcoded — عشان الأدمن يقدر يغيرها
-- **العربون:** ٥٠ ج.م ثابت حالياً — لازم يكون configurable per product
-- **الشحن:** حالياً "مجاناً" — ممكن يتغير حسب المنطقة
+- **الشحن:** رسوم شحن ديناميكية من admin settings (SiteContent collection) — fallback من env vars
+- **لا عربون ولا VIP:** الدفع بالكامل عبر InstaPay — `deposit: 0` دائماً
 - **الفيديوهات:** لازم تتخزن على Cloudinary مش في assets/
 - **صور الأطفال:** Cloudinary بـ upload preset آمن
+- **الصور:** `f_auto,q_auto` على كل Cloudinary URLs — `resolvePhotoUrl()` يتحقق من imageUrl ثم media.image
 - **الواتساب:** ممكن يتبعت عبر WhatsApp Business API أو مجرد deep link `wa.me`
 - **SEO:** كل صفحة منتج محتاجة meta tags + Open Graph + structured data
 - **الألعاب التعليمية:** نفس الـ data model بس `category: "ألعاب"` + `action: "cart"`

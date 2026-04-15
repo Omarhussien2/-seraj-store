@@ -123,7 +123,7 @@ seraj-store/
 **2.1: اتصال MongoDB + Models**
 - `src/lib/db.ts`: Singleton connection
 - `src/lib/models/Product.ts`: كل حقول المنتج (slug, name, price, category, media, reviews, etc.)
-- `src/lib/models/Order.ts`: رقم الطلب + المنتجات + بيانات العميل (الاسم + الموبايل الأهم) + customStory
+- `src/lib/models/Order.ts`: رقم الطلب + المنتجات + بيانات العميل + subtotal + shippingFee + total + customStory
 - `src/lib/models/Review.ts`: آراء الأمهات
 
 **2.2: Seed Script**
@@ -185,6 +185,19 @@ seraj-store/
 - WhatsApp integration ديناميكي
 - SEO + Performance
 - إشعارات الأدمن
+
+---
+
+## المرحلة 6: صور المنتجات + الشحن ✅ Complete
+
+### ما تم:
+- **خط أنابيب الصور:** `resolvePhotoUrl()` يتحقق من imageUrl → media.image (Cloudinary) → CSS mockup fallback
+- **`cloudinaryUrl()`:** `f_auto,q_auto` على كل الصور
+- **معرض المنتج:** صورة رئيسية + شريط صور مصغرة + lightbox + swipe + لوحة مفاتيح
+- **رسوم الشحن:** مخزنة في SiteContent collection، قابلة للتعديل من لوحة الأدمن
+- **إزالة العربون/VIP:** الدفع بالكامل عبر InstaPay فقط، `deposit: 0` دائماً
+- **نموذج الطلب:** `subtotal` + `shippingFee` + `total` fields
+- **Admin Settings API:** `GET/PUT /api/admin/settings` (يتطلب مصادقة الأدمن)
 
 ---
 

@@ -30,13 +30,17 @@ public/manifest.json   — PWA manifest
 
 ### Key Functions in app.js
 - `renderProductsPage()` — Product catalog grid
-- `renderProductDetail(slug)` — Single product page
-- `renderCartPage()` — Shopping cart
-- `renderCheckoutPage()` — Checkout form + order submission
+- `renderProductDetail(slug)` — Single product page with gallery + lightbox
+- `renderCartPage()` — Shopping cart with shipping fee
+- `renderCheckoutPage()` — Checkout form + InstaPay + order submission (no deposit/VIP)
 - `setupWizard()` — Custom story wizard (4 steps)
 - `addCustomStoryToCart()` — Adds custom-story item to cart
 - `handleRoute()` — Hash-based SPA router
-- `fetchProducts()` / `fetchConfig()` — API data fetching
+- `fetchProducts()` / `fetchConfig()` — API data fetching (loads shipping fees)
+- `resolvePhotoUrl()` — Checks imageUrl first, then media.image for Cloudinary URLs
+- `cloudinaryUrl()` — Adds `f_auto,q_auto` optimization to Cloudinary URLs
+- `getShippingFee(subtotal)` — Returns shipping fee (0 if free shipping threshold met)
+- `initProductGallery()` — Gallery with thumbnails, swipe, lightbox, keyboard nav
 
 ### Design System (styles.css)
 - CSS variables: `--clr-emerald`, `--clr-brass`, `--clr-ember`, `--clr-parchment`
@@ -70,7 +74,8 @@ src/app/api/products/route.ts        — GET (list) + POST (create, admin)
 src/app/api/products/[slug]/route.ts — GET + PATCH single product (admin)
 src/app/api/upload/route.ts          — Admin image upload (Cloudinary, 10MB)
 src/app/api/upload-child-photo/route.ts — Public photo upload (Cloudinary, 5MB, rate-limited)
-src/app/api/config/route.ts          — Public config (WhatsApp, InstaPay numbers)
+src/app/api/config/route.ts          — Public config (WhatsApp, InstaPay, shipping fees from DB)
+src/app/api/admin/settings/route.ts  — Admin settings CRUD (shipping fee, free shipping threshold)
 src/app/api/stats/route.ts           — Admin dashboard stats (aggregated)
 src/app/api/auth/[...nextauth]/route.ts — NextAuth route handler
 src/middleware.ts                     — Edge middleware: cookie-based admin route protection
@@ -86,7 +91,7 @@ src/middleware.ts                     — Edge middleware: cookie-based admin ro
 
 ### Data Models
 **Product**: slug (unique), name, price, category, features[], media, action, reviews[], active, order
-**Order**: orderNumber (SRJ-YYYY-XXXX), items[], total, deposit, remaining, paymentMethod, paymentStatus, orderStatus, customStory (nested), customerName, customerPhone, address
+**Order**: orderNumber (SRJ-YYYY-XXXX), items[], subtotal, shippingFee, total, deposit (always 0), remaining, paymentMethod, paymentStatus, orderStatus, customStory (nested), customerName, customerPhone, address
 
 ### Environment Variables
 ```
@@ -101,12 +106,16 @@ NEXT_PUBLIC_WHATSAPP_NUMBER  — WhatsApp contact
 NEXT_PUBLIC_INSTAPAY_NUMBER  — InstaPay username
 NEXT_PUBLIC_INSTAPAY_LINK    — InstaPay payment link
 NEXT_PUBLIC_INSTAPAY_NAME    — InstaPay display name
+NEXT_PUBLIC_SHIPPING_FEE         — Default shipping fee (35)
+NEXT_PUBLIC_FREE_SHIPPING_ABOVE  — Free shipping above this amount (0 = never free)
 ```
 
 ### Important Notes
 - POST /api/orders is PUBLIC (no auth) — customers create orders
 - GET /api/orders is ADMIN ONLY — uses requireAdmin()
 - Order total is recalculated server-side from DB prices (never trusts client)
+- Shipping fee stored in SiteContent collection, configurable from admin dashboard
+- No deposit/VIP — `deposit` is always 0, customer pays full amount via InstaPay
 - Rate limit: 10 orders per 15 min per IP, 20 photo uploads per 10 min per IP
 - `runtime = "nodejs"` and `dynamic = "force-dynamic"` on all API routes
 
@@ -117,7 +126,7 @@ NEXT_PUBLIC_INSTAPAY_NAME    — InstaPay display name
 ### Read These Files First
 ```
 src/app/admin/layout.tsx        — Sidebar navigation + logout, hides on login page
-src/app/admin/page.tsx          — Dashboard: stats cards + recent orders table
+src/app/admin/page.tsx          — Dashboard: stats cards + recent orders + shipping settings
 src/app/admin/login/page.tsx    — Login form (credentials auth)
 src/app/admin/orders/page.tsx   — Order management: list, filter, pagination, status update
 src/app/admin/products/page.tsx — Product CRUD: list, edit/create modal, toggle active
