@@ -611,7 +611,7 @@
     var size = big ? ' big' : '';
     var photoUrl = resolvePhotoUrl(imageUrl, media);
     if (photoUrl) {
-      var w = big ? 600 : 400;
+      var w = big ? 800 : 500;
       var optimized = cloudinaryUrl(photoUrl, w);
       return '<div class="product-photo' + size + '"><img src="' + optimized + '" alt="" loading="lazy"/></div>';
     }

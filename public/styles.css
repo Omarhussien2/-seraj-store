@@ -822,37 +822,32 @@ input, textarea { font-family: inherit; }
 }
 
 /* Product real photo (replaces mockup when imageUrl exists) */
+/* Product photo — fills its parent container */
 .product-photo {
-  width: 160px;
-  height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
   transition: transform .4s;
-}
-.product-photo.big {
-  width: 280px;
-  height: 340px;
 }
 .product-photo img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  border-radius: 16px;
+  object-fit: cover;
+  display: block;
   transition: transform .4s;
 }
 .product-card:hover .product-photo img {
   transform: scale(1.05);
 }
+/* Cart thumbnail */
 .cart-item-media .product-photo {
   width: 60px;
   height: 76px;
+  border-radius: 8px;
 }
 .cart-item-media .product-photo img {
   border-radius: 8px;
-}
-.pd-media .product-photo.big img {
-  border-radius: 20px;
 }
 
 /* Cards fan */
@@ -1828,6 +1823,18 @@ input, textarea { font-family: inherit; }
   display: grid;
   place-items: center;
   box-shadow: 0 6px 0 var(--ink);
+  overflow: hidden;
+}
+/* When pd-media has a real photo, remove padding so it fills edge-to-edge */
+.pd-media:has(.product-photo) {
+  padding: 0;
+  background: var(--cream-2);
+}
+.pd-media .product-photo {
+  aspect-ratio: 4 / 5;
+}
+.pd-media .product-photo img {
+  border-radius: 0;
 }
 .pd-body h2 { font-size: 28px; margin: 10px 0 14px; }
 .pd-body > p { color: var(--ink-soft); font-size: 16px; line-height: 1.7; }
@@ -1938,7 +1945,7 @@ input, textarea { font-family: inherit; }
 .pd-gallery-main img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   display: block;
   transition: opacity .3s ease;
 }
@@ -2026,7 +2033,7 @@ input, textarea { font-family: inherit; }
 .pd-gallery-thumb img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   display: block;
 }
 
