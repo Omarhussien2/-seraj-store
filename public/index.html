@@ -964,50 +964,118 @@
 
       <!-- PANEL 2: فسحة حلوة -->
       <div class="mama-panel" data-mama-panel="outings">
-        <div class="mama-search">
-          <input type="text" placeholder="ابحثي بالمنطقة أو المدينة..." disabled/>
-        </div>
-        <div class="mama-chips">
-          <button class="chip is-active">أي ميزانية</button>
-          <button class="chip">مجاني</button>
-          <button class="chip">أقل من ١٠٠</button>
-          <button class="chip">١٠٠ - ٣٠٠</button>
-          <button class="chip">أكتر من ٣٠٠</button>
-        </div>
-        <div class="outings-grid">
-          <article class="outing-card reveal" style="--d:.05s">
-            <div class="outing-img"></div>
-            <div class="outing-body">
-              <h3>حديقة الأزهر</h3>
-              <span class="outing-loc">القاهرة · الدرب الأحمر</span>
-              <span class="outing-price">٢٠ - ٥٠ جنيه</span>
-              <span class="outing-age">مناسب من ٣ لـ ١٠ سنين</span>
+
+        <!-- FILTER SECTION -->
+        <div class="outings-filters">
+
+          <!-- Budget Slider Bar -->
+          <div class="filter-group reveal" style="--d:.05s">
+            <h3 class="filter-title">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              الميزانية
+            </h3>
+            <div class="budget-slider">
+              <div class="budget-track">
+                <div class="budget-fill" id="budgetFill"></div>
+              </div>
+              <input type="range" id="budgetRange" min="0" max="4" step="1" value="0" class="budget-input"/>
+              <div class="budget-labels">
+                <span data-budget="0" class="is-active">الكل</span>
+                <span data-budget="1">مجاني</span>
+                <span data-budget="2">أقل من ١٠٠</span>
+                <span data-budget="3">١٠٠ - ٣٠٠</span>
+                <span data-budget="4">٣٠٠+</span>
+              </div>
             </div>
-          </article>
-          <article class="outing-card reveal" style="--d:.12s">
-            <div class="outing-img"></div>
-            <div class="outing-body">
-              <h3>متحف الحضارة</h3>
-              <span class="outing-loc">القاهرة · الفسطاط</span>
-              <span class="outing-price">٥٠ - ١٠٠ جنيه</span>
-              <span class="outing-age">مناسب من ٥ لـ ١٢ سنة</span>
+          </div>
+
+          <!-- City Chips -->
+          <div class="filter-group reveal" style="--d:.12s">
+            <h3 class="filter-title">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+              المنطقة
+            </h3>
+            <div class="filter-chips" id="cityChips">
+              <button class="chip is-active" data-city="">كل المدن</button>
+              <button class="chip" data-city="Cairo">القاهرة</button>
+              <button class="chip" data-city="Alexandria">الإسكندرية</button>
+              <button class="chip" data-city="North Coast">الساحل</button>
+              <button class="chip" data-city="Sharm El Sheikh">شرم الشيخ</button>
+              <button class="chip" data-city="Hurghada">الغردقة</button>
+              <button class="chip" data-city="Al Fayoum">الفيوم</button>
             </div>
-          </article>
-          <article class="outing-card reveal" style="--d:.19s">
-            <div class="outing-img"></div>
-            <div class="outing-body">
-              <h3>قرية الأطفال المبدعين</h3>
-              <span class="outing-loc">٦ أكتوبر · الحي المتميز</span>
-              <span class="outing-price">١٥٠ - ٢٥٠ جنيه</span>
-              <span class="outing-age">مناسب من ٤ لـ ١٠ سنين</span>
+          </div>
+
+          <!-- Type Chips (indoor/outdoor/etc.) -->
+          <div class="filter-group reveal" style="--d:.19s">
+            <h3 class="filter-title">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg>
+              نوع الفسحة
+            </h3>
+            <div class="filter-chips" id="typeChips">
+              <button class="chip is-active" data-type="">الكل</button>
+              <button class="chip" data-type="outdoor">في الهوا الطلق</button>
+              <button class="chip" data-type="indoor">أماكن مغلقة</button>
+              <button class="chip" data-type="mixed">مختلط</button>
             </div>
-          </article>
+          </div>
+
+          <!-- Category Chips -->
+          <div class="filter-group reveal" style="--d:.26s">
+            <h3 class="filter-title">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+              التصنيف
+            </h3>
+            <div class="filter-chips" id="catChips">
+              <button class="chip is-active" data-cat="">الكل</button>
+              <button class="chip" data-cat="1">🎠 لعب ومرح</button>
+              <button class="chip" data-cat="3">🌳 حدائق ومتنزهات</button>
+              <button class="chip" data-cat="5">🐾 مزارع وحيوانات</button>
+              <button class="chip" data-cat="4">🎨 فنون وتعليم</button>
+              <button class="chip" data-cat="2">🎬 سينما وعروض</button>
+              <button class="chip" data-cat="6">🍕 مطاعم</button>
+            </div>
+          </div>
         </div>
-        <div class="coming-soon-overlay">
-          <svg viewBox="0 0 24 24" width="32" height="32"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM12 17c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM15.1 8H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z" fill="var(--brass)"/></svg>
-          <h3>قريباً إن شاء الله ✦</h3>
-          <p>أحلى الأماكن اللي تروحيها مع بطلنا.. هنجمّعها لكِ من قلب كل حتة!</p>
+
+        <!-- RESULTS COUNT -->
+        <div class="outings-results-bar" id="outingsResultsBar" style="display:none">
+          <span id="outingsCount"></span>
+          <button class="outings-clear-btn" id="outingsClearFilters" style="display:none">مسح الفلاتر ✕</button>
         </div>
+
+        <!-- RESULTS GRID -->
+        <div class="outings-grid" id="outingsGrid">
+          <!-- Dynamic cards rendered by app.js -->
+        </div>
+
+        <!-- LOADING STATE -->
+        <div id="outingsLoading" class="outings-loading" style="display:none">
+          <div class="outings-spinner"></div>
+          <p>بنجهّز لِك الأماكن...</p>
+        </div>
+
+        <!-- EMPTY STATE -->
+        <div id="outingsEmpty" class="outings-empty" style="display:none">
+          <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--brass)" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          <h3>مفيش أماكن بالفلاتر دي</h3>
+          <p>جربي تغيري الميزانية أو المنطقة</p>
+        </div>
+
+        <!-- LOAD MORE -->
+        <button id="outingsLoadMore" class="btn btn-outline outings-load-more" style="display:none">عرض المزيد ↓</button>
+
+        <!-- PLACE DETAIL MODAL -->
+        <div class="place-modal-backdrop" id="placeModal" style="display:none">
+          <div class="place-modal">
+            <button class="place-modal-close" id="placeModalClose">✕</button>
+            <div class="place-modal-img" id="placeModalImg"></div>
+            <div class="place-modal-body" id="placeModalBody">
+              <!-- Dynamically filled -->
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- PANEL 3: اسألي زينب -->
