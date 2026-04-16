@@ -1465,6 +1465,46 @@ input, textarea { font-family: inherit; }
 .challenge-card h4 { font-size: 18px; margin-bottom: 2px; color: var(--c); }
 .challenge-card p { font-size: 12px; color: var(--ink-mute); }
 
+.custom-challenge-box {
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: var(--paper);
+  border: 2px solid color-mix(in srgb, var(--ink) 15%, transparent);
+  border-radius: 18px;
+}
+.custom-challenge-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--ff-ui);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+.custom-challenge-label svg { color: var(--clr-brass); flex-shrink: 0; }
+.custom-challenge-input {
+  width: 100%;
+  min-height: 70px;
+  padding: 12px 14px;
+  font-family: var(--ff-ui);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--clr-parchment) 50%, #fff);
+  border: 2px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  border-radius: 12px;
+  resize: vertical;
+  direction: rtl;
+  transition: border-color .2s;
+}
+.custom-challenge-input:focus {
+  outline: none;
+  border-color: var(--clr-brass);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--clr-brass) 20%, transparent);
+}
+.custom-challenge-input::placeholder { color: var(--ink-mute); font-size: 13px; }
+
 .dropzone {
   display: grid;
   place-items: center;

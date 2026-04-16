@@ -29,6 +29,7 @@ const CustomStorySchema = z.object({
     (val) => (val === null || val === undefined || val === "" ? "شجاعة" : val),
     z.string().min(1)
   ),
+  customChallenge: z.string().max(500).optional(),
   photoUrl: z.string().url().optional().nullable(),
 });
 
@@ -150,6 +151,9 @@ export async function POST(request: Request) {
             heroName: validated.customStory.heroName,
             age: validated.customStory.age,
             challenge: validated.customStory.challenge,
+            ...(validated.customStory.customChallenge
+              ? { customChallenge: validated.customStory.customChallenge }
+              : {}),
             ...(validated.customStory.photoUrl
               ? { photoUrl: validated.customStory.photoUrl }
               : {}),

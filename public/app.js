@@ -24,6 +24,7 @@
     heroName: '',
     age: null,
     challenge: null,
+    customChallenge: '',
     photoUrl: null,
     photoFile: null,
     photoUploading: false,
@@ -224,6 +225,7 @@
         heroName: state.heroName,
         age: ageNum,
         challenge: state.challenge || '',
+        customChallenge: state.customChallenge || '',
         photoUrl: state.photoUrl || null
       }));
     } catch (e) { /* silent */ }
@@ -879,6 +881,7 @@
         heroName: wizardData.heroName,
         age: wizardAge,
         challenge: wizardData.challenge || 'شجاعة',
+        customChallenge: wizardData.customChallenge || undefined,
         photoUrl: wizardData.photoUrl || undefined
       };
     }
@@ -1121,9 +1124,12 @@
     state.heroName = '';
     state.age = null;
     state.challenge = null;
+    state.customChallenge = '';
 
     var nameInput = wizardShell.querySelector('#heroName');
     if (nameInput) nameInput.value = '';
+    var customChallengeInput = wizardShell.querySelector('#customChallenge');
+    if (customChallengeInput) customChallengeInput.value = '';
     wizardShell.querySelectorAll('.age-chip').forEach(function (c) { c.classList.remove('is-active'); });
     wizardShell.querySelectorAll('.challenge-card').forEach(function (c) { c.classList.remove('is-active'); });
 
@@ -1221,6 +1227,13 @@
         state.challenge = card.querySelector('h4') ? card.querySelector('h4').textContent : '';
       });
     });
+
+    var customChallengeInput = wizardShell.querySelector('#customChallenge');
+    if (customChallengeInput) {
+      customChallengeInput.addEventListener('input', function (e) {
+        state.customChallenge = e.target.value.trim();
+      });
+    }
 
     wizardShell.querySelectorAll('[data-next]').forEach(function (btn) {
       btn.addEventListener('click', function () {

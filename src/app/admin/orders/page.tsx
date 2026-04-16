@@ -38,6 +38,7 @@ interface CustomStory {
   heroName: string;
   age: number;
   challenge: string;
+  customChallenge?: string;
   photoUrl?: string;
 }
 
@@ -514,6 +515,9 @@ export default function AdminOrdersPage() {
                     <p><strong>اسم الطفل:</strong> {selectedOrder.customStory.heroName}</p>
                     <p><strong>السن:</strong> {selectedOrder.customStory.age} سنوات</p>
                     <p><strong>التحدي:</strong> {selectedOrder.customStory.challenge}</p>
+                    {selectedOrder.customStory.customChallenge && (
+                      <p><strong>تفاصيل خاصة:</strong> {selectedOrder.customStory.customChallenge}</p>
+                    )}
                     {selectedOrder.customStory.photoUrl && (
                       <div>
                         <p className="mb-1"><strong>صورة الطفل:</strong></p>
