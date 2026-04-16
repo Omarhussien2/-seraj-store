@@ -118,6 +118,9 @@ const CreatePlaceSchema = z.object({
   category_ids: z.array(z.number()).optional().default([]),
   image_url: z.string().optional().default(""),
   last_price_update: z.string().or(z.date()).optional().nullable(),
+  offer_text: z.string().optional().default(""),
+  offer_active: z.boolean().optional().default(false),
+  offer_expiry: z.string().or(z.date()).optional().nullable(),
   active: z.boolean().optional().default(true),
   order: z.number().optional().default(0),
 });
@@ -145,12 +148,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // Convert last_price_update string to Date if needed
+    // Convert date strings to Date if needed
     const placeData = {
       ...validated,
       last_price_update: validated.last_price_update
         ? new Date(validated.last_price_update)
         : new Date(),
+      ...(validated.offer_expiry
+        ? { offer_expiry: new Date(validated.offer_expiry) }
+        : {}),
     };
 
     const place = await Place.create(placeData);

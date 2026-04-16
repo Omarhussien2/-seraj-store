@@ -39,6 +39,9 @@ export interface IPlace extends Document {
   category_ids: number[];
   image_url: string;
   last_price_update: Date;
+  offer_text: string;
+  offer_active: boolean;
+  offer_expiry: Date | null;
   active: boolean;
   order: number;
   createdAt: Date;
@@ -78,6 +81,9 @@ const PlaceSchema = new mongoose.Schema<IPlace>(
     category_ids: [{ type: Number, index: true }],
     image_url: { type: String, default: "" },
     last_price_update: { type: Date, default: null },
+    offer_text: { type: String, default: "" },
+    offer_active: { type: Boolean, default: false },
+    offer_expiry: { type: Date, default: null },
     active: { type: Boolean, default: true, index: true },
     order: { type: Number, default: 0 },
   },

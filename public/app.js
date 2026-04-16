@@ -1401,7 +1401,6 @@
   // ----- Outings (Fas7a Helwa) state -----
   var outingsState = {
     city: '',
-    budget: 0,        // 0=all, 1=free, 2=<100, 3=100-300, 4=300+
     type: '',          // '', 'indoor', 'outdoor', 'mixed'
     category: '',      // '', '1', '2', '3', '4', '5', '6'
     search: '',
@@ -1587,34 +1586,6 @@
 
   // ----- Outings (Fas7a Helwa) Functions -----
   function initOutings() {
-    // Budget slider
-    var budgetRange = document.getElementById('budgetRange');
-    var budgetFill = document.getElementById('budgetFill');
-    var budgetLabels = document.querySelectorAll('.budget-labels span');
-
-    if (budgetRange) {
-      budgetRange.addEventListener('input', function () {
-        var val = parseInt(budgetRange.value);
-        outingsState.budget = val;
-        var pct = (val / 4) * 100;
-        if (budgetFill) budgetFill.style.width = pct + '%';
-        budgetLabels.forEach(function (lbl) {
-          lbl.classList.toggle('is-active', parseInt(lbl.dataset.budget) === val);
-        });
-        outingsState.page = 1;
-        fetchPlaces();
-      });
-    }
-
-    // Budget label clicks (tap a label to jump)
-    budgetLabels.forEach(function (lbl) {
-      lbl.addEventListener('click', function () {
-        var val = parseInt(lbl.dataset.budget);
-        if (budgetRange) budgetRange.value = val;
-        budgetRange.dispatchEvent(new Event('input'));
-      });
-    });
-
     // City chips
     document.querySelectorAll('#cityChips .chip').forEach(function (chip) {
       chip.addEventListener('click', function () {
@@ -1729,12 +1700,6 @@
     if (outingsState.category) params.set('category', outingsState.category);
     if (outingsState.search) params.set('q', outingsState.search);
 
-    // Budget filter mapping
-    if (outingsState.budget === 1) params.set('is_free', 'true');
-    if (outingsState.budget === 2) params.set('max_price_below', '100');
-    if (outingsState.budget === 3) { params.set('min_price_above', '100'); params.set('max_price_below', '300'); }
-    if (outingsState.budget === 4) params.set('min_price_above', '300');
-
     fetch('/api/places?' + params.toString())
       .then(function (res) { return res.json(); })
       .then(function (json) {
@@ -1757,7 +1722,7 @@
         }
 
         // Show clear button if any filter is active
-        var hasFilters = outingsState.city || outingsState.budget || outingsState.type || outingsState.category || outingsState.search;
+        var hasFilters = outingsState.city || outingsState.type || outingsState.category || outingsState.search;
         if (clearBtn) clearBtn.style.display = hasFilters ? 'block' : 'none';
 
         if (outingsState.data.length === 0) {
@@ -1788,39 +1753,43 @@
   }
 
   function renderPlaceCard(place) {
-    var priceText = place.is_free ? 'مجاني' : formatPrice(place.min_price, place.max_price);
     var ageText = 'من ' + toArabicNum(place.min_age) + ' لـ ' + toArabicNum(place.max_age) + ' سنة';
     var catLabel = getCategoryLabel(place.category_ids);
-    var mapUrl = (place.location && place.location.lat && place.location.lon)
-      ? 'https://www.google.com/maps/search/?api=1&query=' + place.location.lat + ',' + place.location.lon
-      : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(place.name_en + ' ' + (place.city || ''));
+    var searchUrl = getPlaceSearchUrl(place);
     var imgHtml = place.image_url
       ? '<img src="' + place.image_url + '" alt="' + escHtml(place.name_ar || place.name_en) + '" loading="lazy"/>'
       : '';
-    var freeTag = place.is_free ? '<span class="outing-free-tag">مجاني ✦</span>' : '';
     var catBadge = catLabel ? '<span class="outing-cat-badge">' + catLabel + '</span>' : '';
+    var offerBadge = (place.offer_active && place.offer_text)
+      ? '<span class="outing-offer-tag">' + escHtml(place.offer_text) + '</span>'
+      : '';
 
     return '<article class="outing-card reveal" onclick="window._openPlace(\'' + place._id + '\')">' +
-      '<div class="outing-img">' + imgHtml + freeTag + catBadge + '</div>' +
+      '<div class="outing-img">' + imgHtml + offerBadge + catBadge + '</div>' +
       '<div class="outing-body">' +
         '<h3>' + escHtml(place.name_ar || place.name_en) + '</h3>' +
         '<div class="outing-info-row">' +
           '<span class="outing-loc">' + escHtml(place.city || place.area || '') + (place.area && place.city ? ' · ' + escHtml(place.area) : '') + '</span>' +
-          '<span class="outing-price">' + priceText + '</span>' +
           '<span class="outing-age">' + ageText + '</span>' +
         '</div>' +
-        '<a href="' + mapUrl + '" target="_blank" rel="noopener" class="outing-map-btn" onclick="event.stopPropagation()">' +
-          '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>' +
-          'افتح في الخريطة' +
+        '<a href="' + searchUrl + '" target="_blank" rel="noopener" class="outing-info-btn" onclick="event.stopPropagation()">' +
+          '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>' +
+          'اعرف أكتر عن المكان' +
         '</a>' +
       '</div>' +
     '</article>';
   }
 
-  function formatPrice(min, max) {
-    if (!min && !max) return 'السعر غير محدد';
-    if (min === max) return toArabicNum(min) + ' جنيه';
-    return toArabicNum(min) + ' - ' + toArabicNum(max) + ' جنيه';
+  function getPlaceSearchUrl(place) {
+    if (place.website_url) return place.website_url;
+    if (place.external_detail_url) return place.external_detail_url;
+    return 'https://www.google.com/search?q=' + encodeURIComponent((place.name_en || place.name_ar) + ' ' + (place.city || '') + ' Egypt');
+  }
+
+  function getPlaceMapUrl(place) {
+    if (place.location && place.location.lat && place.location.lon)
+      return 'https://www.google.com/maps/search/?api=1&query=' + place.location.lat + ',' + place.location.lon;
+    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(place.name_en + ' ' + (place.city || ''));
   }
 
   function getCategoryLabel(ids) {
@@ -1837,19 +1806,31 @@
     var imgContainer = document.getElementById('placeModalImg');
     var body = document.getElementById('placeModalBody');
 
-    var mapUrl = (place.location && place.location.lat && place.location.lon)
-      ? 'https://www.google.com/maps/search/?api=1&query=' + place.location.lat + ',' + place.location.lon
-      : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(place.name_en + ' ' + (place.city || ''));
+    var mapUrl = getPlaceMapUrl(place);
+    var searchUrl = getPlaceSearchUrl(place);
 
     imgContainer.innerHTML = place.image_url
       ? '<img src="' + place.image_url + '" alt="' + escHtml(place.name_ar) + '"/>'
       : '';
 
-    var priceText = place.is_free ? 'مجاني' : formatPrice(place.min_price, place.max_price);
     var typeMap = {indoor:'أماكن مغلقة',outdoor:'في الهوا الطلق',mixed:'مختلط',unknown:''};
     var typeLabel = typeMap[place.indoor_outdoor] || '';
 
-    var actionsHtml = '<a href="' + mapUrl + '" target="_blank" rel="noopener" class="btn-map">' +
+    // Offer banner
+    var offerHtml = '';
+    if (place.offer_active && place.offer_text) {
+      offerHtml = '<div class="place-offer-banner">' +
+        '<span class="place-offer-icon">🎁</span>' +
+        '<span>' + escHtml(place.offer_text) + '</span>' +
+      '</div>';
+    }
+
+    // Actions
+    var actionsHtml = '<a href="' + searchUrl + '" target="_blank" rel="noopener" class="btn-search">' +
+      '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>' +
+      'اعرف أكتر عن المكان</a>';
+
+    actionsHtml += '<a href="' + mapUrl + '" target="_blank" rel="noopener" class="btn-map">' +
       '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>' +
       'افتح في Google Maps</a>';
 
@@ -1865,26 +1846,16 @@
         'الموقع الإلكتروني</a>';
     }
 
-    var priceNote = '';
-    if (place.last_price_update) {
-      var d = new Date(place.last_price_update);
-      var year = d.getFullYear();
-      if (year < 2025) {
-        priceNote = '<p class="place-price-note">⚠️ الأسعار من ' + toArabicNum(year) + ' وممكن تكون اتغيرت</p>';
-      }
-    }
-
     body.innerHTML =
       '<h2>' + escHtml(place.name_ar || place.name_en) + '</h2>' +
       (place.description_short ? '<p class="place-desc">' + escHtml(place.description_short) + '</p>' : '') +
+      offerHtml +
       '<div class="place-detail-chips">' +
-        '<span class="chip" style="background:var(--seraj-wash);color:var(--seraj-dark);border-color:var(--seraj)">' + priceText + '</span>' +
         (typeLabel ? '<span class="chip" style="background:#e8f0fe;color:#3b82f6;border-color:#93c5fd">' + typeLabel + '</span>' : '') +
         '<span class="chip" style="background:var(--brass-wash);color:var(--brass-dark);border-color:var(--brass)">من ' + toArabicNum(place.min_age) + ' لـ ' + toArabicNum(place.max_age) + ' سنة</span>' +
         (place.booking_required ? '<span class="chip" style="background:#fef3cd;color:#856404;border-color:#ffc107">حجز مطلوب</span>' : '') +
       '</div>' +
-      '<div class="place-actions">' + actionsHtml + '</div>' +
-      priceNote;
+      '<div class="place-actions">' + actionsHtml + '</div>';
 
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -1892,20 +1863,12 @@
 
   function resetOutingsFilters() {
     outingsState.city = '';
-    outingsState.budget = 0;
     outingsState.type = '';
     outingsState.category = '';
     outingsState.search = '';
     outingsState.page = 1;
 
     // Reset UI
-    var budgetRange = document.getElementById('budgetRange');
-    var budgetFill = document.getElementById('budgetFill');
-    if (budgetRange) budgetRange.value = 0;
-    if (budgetFill) budgetFill.style.width = '0%';
-    document.querySelectorAll('.budget-labels span').forEach(function (lbl) {
-      lbl.classList.toggle('is-active', parseInt(lbl.dataset.budget) === 0);
-    });
     ['#cityChips', '#typeChips', '#catChips'].forEach(function (sel) {
       document.querySelectorAll(sel + ' .chip').forEach(function (c, i) {
         c.classList.toggle('is-active', i === 0);

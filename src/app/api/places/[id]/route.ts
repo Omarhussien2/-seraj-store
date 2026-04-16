@@ -80,6 +80,9 @@ const PatchPlaceSchema = z.object({
   category_ids: z.array(z.number()).optional(),
   image_url: z.string().optional(),
   last_price_update: z.string().or(z.date()).optional().nullable(),
+  offer_text: z.string().optional(),
+  offer_active: z.boolean().optional(),
+  offer_expiry: z.string().or(z.date()).optional().nullable(),
   active: z.boolean().optional(),
   order: z.number().optional(),
 });
@@ -102,10 +105,13 @@ export async function PATCH(
     const body = await request.json();
     const validated = PatchPlaceSchema.parse(body);
 
-    // Convert last_price_update string to Date if provided
+    // Convert date strings to Date if provided
     const updateData: Record<string, unknown> = { ...validated };
     if (validated.last_price_update) {
       updateData.last_price_update = new Date(validated.last_price_update as string | Date);
+    }
+    if (validated.offer_expiry) {
+      updateData.offer_expiry = new Date(validated.offer_expiry as string | Date);
     }
 
     const place = await Place.findByIdAndUpdate(
