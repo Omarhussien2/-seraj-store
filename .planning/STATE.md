@@ -1,7 +1,7 @@
 # Seraj Store — Project State
 
 ## Current Position
-- **Phase:** 7 — Fas7a Helwa Data (Plan 3 of 3 complete)
+- **Phase:** 7 — Fas7a Helwa Data (Complete + Post-fixes applied)
 - **Status:** ✅ Phase Complete
 - **Last Updated:** 2026-04-16
 
@@ -14,7 +14,7 @@
 | 4 | Admin Dashboard | ✅ Complete |
 | 5 | Polish & Integration | ✅ Complete |
 | 6 | Product Photos & Shipping | ✅ Complete |
-| 7 | Fas7a Helwa Data | ✅ Complete (Plan 3/3) |
+| 7 | Fas7a Helwa Data | ✅ Complete + post-fixes |
 
 ## Decisions
 1. No users collection — Admin auth via env vars with NextAuth Credentials
@@ -41,7 +41,13 @@
 22. Seed script: direct mongoose.connect (no connectDB), --force flag, mongoose.disconnect
 23. Used existing escHtml() and toArabicNum() utilities — no duplicate helpers in outings code
 24. Fas7a Helwa search input added to outings panel (filter chips + text search)
+25. Removed stale 2019 prices and budget slider — prices unreliable and confusing
+26. All 480 external_detail_url replaced with Google Maps links (lat,lon) — not Kidzapp
+27. "اعرف أكتر عن المكان" button → opens Google Maps for phone/photos/reviews/directions
+28. Offer system added: offer_text, offer_active, offer_expiry fields on Place model
+29. Admin places page (/admin/places) with full CRUD + offer management
+30. 🎡 الأماكن link added to admin sidebar
 
 ## Session Info
-- **Stopped At:** Completed 07-03-PLAN.md (Frontend UI)
-- **Next Step:** Phase 7 complete — ready for Phase 8 planning
+- **Stopped At:** Post-completion fixes applied (Google Maps links, offer system, admin page, removed stale prices)
+- **Next Step:** Ready for Phase 8 planning or further feature work
