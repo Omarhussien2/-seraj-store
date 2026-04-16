@@ -1,9 +1,9 @@
 # Seraj Store — Project State
 
 ## Current Position
-- **Phase:** 6 — Product Photos & Shipping
-- **Status:** COMPLETE
-- **Last Updated:** 2026-04-15
+- **Phase:** 7 — Fas7a Helwa Data (Plan 1 of 3 complete)
+- **Status:** In Progress
+- **Last Updated:** 2026-04-16
 
 ## Progress
 | Phase | Name | Status |
@@ -14,6 +14,7 @@
 | 4 | Admin Dashboard | ✅ Complete |
 | 5 | Polish & Integration | ✅ Complete |
 | 6 | Product Photos & Shipping | ✅ Complete |
+| 7 | Fas7a Helwa Data | 🔄 Plan 1/3 (Data Extraction) |
 
 ## Decisions
 1. No users collection — Admin auth via env vars with NextAuth Credentials
@@ -32,7 +33,11 @@
 14. No deposit/VIP — full payment via InstaPay only, `deposit: 0` always
 15. Order model: `subtotal` + `shippingFee` + `total` fields
 16. Admin settings API: `GET/PUT /api/admin/settings` (requires admin auth)
+17. Kidzapp API page_size=100 (7 pages vs 13 with 50)
+18. PlaceRow type: simple {lat, lon} not GeoJSON — no 2dsphere for MVP
+19. Category mapping: Kidzapp 12+ categories → local 6 categories (Fun, Shows, Outdoor, Art, Animals, Eat)
+20. English names for Kidzapp venues — Arabic translation deferred
 
 ## Session Info
-- **Stopped At:** Completed Phase 6 — Product Photos & Shipping
-- **Next Step:** Continue with any remaining features or deploy updates
+- **Stopped At:** Completed 07-01-PLAN.md (Data Extraction Pipeline)
+- **Next Step:** Execute 07-02-PLAN.md (Backend Model + API Routes)
