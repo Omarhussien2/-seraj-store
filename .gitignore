@@ -54,3 +54,6 @@ seraj-nextjs-init/
 
 # Duplicate assets (originals in public/assets/)
 public/assets/assets/
+
+# Data files (generated CSV — too large for git)
+data/*.csv
