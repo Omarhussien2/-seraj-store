@@ -1398,6 +1398,23 @@
   var articlesState = { page: 1, limit: 12, total: 0, section: '', search: '', sections: [] };
   var articlesSearchTimer = null;
 
+  // ----- Outings (Fas7a Helwa) state -----
+  var outingsState = {
+    city: '',
+    budget: 0,        // 0=all, 1=free, 2=<100, 3=100-300, 4=300+
+    type: '',          // '', 'indoor', 'outdoor', 'mixed'
+    category: '',      // '', '1', '2', '3', '4', '5', '6'
+    search: '',
+    page: 1,
+    limit: 12,
+    data: [],
+    count: 0,
+    totalPages: 0,
+    loading: false
+  };
+  var outingsInited = false;
+  var outingsSearchTimer;
+
   function initMamaWorld() {
     if (!mamaInited) {
       document.querySelectorAll('.mama-tab').forEach(function (tab) {
@@ -1409,6 +1426,9 @@
           var panel = document.querySelector('[data-mama-panel="' + target + '"]');
           if (panel) panel.classList.add('is-active');
           setTimeout(initReveals, 80);
+          if (target === 'outings' && !outingsInited) {
+            initOutings();
+          }
         });
       });
 
@@ -1563,6 +1583,338 @@
   function escHtml(str) {
     if (!str) return '';
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // ----- Outings (Fas7a Helwa) Functions -----
+  function initOutings() {
+    // Budget slider
+    var budgetRange = document.getElementById('budgetRange');
+    var budgetFill = document.getElementById('budgetFill');
+    var budgetLabels = document.querySelectorAll('.budget-labels span');
+
+    if (budgetRange) {
+      budgetRange.addEventListener('input', function () {
+        var val = parseInt(budgetRange.value);
+        outingsState.budget = val;
+        var pct = (val / 4) * 100;
+        if (budgetFill) budgetFill.style.width = pct + '%';
+        budgetLabels.forEach(function (lbl) {
+          lbl.classList.toggle('is-active', parseInt(lbl.dataset.budget) === val);
+        });
+        outingsState.page = 1;
+        fetchPlaces();
+      });
+    }
+
+    // Budget label clicks (tap a label to jump)
+    budgetLabels.forEach(function (lbl) {
+      lbl.addEventListener('click', function () {
+        var val = parseInt(lbl.dataset.budget);
+        if (budgetRange) budgetRange.value = val;
+        budgetRange.dispatchEvent(new Event('input'));
+      });
+    });
+
+    // City chips
+    document.querySelectorAll('#cityChips .chip').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        document.querySelectorAll('#cityChips .chip').forEach(function (c) { c.classList.remove('is-active'); });
+        chip.classList.add('is-active');
+        outingsState.city = chip.dataset.city || '';
+        outingsState.page = 1;
+        fetchPlaces();
+      });
+    });
+
+    // Type chips
+    document.querySelectorAll('#typeChips .chip').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        document.querySelectorAll('#typeChips .chip').forEach(function (c) { c.classList.remove('is-active'); });
+        chip.classList.add('is-active');
+        outingsState.type = chip.dataset.type || '';
+        outingsState.page = 1;
+        fetchPlaces();
+      });
+    });
+
+    // Category chips
+    document.querySelectorAll('#catChips .chip').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        document.querySelectorAll('#catChips .chip').forEach(function (c) { c.classList.remove('is-active'); });
+        chip.classList.add('is-active');
+        outingsState.category = chip.dataset.cat || '';
+        outingsState.page = 1;
+        fetchPlaces();
+      });
+    });
+
+    // Search input (the existing one in the outings panel — enable it)
+    var searchInput = document.querySelector('[data-mama-panel="outings"] .mama-search input');
+    if (searchInput) {
+      searchInput.disabled = false;
+      searchInput.addEventListener('input', function () {
+        clearTimeout(outingsSearchTimer);
+        outingsSearchTimer = setTimeout(function () {
+          outingsState.search = searchInput.value.trim();
+          outingsState.page = 1;
+          fetchPlaces();
+        }, 350);
+      });
+    }
+
+    // Load more
+    var loadMoreBtn = document.getElementById('outingsLoadMore');
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener('click', function () {
+        outingsState.page++;
+        fetchPlaces(true);
+      });
+    }
+
+    // Clear filters
+    var clearBtn = document.getElementById('outingsClearFilters');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function () {
+        resetOutingsFilters();
+      });
+    }
+
+    // Close modal
+    var modalBackdrop = document.getElementById('placeModal');
+    var modalClose = document.getElementById('placeModalClose');
+    if (modalClose) {
+      modalClose.addEventListener('click', function () {
+        modalBackdrop.style.display = 'none';
+        document.body.style.overflow = '';
+      });
+    }
+    if (modalBackdrop) {
+      modalBackdrop.addEventListener('click', function (e) {
+        if (e.target === modalBackdrop) {
+          modalBackdrop.style.display = 'none';
+          document.body.style.overflow = '';
+        }
+      });
+    }
+
+    outingsInited = true;
+    fetchPlaces(); // Initial load
+  }
+
+  function fetchPlaces(append) {
+    var grid = document.getElementById('outingsGrid');
+    var loading = document.getElementById('outingsLoading');
+    var empty = document.getElementById('outingsEmpty');
+    var loadMore = document.getElementById('outingsLoadMore');
+    var resultsBar = document.getElementById('outingsResultsBar');
+    var countEl = document.getElementById('outingsCount');
+    var clearBtn = document.getElementById('outingsClearFilters');
+    if (!grid) return;
+
+    if (!append) {
+      grid.innerHTML = '';
+      outingsState.data = [];
+    }
+    loading.style.display = 'block';
+    empty.style.display = 'none';
+    if (loadMore) loadMore.style.display = 'none';
+    outingsState.loading = true;
+
+    // Build query params
+    var params = new URLSearchParams();
+    params.set('limit', outingsState.limit);
+    params.set('page', outingsState.page);
+    if (outingsState.city) params.set('city', outingsState.city);
+    if (outingsState.type) params.set('indoor_outdoor', outingsState.type);
+    if (outingsState.category) params.set('category', outingsState.category);
+    if (outingsState.search) params.set('q', outingsState.search);
+
+    // Budget filter mapping
+    if (outingsState.budget === 1) params.set('is_free', 'true');
+    if (outingsState.budget === 2) params.set('max_price_below', '100');
+    if (outingsState.budget === 3) { params.set('min_price_above', '100'); params.set('max_price_below', '300'); }
+    if (outingsState.budget === 4) params.set('min_price_above', '300');
+
+    fetch('/api/places?' + params.toString())
+      .then(function (res) { return res.json(); })
+      .then(function (json) {
+        outingsState.loading = false;
+        loading.style.display = 'none';
+
+        if (!json.success || !json.data) {
+          empty.style.display = 'block';
+          return;
+        }
+
+        outingsState.data = append ? outingsState.data.concat(json.data) : json.data;
+        outingsState.count = json.count || 0;
+        outingsState.totalPages = json.totalPages || 1;
+
+        // Results bar
+        if (resultsBar) {
+          resultsBar.style.display = 'flex';
+          countEl.textContent = outingsState.count + ' مكان';
+        }
+
+        // Show clear button if any filter is active
+        var hasFilters = outingsState.city || outingsState.budget || outingsState.type || outingsState.category || outingsState.search;
+        if (clearBtn) clearBtn.style.display = hasFilters ? 'block' : 'none';
+
+        if (outingsState.data.length === 0) {
+          empty.style.display = 'block';
+          return;
+        }
+
+        // Render cards
+        var newCards = json.data.map(function (place) { return renderPlaceCard(place); }).join('');
+        if (append) {
+          grid.innerHTML += newCards;
+        } else {
+          grid.innerHTML = newCards;
+        }
+
+        // Load more
+        if (loadMore) {
+          loadMore.style.display = outingsState.page < outingsState.totalPages ? 'block' : 'none';
+        }
+
+        setTimeout(initReveals, 80);
+      })
+      .catch(function () {
+        outingsState.loading = false;
+        loading.style.display = 'none';
+        empty.style.display = 'block';
+      });
+  }
+
+  function renderPlaceCard(place) {
+    var priceText = place.is_free ? 'مجاني' : formatPrice(place.min_price, place.max_price);
+    var ageText = 'من ' + toArabicNum(place.min_age) + ' لـ ' + toArabicNum(place.max_age) + ' سنة';
+    var catLabel = getCategoryLabel(place.category_ids);
+    var mapUrl = (place.location && place.location.lat && place.location.lon)
+      ? 'https://www.google.com/maps/search/?api=1&query=' + place.location.lat + ',' + place.location.lon
+      : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(place.name_en + ' ' + (place.city || ''));
+    var imgHtml = place.image_url
+      ? '<img src="' + place.image_url + '" alt="' + escHtml(place.name_ar || place.name_en) + '" loading="lazy"/>'
+      : '';
+    var freeTag = place.is_free ? '<span class="outing-free-tag">مجاني ✦</span>' : '';
+    var catBadge = catLabel ? '<span class="outing-cat-badge">' + catLabel + '</span>' : '';
+
+    return '<article class="outing-card reveal" onclick="window._openPlace(\'' + place._id + '\')">' +
+      '<div class="outing-img">' + imgHtml + freeTag + catBadge + '</div>' +
+      '<div class="outing-body">' +
+        '<h3>' + escHtml(place.name_ar || place.name_en) + '</h3>' +
+        '<div class="outing-info-row">' +
+          '<span class="outing-loc">' + escHtml(place.city || place.area || '') + (place.area && place.city ? ' · ' + escHtml(place.area) : '') + '</span>' +
+          '<span class="outing-price">' + priceText + '</span>' +
+          '<span class="outing-age">' + ageText + '</span>' +
+        '</div>' +
+        '<a href="' + mapUrl + '" target="_blank" rel="noopener" class="outing-map-btn" onclick="event.stopPropagation()">' +
+          '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>' +
+          'افتح في الخريطة' +
+        '</a>' +
+      '</div>' +
+    '</article>';
+  }
+
+  function formatPrice(min, max) {
+    if (!min && !max) return 'السعر غير محدد';
+    if (min === max) return toArabicNum(min) + ' جنيه';
+    return toArabicNum(min) + ' - ' + toArabicNum(max) + ' جنيه';
+  }
+
+  function getCategoryLabel(ids) {
+    if (!ids || !ids.length) return '';
+    var map = {1:'🎠 لعب',2:'🎬 سينما',3:'🌳 حدائق',4:'🎨 فنون',5:'🐾 حيوانات',6:'🍕 مطاعم'};
+    return map[ids[0]] || '';
+  }
+
+  window._openPlace = function (id) {
+    var place = outingsState.data.find(function (p) { return p._id === id; });
+    if (!place) return;
+
+    var modal = document.getElementById('placeModal');
+    var imgContainer = document.getElementById('placeModalImg');
+    var body = document.getElementById('placeModalBody');
+
+    var mapUrl = (place.location && place.location.lat && place.location.lon)
+      ? 'https://www.google.com/maps/search/?api=1&query=' + place.location.lat + ',' + place.location.lon
+      : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(place.name_en + ' ' + (place.city || ''));
+
+    imgContainer.innerHTML = place.image_url
+      ? '<img src="' + place.image_url + '" alt="' + escHtml(place.name_ar) + '"/>'
+      : '';
+
+    var priceText = place.is_free ? 'مجاني' : formatPrice(place.min_price, place.max_price);
+    var typeMap = {indoor:'أماكن مغلقة',outdoor:'في الهوا الطلق',mixed:'مختلط',unknown:''};
+    var typeLabel = typeMap[place.indoor_outdoor] || '';
+
+    var actionsHtml = '<a href="' + mapUrl + '" target="_blank" rel="noopener" class="btn-map">' +
+      '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>' +
+      'افتح في Google Maps</a>';
+
+    if (place.phone) {
+      actionsHtml += '<a href="tel:' + place.phone + '" class="btn-call">' +
+        '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>' +
+        'اتصلي بالمكان</a>';
+    }
+
+    if (place.website_url) {
+      actionsHtml += '<a href="' + place.website_url + '" target="_blank" rel="noopener" class="btn-website">' +
+        '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>' +
+        'الموقع الإلكتروني</a>';
+    }
+
+    var priceNote = '';
+    if (place.last_price_update) {
+      var d = new Date(place.last_price_update);
+      var year = d.getFullYear();
+      if (year < 2025) {
+        priceNote = '<p class="place-price-note">⚠️ الأسعار من ' + toArabicNum(year) + ' وممكن تكون اتغيرت</p>';
+      }
+    }
+
+    body.innerHTML =
+      '<h2>' + escHtml(place.name_ar || place.name_en) + '</h2>' +
+      (place.description_short ? '<p class="place-desc">' + escHtml(place.description_short) + '</p>' : '') +
+      '<div class="place-detail-chips">' +
+        '<span class="chip" style="background:var(--seraj-wash);color:var(--seraj-dark);border-color:var(--seraj)">' + priceText + '</span>' +
+        (typeLabel ? '<span class="chip" style="background:#e8f0fe;color:#3b82f6;border-color:#93c5fd">' + typeLabel + '</span>' : '') +
+        '<span class="chip" style="background:var(--brass-wash);color:var(--brass-dark);border-color:var(--brass)">من ' + toArabicNum(place.min_age) + ' لـ ' + toArabicNum(place.max_age) + ' سنة</span>' +
+        (place.booking_required ? '<span class="chip" style="background:#fef3cd;color:#856404;border-color:#ffc107">حجز مطلوب</span>' : '') +
+      '</div>' +
+      '<div class="place-actions">' + actionsHtml + '</div>' +
+      priceNote;
+
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  };
+
+  function resetOutingsFilters() {
+    outingsState.city = '';
+    outingsState.budget = 0;
+    outingsState.type = '';
+    outingsState.category = '';
+    outingsState.search = '';
+    outingsState.page = 1;
+
+    // Reset UI
+    var budgetRange = document.getElementById('budgetRange');
+    var budgetFill = document.getElementById('budgetFill');
+    if (budgetRange) budgetRange.value = 0;
+    if (budgetFill) budgetFill.style.width = '0%';
+    document.querySelectorAll('.budget-labels span').forEach(function (lbl) {
+      lbl.classList.toggle('is-active', parseInt(lbl.dataset.budget) === 0);
+    });
+    ['#cityChips', '#typeChips', '#catChips'].forEach(function (sel) {
+      document.querySelectorAll(sel + ' .chip').forEach(function (c, i) {
+        c.classList.toggle('is-active', i === 0);
+      });
+    });
+    var searchInput = document.querySelector('[data-mama-panel="outings"] .mama-search input');
+    if (searchInput) searchInput.value = '';
+
+    fetchPlaces();
   }
 
   // ----- Article Detail Page -----
