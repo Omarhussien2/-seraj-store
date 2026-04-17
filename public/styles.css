@@ -3438,3 +3438,69 @@ input, textarea { font-family: inherit; }
   .article-body-content { font-size: 15px; line-height: 1.85; }
   .related-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ============ CATEGORIES SHOWCASE ============ */
+.showcase-section {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Showcase text — allow wider text for longer descriptions */
+.showcase-section .zz-text {
+  max-width: 480px;
+}
+
+.showcase-section .zz-text h3 {
+  font-size: clamp(20px, 3vw, 28px);
+  line-height: 1.35;
+  margin-bottom: 12px;
+}
+
+.showcase-section .zz-text p {
+  font-size: clamp(14px, 1.6vw, 16px);
+  line-height: 1.8;
+  color: var(--ink-soft);
+}
+
+/* Static image fallback for categories without video */
+.showcase-img-wrap {
+  background: radial-gradient(circle at 30% 30%, var(--seraj-wash), var(--seraj-light));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+
+.showcase-img {
+  width: 70%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,.15));
+  animation: bob 3s ease-in-out infinite;
+}
+
+/* Showcase CTA buttons inline with text */
+.showcase-section .zz-text .btn {
+  font-size: 15px;
+  padding: 12px 20px;
+  border-radius: 14px;
+}
+
+@media (max-width: 819px) {
+  .showcase-section .zz-text {
+    text-align: center;
+    margin: 0 auto;
+  }
+  .showcase-section .zz-text .btn {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (min-width: 820px) {
+  .showcase-section .zz-row {
+    margin-bottom: 56px;
+  }
+}

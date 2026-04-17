@@ -393,6 +393,88 @@
       h += '<figure class="t-card"><blockquote>"' + rev.text + '"</blockquote><figcaption><span class="avatar" style="--c:' + rev.color + '">' + rev.initial + '</span><div><strong>' + rev.name + '</strong><small>' + rev.place + '</small></div></figcaption></figure>';
     }
     h += '</div></section>';
+    // ===== Custom Story: Relocated sections from homepage =====
+    if (slug === 'custom-story') {
+      // Social proof
+      h += '<section class="section counter-section">';
+      h += '<div class="counter-card reveal">';
+      h += '<div class="counter-left">';
+      h += '<span class="kicker">من قلب البيوت المصرية</span>';
+      h += '<h2><span>أكتر من</span> <span class="counter" data-to="842">٠</span> <span>قصة اتألفت لأبطالنا الصغار</span></h2>';
+      h += '<p>صور حقيقية من أمهات جربوا سِراج وبعتوا لنا كتب بطلهم في إيديه</p>';
+      h += '</div>';
+      h += '<div class="counter-gallery">';
+      h += '<div class="mini-card" style="--r:-6deg"><div class="mini-cover"><span>بطلنا يوسف</span></div></div>';
+      h += '<div class="mini-card" style="--r:3deg"><div class="mini-cover alt"><span>بطلتنا ليلى</span></div></div>';
+      h += '<div class="mini-card" style="--r:-2deg"><div class="mini-cover alt2"><span>بطلنا زين</span></div></div>';
+      h += '</div></div></section>';
+
+      // How it works — zig-zag
+      h += '<section class="section zigzag-section" id="how-it-works">';
+      h += '<header class="section-head reveal">';
+      h += '<span class="kicker">٣ خطوات بس</span>';
+      h += '<h2>إزاي سراج بيعمل قصة بصورة ابنك؟</h2>';
+      h += '</header>';
+      // Step 1
+      h += '<article class="zz-row reveal" style="--d:.05s">';
+      h += '<div class="zz-media"><div class="zz-video-wrap">';
+      h += '<video class="zz-video" src="assets/1-.mp4" autoplay muted loop playsinline preload="auto" poster="assets/seraj.png" aria-label="الخطوة ١"></video>';
+      h += '</div></div>';
+      h += '<div class="zz-text"><span class="zz-num">١</span>';
+      h += '<h3>قولي لسراج اسم بطلنا وسنه</h3>';
+      h += '<p>ادخلي اسم طفلك وسنّه، واختاري القيمة اللي عايزاه يتعلمها.. وسراج هيبدأ الشغل.</p>';
+      h += '</div></article>';
+      // Step 2
+      h += '<article class="zz-row zz-reversed reveal" style="--d:.1s">';
+      h += '<div class="zz-media"><div class="zz-video-wrap">';
+      h += '<video class="zz-video" src="assets/2.mp4" autoplay muted loop playsinline preload="auto" poster="assets/seraj.png" aria-label="الخطوة ٢"></video>';
+      h += '</div></div>';
+      h += '<div class="zz-text"><span class="zz-num">٢</span>';
+      h += '<h3>سراج هيدخل ورشه السحرية يكتب ويرسم القصة مخصوص ليه</h3>';
+      h += '<p>في الورشة، سراج بيكتب القصة باسم بطلك وبيرسمها بإيد فنانين مصريين.. كل حاجة مخصوصة.</p>';
+      h += '</div></article>';
+      // Step 3
+      h += '<article class="zz-row reveal" style="--d:.15s">';
+      h += '<div class="zz-media"><div class="zz-video-wrap">';
+      h += '<video class="zz-video" src="assets/3.mp4" autoplay muted loop playsinline preload="auto" poster="assets/seraj.png" aria-label="الخطوة ٣"></video>';
+      h += '</div></div>';
+      h += '<div class="zz-text"><span class="zz-num">٣</span>';
+      h += '<h3>القصة هتجيلك مطبوعة بجودة عالية لحد باب البيت</h3>';
+      h += '<p>غلاف مقوّى، ورق سميك، ورسوم أصلية.. قصة حقيقية يستاهلها بطلنا.</p>';
+      h += '</div></article>';
+      h += '<div class="zz-cta reveal" style="--d:.2s">';
+      h += '<a href="#/wizard" data-link class="btn btn-primary"><span>يلا نبدأ الحكاية</span>';
+      h += '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>';
+      h += '</section>';
+
+      // Values
+      h += '<section class="section values-section">';
+      h += '<header class="section-head reveal">';
+      h += '<span class="kicker">القيم اللي هيتعلمها</span>';
+      h += '<h2>اختاري القيمة اللي بطلنا محتاجها النهاردة</h2>';
+      h += '<p>كل قيمة ليها قصة ومغامرة مختلفة</p>';
+      h += '</header>';
+      h += '<div class="values-grid">';
+      h += '<button class="value-card" style="--c:#6bbf3f"><svg viewBox="0 0 48 48"><path d="M24 8l4 10 11 1-8 8 2 11-9-6-9 6 2-11-8-8 11-1z" fill="#6bbf3f" stroke="#231a14" stroke-width="2.5" stroke-linejoin="round"/></svg><h4>شجاعة</h4><span>زي القائد خالد</span></button>';
+      h += '<button class="value-card" style="--c:#36a39a"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="14" fill="#36a39a" stroke="#231a14" stroke-width="2.5"/><path d="M16 24 l5 5 11-11" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><h4>نظافة</h4><span>كل يوم أجمل</span></button>';
+      h += '<button class="value-card" style="--c:#c9974e"><svg viewBox="0 0 48 48"><path d="M8 14h32v22a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4z" fill="#c9974e" stroke="#231a14" stroke-width="2.5"/><path d="M8 14l8-6h16l8 6" fill="#e9b86a" stroke="#231a14" stroke-width="2.5"/></svg><h4>علم ومذاكرة</h4><span>فضول مش حدود</span></button>';
+      h += '<button class="value-card" style="--c:#e85d4c"><svg viewBox="0 0 48 48"><path d="M24 40s-14-8-14-20a8 8 0 0 1 14-5 8 8 0 0 1 14 5c0 12-14 20-14 20z" fill="#e85d4c" stroke="#231a14" stroke-width="2.5" stroke-linejoin="round"/></svg><h4>احترام</h4><span>بنكبر بالأدب</span></button>';
+      h += '<button class="value-card" style="--c:#8b5e2a"><svg viewBox="0 0 48 48"><rect x="14" y="6" width="20" height="36" rx="4" fill="#e9b86a" stroke="#231a14" stroke-width="2.5"/><path d="M18 14h12M18 22h12M18 30h8" stroke="#231a14" stroke-width="2.5" stroke-linecap="round"/></svg><h4>صبر</h4><span>الحلم محتاج وقت</span></button>';
+      h += '</div></section>';
+
+      // CTA Banner
+      h += '<section class="cta-ribbon reveal">';
+      h += '<div class="ribbon-inner">';
+      h += '<img src="assets/seraj.png" class="ribbon-mascot" alt="سِراج" loading="lazy"/>';
+      h += '<div class="ribbon-copy">';
+      h += '<h2>مستنية إيه؟ خلّي بطلنا يبدأ حكايته النهاردة!</h2>';
+      h += '<p>بس ٣ خطوات صغيرة، وسِراج هيقعد يشتغل في الورشة</p>';
+      h += '</div>';
+      h += '<a href="#/wizard" data-link class="btn btn-primary btn-xl">اصنع قصة لابنك';
+      h += '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a>';
+      h += '</div></section>';
+    }
+
     // Related
     if (product.related && product.related.length) {
       h += '<section class="section pd-related-section"><div class="section-head"><span class="kicker">هيعجب بطلنا كمان</span><h2>منتجات مقترحة</h2></div><div class="products-grid">';
@@ -408,6 +490,11 @@
     container.innerHTML = h;
     setTimeout(initReveals, 100);
     initProductGallery(container);
+    // Re-init zigzag videos and counter for custom-story page
+    if (slug === 'custom-story') {
+      initZigzagVideos();
+      initCounter();
+    }
   }
 
   // ----- Product Gallery Interaction -----
