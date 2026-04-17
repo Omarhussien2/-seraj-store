@@ -63,7 +63,6 @@
       <svg viewBox="0 0 24 24" width="24" height="24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="cart-count" id="cartCount" hidden>0</span>
     </a>
-    <a href="#/wizard" data-link class="pill-btn" data-content-key="ribbon.cta">اصنع قصة لابنك</a>
   </header>
 
   <!-- ============ PAGES ============ -->
@@ -165,7 +164,7 @@
           </a>
 
           <!-- Card 2: القصة المخصصة -->
-          <a href="#/wizard" data-link class="product-card reveal" style="--d:.12s">
+          <a href="#/product/custom-story" data-link class="product-card reveal" style="--d:.12s">
             <div class="product-media emerald">
               <span class="badge">مخصصة باسم بطلنا</span>
               <div class="book3d">
@@ -224,7 +223,7 @@
             <div class="zz-video-wrap">
               <video
                 class="zz-video"
-                src="assets/videos/قسم سباق الفتوحات.mp4"
+                src="assets/videos/قصص سباق الفتوحات.mp4"
                 autoplay muted loop playsinline
                 preload="auto"
                 poster="assets/seraj.png"
@@ -248,7 +247,7 @@
             <div class="zz-video-wrap">
               <video
                 class="zz-video"
-                src="assets/videos/قسم القصص المخصصة.mp4"
+                src="assets/videos/قسم القصة المخصصة.mp4"
                 autoplay muted loop playsinline
                 preload="auto"
                 poster="assets/seraj.png"
@@ -269,8 +268,15 @@
         <!-- Category 3: Seraj Games — Image Right (no video) / Text Left -->
         <article class="zz-row reveal" style="--d:.15s">
           <div class="zz-media">
-            <div class="zz-video-wrap showcase-img-wrap">
-              <img src="assets/seraj.png" alt="ألعاب سراج" class="showcase-img" loading="lazy"/>
+            <div class="zz-video-wrap">
+              <video
+                class="zz-video"
+                src="assets/videos/العاب التعليمية.mp4"
+                autoplay muted loop playsinline
+                preload="auto"
+                poster="assets/seraj.png"
+                aria-label="ألعاب سراج"
+              ></video>
             </div>
           </div>
           <div class="zz-text">
@@ -289,7 +295,7 @@
             <div class="zz-video-wrap">
               <video
                 class="zz-video"
-                src="assets/videos/قسم عالم ماما.mp4"
+                src="assets/videos/قسم عالم ماما2.mp4"
                 autoplay muted loop playsinline
                 preload="auto"
                 poster="assets/seraj.png"
@@ -330,6 +336,37 @@
             </a>
           </div>
         </article>
+      </section>
+
+      <!-- TESTIMONIALS -->
+      <section class="section testimonials-section">
+        <header class="section-head reveal">
+          <span class="kicker" data-content-key="testimonials.kicker">كلام أمهاتنا</span>
+          <h2 data-content-key="testimonials.heading">اللي قالتوه عن سِراج</h2>
+        </header>
+        <div class="testimonials-grid">
+          <figure class="t-card reveal" style="--d:.05s">
+            <blockquote>"ابني لسه مش مصدق إن فيه قصة باسمه! قعد يقراها مع بابا لحد ما نام."</blockquote>
+            <figcaption>
+              <span class="avatar" style="--c:#6bbf3f">م</span>
+              <div><strong>منى — أم أحمد</strong><small>القاهرة · ٦ سنين</small></div>
+            </figcaption>
+          </figure>
+          <figure class="t-card reveal" style="--d:.12s">
+            <blockquote>"أحلى حاجة إن القصة بتعلّم قيمة.. بنتي بقت بتقول 'أنا شجاعة زي خالد'."</blockquote>
+            <figcaption>
+              <span class="avatar" style="--c:#e85d4c">ن</span>
+              <div><strong>نور — أم ليلى</strong><small>الإسكندرية · ٥ سنين</small></div>
+            </figcaption>
+          </figure>
+          <figure class="t-card reveal" style="--d:.19s">
+            <blockquote>"الطباعة تحفة، الغلاف مقوّى والورق سميك.. تستاهل كل قرش وزيادة."</blockquote>
+            <figcaption>
+              <span class="avatar" style="--c:#c9974e">س</span>
+              <div><strong>سارة — أم زين</strong><small>المنصورة · ٤ سنين</small></div>
+            </figcaption>
+          </figure>
+        </div>
       </section>
 
 
@@ -401,7 +438,7 @@
         </a>
 
         <!-- 2. القصة المخصصة -->
-        <a href="#/wizard" data-link class="product-card reveal" data-cat="قصص مخصصة">
+        <a href="#/product/custom-story" data-link class="product-card reveal" data-cat="قصص مخصصة">
           <div class="product-media emerald">
             <span class="badge">مخصصة باسم بطلنا</span>
             <div class="book3d"><div class="book3d-cover"><span class="book3d-title">حكاية<br/>بطلنا</span><img src="assets/seraj.png" class="book3d-mascot" alt="" loading="lazy"/></div></div>

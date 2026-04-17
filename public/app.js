@@ -151,6 +151,7 @@
 
   // ----- Fetch Products from API (graceful fallback) -----
   var productsLoaded = false;
+  var productsReady = false; // true once fetch resolves (success or fail)
   function fetchProducts() {
     fetch('/api/products')
       .then(function (res) { return res.json(); })
@@ -163,12 +164,13 @@
           console.log('✅ Products loaded from API (' + data.data.length + ')');
         }
         updateDOMPrices();
-        // Re-render current page so product detail picks up API data
-        handleRoute();
       })
       .catch(function () {
         console.warn('⚠️ API fetch failed, using fallback products');
         updateDOMPrices();
+      })
+      .finally(function () {
+        productsReady = true;
       });
   }
 
@@ -2333,10 +2335,27 @@
     fetchConfig();
     fetchSiteContent();
     if (!location.hash) location.hash = '#/home';
-    handleRoute();
-    initReveals();
-    initCounter();
-    initZigzagVideos();
+    // Wait for products API to resolve before first render to avoid flash
+    var waitForProducts = setInterval(function () {
+      if (productsReady) {
+        clearInterval(waitForProducts);
+        handleRoute();
+        initReveals();
+        initCounter();
+        initZigzagVideos();
+      }
+    }, 50);
+    // Safety timeout: render with fallback data after 2s even if API hasn't responded
+    setTimeout(function () {
+      clearInterval(waitForProducts);
+      if (!productsReady) {
+        productsReady = true;
+        handleRoute();
+        initReveals();
+        initCounter();
+        initZigzagVideos();
+      }
+    }, 2000);
   });
 
   if (document.readyState !== 'loading') {
