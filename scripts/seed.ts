@@ -1,7 +1,7 @@
 import { connectDB } from "../src/lib/db";
 import Product from "../src/lib/models/Product";
 
-// Exact product data from public/app.js PRODUCTS object
+// Product data with section/series for multi-category store
 const PRODUCTS = [
   {
     slug: "story-khaled",
@@ -11,6 +11,8 @@ const PRODUCTS = [
     price: 140,
     priceText: "١٤٠ ج.م",
     category: "قصص جاهزة",
+    section: "tales",
+    series: "سباق الفتوحات",
     longDesc:
       "تابع بطلنا في مغامرة ملهمة مع القائد خالد بن الوليد — القائد اللي ما خسرش معركة في حياته. القصة بتعلّم إن الشجاعة الحقيقية مش في القوة بس، لكن في الثبات والمرونة والجرأة إنه يعمل الصح حتى لو كان صعب.",
     features: [
@@ -45,9 +47,50 @@ const PRODUCTS = [
         initial: "س",
       },
     ],
-    related: ["custom-story", "bundle"],
+    related: ["hero-conqueror", "custom-story", "bundle"],
     active: true,
     order: 1,
+  },
+  {
+    slug: "hero-conqueror",
+    name: "بطل قهر المستحيل",
+    badge: "جديد",
+    badgeSoon: false,
+    price: 140,
+    priceText: "١٤٠ ج.م",
+    category: "قصص جاهزة",
+    section: "tales",
+    series: "سباق الفتوحات",
+    longDesc:
+      "مغامرة ملحمية من سلسلة سباق الفتوحات — قصة بطلنا اللي واجه المستحيل وقدره. رسوم أصلية بإيد فنانين مصريين بتعلّم الأطفال معاني الثبات والإرادة.",
+    features: [
+      "٢٤ صفحة ملوّنة بجودة عالية",
+      "غلاف مقوّى مقاوم",
+      "رسوم أصلية بإيد فنانين مصريين",
+      "بتعلّم قيمة الإرادة والثبات",
+      "مناسبة من ٤ لـ ٩ سنين",
+    ],
+    media: {
+      type: "book3d",
+      image: "assets/seraj.png",
+      title: "بطل قهر<br/>المستحيل",
+      bg: "emerald",
+    },
+    action: "cart",
+    ctaText: "أضيفي للسلة",
+    comingSoon: false,
+    reviews: [
+      {
+        text: "القصة الجديدة من السلسلة تحفة! ابني مستني كل قصة جديدة.",
+        name: "هدى — أم ياسين",
+        place: "الإسكندرية · ٥ سنين",
+        color: "#36a39a",
+        initial: "ه",
+      },
+    ],
+    related: ["story-khaled", "custom-story", "bundle"],
+    active: true,
+    order: 2,
   },
   {
     slug: "custom-story",
@@ -57,6 +100,7 @@ const PRODUCTS = [
     price: 220,
     priceText: "٢٢٠ ج.م",
     category: "قصص مخصصة",
+    section: "custom-stories",
     longDesc:
       "قصة مغامرة كاملة باسم بطلك وبتعلّم قيمة من اختيارك. سراج بيكتب القصة مخصوص ليه وبيرسمها بإيد فنانين مصريين. غلاف مقوّى وورق سميك يستحمل كل مرات القراية.",
     features: [
@@ -100,7 +144,7 @@ const PRODUCTS = [
     ],
     related: ["story-khaled", "bundle"],
     active: true,
-    order: 2,
+    order: 3,
   },
   {
     slug: "flash-cards",
@@ -110,6 +154,7 @@ const PRODUCTS = [
     price: 150,
     priceText: "١٥٠ ج.م",
     category: "فلاش كاردز",
+    section: "play-learn",
     longDesc:
       "٣٠ كارت مصوّر بتصميم ملوّن وجذاب، بتساعد طفلك ينظم يومه ويتعلم عادات صحية بشكل ممتع. كل كارت فيه رسمة واضحة لنشاط من أنشطة اليوم.",
     features: [
@@ -141,7 +186,7 @@ const PRODUCTS = [
     ],
     related: ["story-khaled", "bundle"],
     active: true,
-    order: 3,
+    order: 4,
   },
   {
     slug: "bundle",
@@ -153,6 +198,7 @@ const PRODUCTS = [
     priceText: "٤٢٠ ج.م",
     originalPriceText: "٥٣٠ ج.م",
     category: "مجموعات",
+    // No section — bundles appear as cross-sell
     longDesc:
       "المجموعة الكاملة لبطلنا! قصة مخصصة باسمه + كروت روتين يومي + قصة من سلسلة سباق الفتوحات. وفّري ٢٠٪ لما تطلبيهم مع بعض!",
     features: [
@@ -184,7 +230,7 @@ const PRODUCTS = [
     ],
     related: ["story-khaled", "custom-story"],
     active: true,
-    order: 4,
+    order: 5,
   },
 ];
 
@@ -195,7 +241,7 @@ async function seed() {
   console.log("🗑️  Clearing existing products...");
   await Product.deleteMany({});
 
-  console.log("📦 Seeding 4 products...");
+  console.log(`📦 Seeding ${PRODUCTS.length} products...`);
   const result = await Product.insertMany(PRODUCTS);
   console.log(
     `✅ Seeded ${result.length} products:`,

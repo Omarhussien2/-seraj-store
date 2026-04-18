@@ -68,6 +68,8 @@ export interface IProduct extends Document {
   priceText: string;
   originalPriceText?: string | null;
   category: string;
+  section?: string | null;
+  series?: string;
   longDesc: string;
   features: string[];
   imageUrl?: string;
@@ -110,6 +112,12 @@ const ProductSchema = new mongoose.Schema<IProduct>(
       required: true,
       enum: ["قصص جاهزة", "قصص مخصصة", "فلاش كاردز", "مجموعات"],
     },
+    section: {
+      type: String,
+      enum: ["tales", "seraj-stories", "custom-stories", "play-learn"],
+      index: true,
+    },
+    series: { type: String },
     longDesc: { type: String, required: true },
     features: [{ type: String }],
     imageUrl: { type: String },
@@ -130,8 +138,9 @@ const ProductSchema = new mongoose.Schema<IProduct>(
   { timestamps: true }
 );
 
-// Text index for search
-ProductSchema.index({ name: "text", category: "text" });
+// Indexes
+ProductSchema.index({ name: "text", category: "text", section: "text" });
+ProductSchema.index({ section: 1, order: 1 });
 
 const Product: Model<IProduct> =
   mongoose.models.Product ||

@@ -40,6 +40,8 @@ interface Product {
   priceText: string;
   originalPriceText?: string | null;
   category: string;
+  section?: string | null;
+  series?: string;
   longDesc: string;
   features: string[];
   imageUrl?: string;
@@ -73,6 +75,8 @@ const emptyProduct: Partial<Product> = {
   price: 0,
   priceText: "",
   category: "قصص جاهزة",
+  section: undefined,
+  series: "",
   longDesc: "",
   features: [],
   imageUrl: "",
@@ -416,6 +420,37 @@ export default function AdminProductsPage() {
                       <SelectItem value="مجموعات">مجموعات</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+
+              {/* Section & Series */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>القسم (Section)</Label>
+                  <Select
+                    value={editingProduct.section || "none"}
+                    onValueChange={(v) => updateField("section", v === "none" ? null : v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">بدون قسم (مجموعات)</SelectItem>
+                      <SelectItem value="tales">🐎 حكايات</SelectItem>
+                      <SelectItem value="seraj-stories">🐰 حكايات سراج</SelectItem>
+                      <SelectItem value="custom-stories">✨ القصص المخصصة</SelectItem>
+                      <SelectItem value="play-learn">🧩 العب وتعلم</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>السلسلة (Series)</Label>
+                  <Input
+                    value={editingProduct.series || ""}
+                    onChange={(e) => updateField("series", e.target.value || null)}
+                    placeholder="سباق الفتوحات"
+                  />
+                  <p className="text-xs text-muted-foreground">اختياري — يظهر كعنوان فرعي داخل القسم</p>
                 </div>
               </div>
 

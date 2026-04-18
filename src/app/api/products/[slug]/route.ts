@@ -57,6 +57,8 @@ const PatchProductSchema = z.object({
   priceText: z.string().min(1).optional(),
   originalPriceText: z.string().nullable().optional(),
   category: z.enum(["قصص جاهزة", "قصص مخصصة", "فلاش كاردز", "مجموعات"]).optional(),
+  section: z.enum(["tales", "seraj-stories", "custom-stories", "play-learn"]).optional().nullable(),
+  series: z.string().optional().nullable(),
   longDesc: z.string().min(1).optional(),
   features: z.array(z.string()).optional(),
   imageUrl: z.string().optional(),

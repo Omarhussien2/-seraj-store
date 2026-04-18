@@ -6,7 +6,7 @@ import { requireAdmin } from "@/lib/requireAdmin";
 
 /**
  * GET /api/products
- * Query params: ?category=قصص جاهزة&all=true
+ * Query params: ?category=قصص جاهزة&section=tales&series=سباق الفتوحات&all=true
  * Returns active products sorted by order (or all if ?all=true)
  */
 export async function GET(request: Request) {
@@ -15,6 +15,8 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
+    const section = searchParams.get("section");
+    const series = searchParams.get("series");
     const showAll = searchParams.get("all") === "true";
 
     const filter: Record<string, unknown> = {};
@@ -23,6 +25,12 @@ export async function GET(request: Request) {
     }
     if (category) {
       filter.category = category;
+    }
+    if (section) {
+      filter.section = section;
+    }
+    if (series) {
+      filter.series = series;
     }
 
     const products = await Product.find(filter)
@@ -77,6 +85,8 @@ const CreateProductSchema = z.object({
   priceText: z.string().min(1),
   originalPriceText: z.string().nullable().optional(),
   category: z.enum(["قصص جاهزة", "قصص مخصصة", "فلاش كاردز", "مجموعات"]),
+  section: z.enum(["tales", "seraj-stories", "custom-stories", "play-learn"]).optional(),
+  series: z.string().optional(),
   longDesc: z.string().min(1),
   features: z.array(z.string()),
   imageUrl: z.string().optional(),
