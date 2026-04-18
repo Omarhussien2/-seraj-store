@@ -177,6 +177,8 @@
             }
           }
         }
+      } else if (slug && productsLoaded && !PRODUCTS[slug]) {
+        card.style.display = 'none';
       }
     });
   }

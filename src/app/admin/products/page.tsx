@@ -192,8 +192,11 @@ export default function AdminProductsPage() {
     }
   }
 
-  async function handleDelete(slug: string) {
-    if (!confirm(`هل أنت متأكد من حذف هذا المنتج؟\nسيتم إلغاء تفعيله (soft delete).`)) return;
+  async function handleDelete(slug: string, isActive: boolean) {
+    const msg = isActive
+      ? `هل أنت متأكد؟\nسيتم إخفاء المنتج من الموقع (يمكنك استعادته لاحقاً).`
+      : `⚠️ المنتج معطّل بالفعل.\nهل تريد حذفه نهائياً من قاعدة البيانات؟\n\nهذا الإجراء لا يمكن التراجع عنه!`;
+    if (!confirm(msg)) return;
 
     try {
       const res = await fetch(`/api/products/${slug}`, { method: "DELETE" });
@@ -205,6 +208,24 @@ export default function AdminProductsPage() {
       }
     } catch (err) {
       console.error("Delete error:", err);
+    }
+  }
+
+  async function handleRestore(slug: string) {
+    try {
+      const res = await fetch(`/api/products/${slug}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: true }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        fetchProducts();
+      } else {
+        alert(json.error || "Failed to restore product");
+      }
+    } catch (err) {
+      console.error("Restore error:", err);
     }
   }
 
@@ -373,12 +394,22 @@ export default function AdminProductsPage() {
                       >
                         تعديل
                       </Button>
+                      {!product.active && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-green-600 border-green-300 hover:bg-green-50"
+                          onClick={() => handleRestore(product.slug)}
+                        >
+                          استعادة
+                        </Button>
+                      )}
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => handleDelete(product.slug)}
+                        onClick={() => handleDelete(product.slug, product.active)}
                       >
-                        حذف
+                        {product.active ? "إخفاء" : "حذف نهائي"}
                       </Button>
                     </div>
                   </TableCell>

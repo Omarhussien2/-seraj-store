@@ -165,11 +165,7 @@ export async function DELETE(
     await connectDB();
     const { slug } = await params;
 
-    const product = await Product.findOneAndUpdate(
-      { slug },
-      { $set: { active: false } },
-      { new: true }
-    ).lean();
+    const product = await Product.findOne({ slug }).lean();
 
     if (!product) {
       return NextResponse.json(
@@ -178,11 +174,29 @@ export async function DELETE(
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      data: product,
-      message: "Product deactivated (soft delete)",
-    });
+    if (product.active) {
+      // Soft delete
+      const updated = await Product.findOneAndUpdate(
+        { slug },
+        { $set: { active: false } },
+        { new: true }
+      ).lean();
+
+      return NextResponse.json({
+        success: true,
+        data: updated,
+        message: "تم إخفاء المنتج (Soft Delete)",
+      });
+    } else {
+      // Hard delete since it's already soft-deleted
+      await Product.findOneAndDelete({ slug });
+      
+      return NextResponse.json({
+        success: true,
+        data: null,
+        message: "تم حذف المنتج نهائياً",
+      });
+    }
   } catch (error) {
     console.error("DELETE /api/products/[slug] error:", error);
     return NextResponse.json(
