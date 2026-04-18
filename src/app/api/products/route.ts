@@ -4,6 +4,8 @@ import { connectDB } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import { requireAdmin } from "@/lib/requireAdmin";
 
+export const dynamic = "force-dynamic";
+
 /**
  * GET /api/products
  * Query params: ?category=قصص جاهزة&section=tales&series=سباق الفتوحات&all=true
