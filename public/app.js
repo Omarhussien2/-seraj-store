@@ -738,7 +738,14 @@
     return url.replace(/\/upload\//, '/upload/w_' + width + ',c_limit,f_auto,q_auto/');
   }
 
-  // ----- Populate product sections on products page -----
+  // ----- Populate product sections on products page (fully dynamic) -----
+  var SECTIONS_META = {
+    'tales': { title: 'حكايات', desc: 'قصص من سلاسل مختلفة — كل سلسلة ليها أبطالها', color: '#6bbf3f', accent: 'emerald' },
+    'seraj-stories': { title: 'حكايات سراج', desc: 'مغامرات الأرنب الأخضر وأسرته', color: '#36a39a', accent: 'teal' },
+    'custom-stories': { title: 'القصص المخصصة', desc: 'قصة باسم طفلك وصورته', color: '#c9974e', accent: 'brass' },
+    'play-learn': { title: 'العب وتعلم', desc: 'ألعاب تعليمية وكروت تفاعلية', color: '#e85d4c', accent: 'ember' }
+  };
+
   function renderProductCard(slug, p) {
     var isSoon = p.comingSoon;
     var href = isSoon ? '' : 'href="#/product/' + slug + '" data-link';
@@ -748,11 +755,12 @@
     var priceHtml = p.originalPriceText
       ? '<span class="price old-price">' + p.originalPriceText + '</span><span class="price">' + p.priceText + '</span>'
       : '<span class="price">' + p.priceText + '</span>';
-    var ctaHtml = isSoon ? '<span class="cta-mini soon-text">قريباً</span>' : '<span class="cta-mini">شوفيها →</span>';
+    var ctaHtml = isSoon ? '<span class="cta-mini soon-text">قريباً</span>' : '<span class="cta-mini">شوفي التفاصيل →</span>';
     var badgeHtml = p.badge
       ? '<span class="badge' + (p.badgeSoon ? ' soon-badge' : '') + '">' + p.badge + '</span>'
       : '';
     var bg = (p.media && p.media.bg) ? p.media.bg : 'emerald';
+    var seriesBadge = p.series ? '<span class="series-badge">' + p.series + '</span>' : '';
 
     return '<' + tag + ' ' + href + ' class="product-card reveal' + soonClass + '">' +
       '<div class="product-media ' + bg + '">' +
@@ -761,11 +769,159 @@
         (isSoon ? '<div class="soon-overlay">قريباً</div>' : '') +
       '</div>' +
       '<div class="product-body">' +
+        seriesBadge +
         '<h3>' + p.name + '</h3>' +
         (desc ? '<p>' + desc + '</p>' : '') +
         '<div class="product-foot">' + priceHtml + ctaHtml + '</div>' +
       '</div>' +
     '</' + tag + '>';
+  }
+
+  function buildSectionElement(sectionId, products) {
+    var meta = SECTIONS_META[sectionId];
+    var el = document.createElement('div');
+    el.className = 'product-section';
+    el.id = sectionId;
+
+    var header = '<header class="section-header" style="--accent:' + meta.color + '">' +
+      '<h2>' + meta.title + '</h2>' +
+      '<p>' + meta.desc + '</p>' +
+    '</header>';
+
+    if (products.length === 0) {
+      el.innerHTML = header +
+        '<div class="coming-soon-state" style="--accent:' + meta.color + '">' +
+          '<h3>قريباً إن شاء الله!</h3>' +
+          '<p>بنشتغل على محتوى جديد لهذا القسم... تابعينا!</p>' +
+        '</div>';
+      return el;
+    }
+
+    // Group by series
+    var seriesMap = {};
+    var noSeries = [];
+    products.forEach(function(p) {
+      if (p.series) {
+        if (!seriesMap[p.series]) seriesMap[p.series] = [];
+        seriesMap[p.series].push(p);
+      } else {
+        noSeries.push(p);
+      }
+    });
+
+    var body = '';
+    var seriesNames = Object.keys(seriesMap);
+    seriesNames.forEach(function(seriesName) {
+      body += '<div class="series-group">' +
+        '<h3 class="series-title">' + seriesName + '</h3>' +
+        '<div class="products-grid">' +
+          seriesMap[seriesName].map(function(p) { return renderProductCard(p._slug, p); }).join('') +
+        '</div>' +
+      '</div>';
+    });
+    if (noSeries.length) {
+      body += '<div class="products-grid">' +
+        noSeries.map(function(p) { return renderProductCard(p._slug, p); }).join('') +
+      '</div>';
+    }
+
+    el.innerHTML = header + body;
+    return el;
+  }
+
+  function buildBundleStrip(bundles) {
+    var el = document.createElement('div');
+    el.className = 'bundle-strip';
+    var html = '<div class="bundle-strip-inner">';
+    bundles.forEach(function(p) {
+      var priceHtml = p.originalPriceText
+        ? '<span class="price old-price">' + p.originalPriceText + '</span><span class="price big">' + p.priceText + '</span>'
+        : '<span class="price big">' + p.priceText + '</span>';
+      html += '<a href="#/product/' + p._slug + '" data-link class="bundle-card reveal">' +
+        '<div class="bundle-info">' +
+          '<span class="badge">' + (p.badge || '') + '</span>' +
+          '<h3>' + p.name + '</h3>' +
+          '<p>' + (p.shortDesc || '') + '</p>' +
+        '</div>' +
+        '<div class="bundle-cta">' +
+          priceHtml +
+          '<span class="btn btn-primary">أضيفي للسلة</span>' +
+        '</div>' +
+      '</a>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+    return el;
+  }
+
+  function populateProductSections() {
+    var container = document.getElementById('productSectionsContainer');
+    var navEl = document.getElementById('sectionNav');
+    if (!container) return;
+    container.innerHTML = '';
+
+    var sectionOrder = ['tales', 'seraj-stories', 'custom-stories', 'play-learn'];
+
+    // Build nav pills
+    if (navEl) {
+      navEl.innerHTML = '';
+      sectionOrder.forEach(function(sectionId) {
+        var meta = SECTIONS_META[sectionId];
+        var btn = document.createElement('button');
+        btn.className = 'section-pill';
+        btn.dataset.scrollTo = sectionId;
+        btn.style.setProperty('--pill-color', meta.color);
+        btn.textContent = meta.title;
+        navEl.appendChild(btn);
+      });
+    }
+
+    // Build sections
+    sectionOrder.forEach(function(sectionId) {
+      var sectionProducts = [];
+      Object.keys(PRODUCTS).forEach(function(slug) {
+        var p = PRODUCTS[slug];
+        if (p.section === sectionId && p.active !== false) {
+          p._slug = slug;
+          sectionProducts.push(p);
+        }
+      });
+      sectionProducts.sort(function(a, b) { return (a.order || 0) - (b.order || 0); });
+      container.appendChild(buildSectionElement(sectionId, sectionProducts));
+    });
+
+    // Bundle cross-sell strip
+    var bundles = [];
+    Object.keys(PRODUCTS).forEach(function(slug) {
+      var p = PRODUCTS[slug];
+      if ((!p.section || p.section === null) && p.active !== false) {
+        p._slug = slug;
+        bundles.push(p);
+      }
+    });
+    if (bundles.length) {
+      container.appendChild(buildBundleStrip(bundles));
+    }
+  }
+
+  // ----- Scroll-spy for section nav -----
+  function initScrollSpy() {
+    var pills = document.querySelectorAll('.section-pill');
+    var sections = document.querySelectorAll('.product-section');
+    if (!pills.length || !sections.length) return;
+
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          var id = entry.target.id;
+          pills.forEach(function(pill) {
+            pill.classList.toggle('is-active', pill.dataset.scrollTo === id);
+          });
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+
+    sections.forEach(function(s) { observer.observe(s); });
   }
 
   function populateProductSections() {
@@ -2435,6 +2591,7 @@
       if (productsReady) {
         clearInterval(waitForProducts);
         populateProductSections();
+        initScrollSpy();
         handleRoute();
         initReveals();
         initCounter();
@@ -2447,6 +2604,7 @@
       if (!productsReady) {
         productsReady = true;
         populateProductSections();
+        initScrollSpy();
         handleRoute();
         initReveals();
         initCounter();
