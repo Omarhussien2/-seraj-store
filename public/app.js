@@ -750,9 +750,9 @@
   // ----- Catalog Page — metadata per section (tab label + hero copy + mascot image) -----
   // To use your own section images, add files at: assets/catalog-tales.png, etc.
   var CATALOG_META = {
-    'all':            { title: 'الكل',           kicker: 'استكشفي عالم سراج',     desc: 'كل منتجات سِراج — قصص وألعاب وكروت',    color: '#6bbf3f', img: 'assets/seraj.png' },
-    'tales':          { title: 'حكايات',         kicker: 'قصص الأبطال',            desc: 'قصص من سلاسل مختلفة — لكل عمر بطله',   color: '#6bbf3f', img: 'assets/catalog-tales.png' },
-    'seraj-stories':  { title: 'حكايات سراج',    kicker: 'مغامرات الأرنب الأخضر', desc: 'مغامرات سِراج وأسرته عبر الزمن',        color: '#36a39a', img: 'assets/catalog-seraj-stories.png' },
+    'all':            { title: 'اقرأ أو استمع',           kicker: 'سِراج',     desc: 'اقرأ أو استمع لقصص وكتب سراج المصممة لتعلم القيم والأخلاق المتدرجة في أسلوبها وتصميمها لتناسب الفئات العمرية المختلفة لبطلك الصغير.',    color: '#6bbf3f', img: 'assets/seraj.png' },
+    'tales':          { title: 'حكايات سراج',         kicker: 'قصص الأبطال',            desc: 'قصص من سلاسل مختلفة — لكل عمر بطله',   color: '#6bbf3f', img: 'assets/catalog-tales.png' },
+    'seraj-stories':  { title: 'حكايات',    kicker: 'مغامرات الأرنب الأخضر', desc: 'مغامرات سِراج وأسرته عبر الزمن',        color: '#36a39a', img: 'assets/catalog-seraj-stories.png' },
     'custom-stories': { title: 'القصص المخصصة',  kicker: 'قصة باسم طفلك',          desc: 'قصة كاملة باسم طفلك وصورته',           color: '#c9974e', img: 'assets/catalog-custom-stories.png' },
     'play-learn':     { title: 'العب وتعلم',      kicker: 'تعلم ولعب وفرح',         desc: 'ألعاب تعليمية وكروت تفاعلية',           color: '#e85d4c', img: 'assets/catalog-play-learn.png' }
   };
@@ -830,6 +830,10 @@
     document.querySelectorAll('.cat-tab').forEach(function(btn) {
       btn.classList.toggle('is-active', btn.dataset.catTab === tabId);
     });
+    
+    // Sync dropdown
+    var sel = document.getElementById('contentSelect');
+    if (sel && sel.value !== tabId) sel.value = tabId;
 
     // Show/hide product cards
     var visible = 0;

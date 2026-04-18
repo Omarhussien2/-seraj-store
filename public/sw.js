@@ -1,5 +1,5 @@
 // سِراج — Service Worker (offline caching)
-const CACHE_NAME = 'seraj-v7';
+const CACHE_NAME = 'seraj-v8';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
