@@ -3545,8 +3545,8 @@ input, textarea { font-family: inherit; }
 }
 
 .catalog-mascot-wrap {
-  width: clamp(160px, 38vw, 340px); flex-shrink: 0;
-  display: flex; align-items: flex-end;
+  flex: 1; max-width: 50%;
+  display: flex; align-items: flex-end; justify-content: flex-end;
 }
 .catalog-mascot-wrap img {
   width: 100%; height: auto; display: block;
