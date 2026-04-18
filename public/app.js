@@ -750,7 +750,7 @@
   // ----- Catalog Page — metadata per section (tab label + hero copy + mascot image) -----
   // To use your own section images, add files at: assets/catalog-tales.png, etc.
   var CATALOG_META = {
-    'all':            { title: 'كل الأقسام',           kicker: 'اكتشفي عالم سراج المتنوع',     desc: 'أكتر من قصص.. تجربة تعليمية متكاملة لبطلنا الصغير',    color: '#6bbf3f', img: 'assets/seraj.png' },
+    'all':            { title: 'كل العوالم',           kicker: 'اكتشفي عالم سراج المتنوع',     desc: 'أكتر من قصص.. تجربة تعليمية متكاملة لبطلنا الصغير',    color: '#6bbf3f', img: 'assets/seraj.png' },
     'tales':          { title: 'سباق الفتوحات',         kicker: 'أبطالنا الحقيقيين!',            desc: 'أبطالنا بجد! مستويات تناسب كل الأعمار مع جزء خاص لتجهيز الأب والأم لأسئلة طفلك.',   color: '#6bbf3f', img: 'assets/catalog-tales.png' },
     'custom-stories': { title: 'قصة مخصوصة',  kicker: 'باسم وصورة طفلك!',          desc: 'هدية عمره ما هينساها.. قصة تفاعلية ممتعة ومطبوعة بجودة عالية بطلها طفلك!',           color: '#c9974e', img: 'assets/catalog-custom-stories.png' },
     'play-learn':     { title: 'ألعاب سراج',      kicker: 'العب واتعلم!',         desc: 'فلاش كاردز وألعاب ترفيهية بتنمي مهارات طفلك وتخليه يكتشف العالم وهو بيضحك ومبسوط.',           color: '#e85d4c', img: 'assets/catalog-play-learn.png' },
