@@ -238,3 +238,25 @@ package.json            — Check for unused dependencies
 - XSS in string concatenation in app.js (product names, reviews rendered as HTML)
 - Rate limiting effectiveness (IP-based, bypassable with proxies)
 - File upload validation (type, size)
+
+---
+
+## Agent 6: Final Integration & Audit Discoveries (Catalog UI & API Caching)
+
+### Discoveries & Recent Challenges
+1. **Next.js Aggressive Caching (The Mockup Bug)**:
+   - **Issue**: Deleted products or old mockups appeared on the live site despite DB updates.
+   - **Reason**: Next.js App Router aggressively caches `GET` requests for API routes statically by default.
+   - **Solution**: Any public API endpoint (`/api/products`, `/api/content`) must have `export const dynamic = "force-dynamic";` at the top of the file to prevent caching stale data.
+2. **Order Sorting Mismatch**:
+   - **Issue**: Order logic in the frontend (`app.js`) was broken because the DB response from `/api/products` was randomly sorted.
+   - **Solution**: The API now enforces `.sort({ order: 1 })`. The backend admin UI MUST manage the `order` field reliably (`scripts/seed-products.js` added this default behavior).
+3. **Responsive Image Styling (Landscape Banners)**:
+   - **Issue**: Substituting Mascot images with real Landscape (`16:9`) promotional banners broke the layout (cut off at the bottom, very tiny).
+   - **Solution**: Replaced `align-items: flex-end` with `align-items: center` in `styles.css`. Used `border-radius: 12px` on all corners and expanded the image column width to `flex: 1.2` (max 55%). Banners are now vertically centered and gracefully span the entire height of the right/left section.
+4. **Vanilla JS Fallback Protocol**:
+   - **Note**: `app.js` runs a `fetchProducts()` call. If it fails or returns `null` because of API death/offline status, it uses the hard-coded `PRODUCTS` object. DO NOT delete this hard-coded object, as it serves as a Graceful Degradation mechanism.
+
+### Critical Resources for Agents
+- Agents tasked with UI audits should check the `scripts/audit-products.js` file to run a comprehensive 8-step verification on the production schema.
+- Always refer to `audit_report.md` logs in the workspace for tracing historically broken APIs and missing product references.
