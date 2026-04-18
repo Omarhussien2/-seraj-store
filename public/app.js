@@ -807,7 +807,10 @@
 
     // Render all product cards
     grid.innerHTML = '';
-    Object.keys(PRODUCTS).forEach(function(slug) {
+    var sortedSlugs = Object.keys(PRODUCTS).sort(function(a, b) {
+      return (PRODUCTS[a].order || 0) - (PRODUCTS[b].order || 0);
+    });
+    sortedSlugs.forEach(function(slug) {
       var p = PRODUCTS[slug];
       if (p.active === false) return;
       p._slug = slug;

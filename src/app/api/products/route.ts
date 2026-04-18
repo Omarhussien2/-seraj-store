@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     }
 
     const products = await Product.find(filter)
-      .sort({ section: 1, order: 1 })
+      .sort({ order: 1 })
       .lean();
 
     return NextResponse.json({
