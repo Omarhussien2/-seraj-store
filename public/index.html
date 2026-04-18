@@ -406,76 +406,70 @@
     </section>
 
     <!-- ========================================================= -->
-    <!-- PRODUCTS                                                  -->
+    <!-- PRODUCTS (4-Section Layout)                                -->
     <!-- ========================================================= -->
     <section class="page" data-page="products">
       <div class="page-head">
-        <span class="kicker">كتالوج سِراج</span>
+        <span class="kicker">استكشفي عالم سراج</span>
         <h1>منتجات سِراج</h1>
         <p>اختاري مغامرة بطلنا القادمة</p>
       </div>
 
-      <div class="filter-chips" data-filter-group="catalog">
-        <button class="chip is-active" data-filter="all">الكل</button>
-        <button class="chip" data-filter="قصص جاهزة">قصص جاهزة</button>
-        <button class="chip" data-filter="قصص مخصصة">قصص مخصصة</button>
-        <button class="chip" data-filter="فلاش كاردز">فلاش كاردز</button>
-        <button class="chip" data-filter="مجموعات">مجموعات</button>
+      <!-- Section Navigation Pills (buttons — NOT <a href> to avoid breaking hash routing) -->
+      <div class="section-nav" id="sectionNav">
+        <button class="section-pill" data-scroll-to="tales">🐎 حكايات</button>
+        <button class="section-pill" data-scroll-to="seraj-stories">🐰 حكايات سراج</button>
+        <button class="section-pill" data-scroll-to="custom-stories">✨ القصص المخصصة</button>
+        <button class="section-pill" data-scroll-to="play-learn">🧩 العب وتعلم</button>
       </div>
 
-      <div class="products-grid big" id="catalogGrid">
-        <!-- 1. قصة خالد بن الوليد -->
-        <a href="#/product/story-khaled" data-link class="product-card reveal" data-cat="قصص جاهزة">
-          <div class="product-media emerald">
-            <span class="badge">الأكثر طلباً</span>
-            <div class="book3d"><div class="book3d-cover"><span class="book3d-title">خالد بن<br/>الوليد</span><img src="assets/khaled-v2.png" class="book3d-mascot" alt="" loading="lazy"/></div></div>
-          </div>
-          <div class="product-body">
-            <h3>قصة خالد بن الوليد</h3>
-            <p>قصة بطولة وشجاعة بأسلوب تعليمي ممتع</p>
-            <div class="product-foot"><span class="price">١٤٠ ج.م</span><span class="cta-mini">شوفيها →</span></div>
-          </div>
-        </a>
-
-        <!-- 2. القصة المخصصة -->
-        <a href="#/product/custom-story" data-link class="product-card reveal" data-cat="قصص مخصصة">
-          <div class="product-media emerald">
-            <span class="badge">مخصصة باسم بطلنا</span>
-            <div class="book3d"><div class="book3d-cover"><span class="book3d-title">حكاية<br/>بطلنا</span><img src="assets/seraj.png" class="book3d-mascot" alt="" loading="lazy"/></div></div>
-          </div>
-          <div class="product-body">
-            <h3>القصة المخصصة</h3>
-            <p>قصة كاملة باسم طفلك وصورته</p>
-            <div class="product-foot"><span class="price">٢٢٠ ج.م</span><span class="cta-mini">ابدئي القصة →</span></div>
-          </div>
-        </a>
-
-        <!-- 3. كروت الروتين — قريباً -->
-        <div class="product-card coming-soon reveal" data-cat="فلاش كاردز">
-          <div class="product-media sand">
-            <span class="badge soon-badge">قريباً</span>
-            <div class="cards-fan"><i style="--i:0;--c:#e85d4c"></i><i style="--i:1;--c:#c9974e"></i><i style="--i:2;--c:#36a39a"></i><i style="--i:3;--c:#6bbf3f"></i><i style="--i:4;--c:#8b5e2a"></i></div>
-            <div class="soon-overlay">قريباً</div>
-          </div>
-          <div class="product-body">
-            <h3>كروت الروتين اليومي</h3>
-            <p>٣٠ كارت مصوّر بتساعد بطلنا ينظم يومه</p>
-            <div class="product-foot"><span class="price">١٥٠ ج.م</span><span class="cta-mini soon-text">قريباً</span></div>
+      <!-- Section 1: حكايات -->
+      <div class="product-section" id="tales">
+        <header class="section-header">
+          <h2>🐎 حكايات</h2>
+          <p>قصص من سلاسل مختلفة — كل سلسلة ليها أبطالها</p>
+        </header>
+        <div class="series-group" id="series-tales">
+          <h3 class="series-title">سباق الفتوحات</h3>
+          <div class="products-grid" id="talesGrid">
+            <!-- Populated by JS -->
           </div>
         </div>
+      </div>
 
-        <!-- 4. مجموعة الأبطال الصغار -->
-        <a href="#/product/bundle" data-link class="product-card reveal" data-cat="مجموعات">
-          <div class="product-media teal">
-            <span class="badge">وفّري ٢٠٪</span>
-            <div class="bundle-stack"><div class="bundle-i"></div><div class="bundle-i"></div><div class="bundle-i"></div></div>
-          </div>
-          <div class="product-body">
-            <h3>مجموعة الأبطال الصغار</h3>
-            <p>قصة مخصصة + كروت + قصة من السلسلة</p>
-            <div class="product-foot"><span class="price">٤٢٠ ج.م</span><span class="cta-mini">شوفيها →</span></div>
-          </div>
-        </a>
+      <!-- Section 2: حكايات سراج (Coming Soon) -->
+      <div class="product-section" id="seraj-stories">
+        <header class="section-header">
+          <h2>🐰 حكايات سراج</h2>
+          <p>مغامرات الأرنب الأخضر وأسرته</p>
+        </header>
+        <div class="coming-soon-state">
+          <div class="soon-icon">🐰</div>
+          <h3>قريباً إن شاء الله!</h3>
+          <p>بنشتغل على حكايات الأرنب سِراج وأسرته... تابعينا عشان تعرفي أول!</p>
+        </div>
+      </div>
+
+      <!-- Section 3: القصص المخصصة -->
+      <div class="product-section" id="custom-stories">
+        <header class="section-header">
+          <h2>✨ القصص المخصصة</h2>
+          <p>قصة باسم طفلك وصورته</p>
+        </header>
+        <div class="products-grid" id="customGrid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Section 4: العب وتعلم -->
+      <div class="product-section" id="play-learn">
+        <header class="section-header">
+          <h2>🧩 العب وتعلم</h2>
+          <p>ألعاب تعليمية وكروت تفاعلية</p>
+        </header>
+        <div class="products-grid" id="playLearnGrid">
+          <!-- Populated by JS -->
+        </div>
       </div>
     </section>
 

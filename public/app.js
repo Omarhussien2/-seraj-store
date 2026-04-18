@@ -38,6 +38,10 @@
       badge: 'الأكثر طلباً',
       price: 140,
       priceText: '١٤٠ ج.م',
+      category: 'قصص جاهزة',
+      section: 'tales',
+      series: 'سباق الفتوحات',
+      shortDesc: 'قصة بطولة وشجاعة بأسلوب تعليمي ممتع',
       longDesc: 'تابع بطلنا في مغامرة ملهمة مع القائد خالد بن الوليد — القائد اللي ما خسرش معركة في حياته. القصة بتعلّم إن الشجاعة الحقيقية مش في القوة بس، لكن في الثبات والمرونة والجرأة إنه يعمل الصح حتى لو كان صعب.',
       features: ['٢٤ صفحة ملوّنة بجودة عالية', 'غلاف مقوّى مقاوم', 'رسوم أصلية بإيد فنانين مصريين', 'بتعلّم قيمة الشجاعة والإقدام', 'مناسبة من ٤ لـ ٩ سنين'],
       media: { type: 'book3d', image: 'assets/khaled-v2.png', title: 'خالد بن<br/>الوليد', bg: 'emerald' },
@@ -47,13 +51,35 @@
         { text: 'ابني قعد يقرأ القصة مرتين في نفس اليوم! بقى بيقول "أنا شجاع زي خالد".', name: 'منى — أم يوسف', place: 'القاهرة · ٦ سنين', color: '#6bbf3f', initial: 'م' },
         { text: 'الرسومات تحفة والقصة مكتوبة بلغة بسيطة مفهومة. بنقرأها مع بعض كل يوم.', name: 'سارة — أم عمر', place: 'المنصورة · ٥ سنين', color: '#c9974e', initial: 'س' }
       ],
-      related: ['custom-story', 'bundle']
+      related: ['hero-conqueror', 'custom-story', 'bundle']
+    },
+    'hero-conqueror': {
+      name: 'بطل قهر المستحيل',
+      badge: 'جديد',
+      price: 140,
+      priceText: '١٤٠ ج.م',
+      category: 'قصص جاهزة',
+      section: 'tales',
+      series: 'سباق الفتوحات',
+      shortDesc: 'مغامرة ملحمية من سلسلة سباق الفتوحات',
+      longDesc: 'مغامرة ملحمية من سلسلة سباق الفتوحات — قصة بطلنا اللي واجه المستحيل وقدره. رسوم أصلية بإيد فنانين مصريين بتعلّم الأطفال معاني الثبات والإرادة.',
+      features: ['٢٤ صفحة ملوّنة بجودة عالية', 'غلاف مقوّى مقاوم', 'رسوم أصلية بإيد فنانين مصريين', 'بتعلّم قيمة الإرادة والثبات', 'مناسبة من ٤ لـ ٩ سنين'],
+      media: { type: 'book3d', image: 'assets/seraj.png', title: 'بطل قهر<br/>المستحيل', bg: 'emerald' },
+      action: 'cart',
+      ctaText: 'أضيفي للسلة',
+      reviews: [
+        { text: 'القصة الجديدة من السلسلة تحفة! ابني مستني كل قصة جديدة.', name: 'هدى — أم ياسين', place: 'الإسكندرية · ٥ سنين', color: '#36a39a', initial: 'ه' }
+      ],
+      related: ['story-khaled', 'custom-story', 'bundle']
     },
     'custom-story': {
       name: 'القصة المخصصة',
       badge: 'مخصصة باسم بطلنا',
       price: 220,
       priceText: '٢٢٠ ج.م',
+      category: 'قصص مخصصة',
+      section: 'custom-stories',
+      shortDesc: 'قصة كاملة باسم طفلك وصورته',
       longDesc: 'قصة مغامرة كاملة باسم بطلك وبتعلّم قيمة من اختيارك. سراج بيكتب القصة مخصوص ليه وبيرسمها بإيد فنانين مصريين. غلاف مقوّى وورق سميك يستحمل كل مرات القراية.',
       features: ['٢٤ صفحة ملوّنة باسم طفلك', 'غلاف مقوّى مقاوم', 'رسوم أصلية بإيد فنانين مصريين', 'باسم طفلك على الغلاف والصفحات', 'اختاري القيمة اللي عايزاه يتعلمها'],
       media: { type: 'book3d', image: 'assets/seraj.png', title: 'حكاية<br/>بطلنا', bg: 'emerald' },
@@ -72,6 +98,9 @@
       badgeSoon: true,
       price: 150,
       priceText: '١٥٠ ج.م',
+      category: 'فلاش كاردز',
+      section: 'play-learn',
+      shortDesc: '٣٠ كارت مصوّر بتساعد بطلنا ينظم يومه',
       longDesc: '٣٠ كارت مصوّر بتصميم ملوّن وجذاب، بتساعد طفلك ينظم يومه ويتعلم عادات صحية بشكل ممتع. كل كارت فيه رسمة واضحة لنشاط من أنشطة اليوم.',
       features: ['٣٠ كارت مصوّر ملوّن', 'بتغطي كل أنشطة اليوم', 'تصميم جذاب ومحبب للأطفال', 'بتعلّم المسؤولية والتنظيم', 'مناسبة من ٣ لـ ٧ سنين'],
       media: { type: 'cards-fan', bg: 'sand' },
@@ -91,6 +120,9 @@
       originalPrice: 530,
       priceText: '٤٢٠ ج.م',
       originalPriceText: '٥٣٠ ج.م',
+      category: 'مجموعات',
+      section: null,
+      shortDesc: 'قصة مخصصة + كروت + قصة من السلسلة',
       longDesc: 'المجموعة الكاملة لبطلنا! قصة مخصصة باسمه + كروت روتين يومي + قصة من سلسلة سباق الفتوحات. وفّري ٢٠٪ لما تطلبيهم مع بعض!',
       features: ['قصة مخصصة باسم طفلك (٢٤ صفحة)', 'كروت الروتين اليومي (٣٠ كارت)', 'قصة من سلسلة سباق الفتوحات', 'غلاف مقوّى لكل المنتجات', 'بتوفّري ١١٠ جنيه!'],
       media: { type: 'bundle-stack', bg: 'teal' },
@@ -706,6 +738,61 @@
     return url.replace(/\/upload\//, '/upload/w_' + width + ',c_limit,f_auto,q_auto/');
   }
 
+  // ----- Populate product sections on products page -----
+  function renderProductCard(slug, p) {
+    var isSoon = p.comingSoon;
+    var href = isSoon ? '' : 'href="#/product/' + slug + '" data-link';
+    var tag = isSoon ? 'div' : 'a';
+    var soonClass = isSoon ? ' coming-soon' : '';
+    var desc = p.shortDesc || '';
+    var priceHtml = p.originalPriceText
+      ? '<span class="price old-price">' + p.originalPriceText + '</span><span class="price">' + p.priceText + '</span>'
+      : '<span class="price">' + p.priceText + '</span>';
+    var ctaHtml = isSoon ? '<span class="cta-mini soon-text">قريباً</span>' : '<span class="cta-mini">شوفيها →</span>';
+    var badgeHtml = p.badge
+      ? '<span class="badge' + (p.badgeSoon ? ' soon-badge' : '') + '">' + p.badge + '</span>'
+      : '';
+    var bg = (p.media && p.media.bg) ? p.media.bg : 'emerald';
+
+    return '<' + tag + ' ' + href + ' class="product-card reveal' + soonClass + '">' +
+      '<div class="product-media ' + bg + '">' +
+        badgeHtml +
+        renderMedia(p.media, false, p.imageUrl) +
+        (isSoon ? '<div class="soon-overlay">قريباً</div>' : '') +
+      '</div>' +
+      '<div class="product-body">' +
+        '<h3>' + p.name + '</h3>' +
+        (desc ? '<p>' + desc + '</p>' : '') +
+        '<div class="product-foot">' + priceHtml + ctaHtml + '</div>' +
+      '</div>' +
+    '</' + tag + '>';
+  }
+
+  function populateProductSections() {
+    var sectionGridMap = {
+      tales: 'talesGrid',
+      'custom-stories': 'customGrid',
+      'play-learn': 'playLearnGrid'
+    };
+
+    // Clear all grids
+    Object.values(sectionGridMap).forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.innerHTML = '';
+    });
+
+    // Populate sections
+    var slugs = Object.keys(PRODUCTS);
+    slugs.forEach(function(slug) {
+      var p = PRODUCTS[slug];
+      var gridId = sectionGridMap[p.section];
+      if (!gridId || !p.active) return;
+      var grid = document.getElementById(gridId);
+      if (!grid) return;
+      grid.innerHTML += renderProductCard(slug, p);
+    });
+  }
+
   function getVideoPoster(videoUrl) {
     if (!videoUrl || videoUrl.indexOf('res.cloudinary.com') === -1) return '';
     if (videoUrl.indexOf('/video/upload/') !== -1) {
@@ -1086,12 +1173,16 @@
   var bottomTabs = document.querySelectorAll('.bottom-nav a[data-tab]');
 
   function parseRoute() {
-    var hash = location.hash.replace(/^#\//, '') || 'home';
-    var parts = hash.split('/');
-    var page = parts[0];
-    var sub = parts[1];
-    if (!page || page === '#') return { page: 'home', sub: undefined };
-    return { page: page, sub: sub };
+    var full = location.hash.replace(/^#\//, '') || 'home';
+    // Split on '#' to extract anchor (e.g., "products#tales" → route="products", anchor="tales")
+    var hashParts = full.split('#');
+    var route = hashParts[0];
+    var anchor = hashParts[1] || null;
+    var segments = route.split('/');
+    var page = segments[0];
+    var sub = segments[1];
+    if (!page || page === '#') return { page: 'home', sub: undefined, anchor: null };
+    return { page: page, sub: sub, anchor: anchor };
   }
 
   // Valid page names for the SPA router
@@ -1138,6 +1229,17 @@
   function handleRoute() {
     var route = parseRoute();
     showPage(route.page, route.sub);
+    // Anchor scroll (after page is visible and products rendered)
+    if (route.anchor) {
+      setTimeout(function() {
+        var target = document.getElementById(route.anchor);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Adjust for sticky section nav
+          setTimeout(function() { window.scrollBy(0, -60); }, 100);
+        }
+      }, 350);
+    }
   }
 
   // Intercept data-link clicks
@@ -2145,24 +2247,17 @@
     setTimeout(function () { location.hash = '#/wizard'; }, 220);
   });
 
-  // ----- Filter Chips (Catalog) -----
+  // ----- Section Nav Pills (smooth scroll — NOT hash change) -----
   document.addEventListener('click', function (e) {
-    var chip = e.target.closest('.chip[data-filter]');
-    if (!chip) return;
-    var container = chip.closest('.filter-chips');
-    if (!container) return;
-    container.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('is-active'); });
-    chip.classList.add('is-active');
-    var filter = chip.dataset.filter;
-    var grid = document.getElementById('catalogGrid');
-    if (!grid) return;
-    grid.querySelectorAll('[data-cat]').forEach(function (card) {
-      if (filter === 'all' || card.dataset.cat === filter) {
-        card.style.display = '';
-      } else {
-        card.style.display = 'none';
-      }
-    });
+    var pill = e.target.closest('.section-pill[data-scroll-to]');
+    if (!pill) return;
+    var targetId = pill.dataset.scrollTo;
+    var target = document.getElementById(targetId);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Adjust for sticky nav height
+      setTimeout(function() { window.scrollBy(0, -60); }, 100);
+    }
   });
 
   // ----- Hero Video: Lazy-load + Intersection Observer -----
@@ -2339,6 +2434,7 @@
     var waitForProducts = setInterval(function () {
       if (productsReady) {
         clearInterval(waitForProducts);
+        populateProductSections();
         handleRoute();
         initReveals();
         initCounter();
@@ -2350,6 +2446,7 @@
       clearInterval(waitForProducts);
       if (!productsReady) {
         productsReady = true;
+        populateProductSections();
         handleRoute();
         initReveals();
         initCounter();
