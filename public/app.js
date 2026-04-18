@@ -738,193 +738,127 @@
     return url.replace(/\/upload\//, '/upload/w_' + width + ',c_limit,f_auto,q_auto/');
   }
 
-  // ----- Populate product sections on products page (fully dynamic) -----
-  var SECTIONS_META = {
-    'tales': { title: 'حكايات', desc: 'قصص من سلاسل مختلفة — كل سلسلة ليها أبطالها', color: '#6bbf3f', accent: 'emerald' },
-    'seraj-stories': { title: 'حكايات سراج', desc: 'مغامرات الأرنب الأخضر وأسرته', color: '#36a39a', accent: 'teal' },
-    'custom-stories': { title: 'القصص المخصصة', desc: 'قصة باسم طفلك وصورته', color: '#c9974e', accent: 'brass' },
-    'play-learn': { title: 'العب وتعلم', desc: 'ألعاب تعليمية وكروت تفاعلية', color: '#e85d4c', accent: 'ember' }
+  // ----- Catalog Page — metadata per section (tab label + hero copy + mascot image) -----
+  // To use your own section images, add files at: assets/catalog-tales.png, etc.
+  var CATALOG_META = {
+    'all':            { title: 'الكل',           kicker: 'استكشفي عالم سراج',     desc: 'كل منتجات سِراج — قصص وألعاب وكروت',    color: '#6bbf3f', img: 'assets/seraj.png' },
+    'tales':          { title: 'حكايات',         kicker: 'قصص الأبطال',            desc: 'قصص من سلاسل مختلفة — لكل عمر بطله',   color: '#6bbf3f', img: 'assets/catalog-tales.png' },
+    'seraj-stories':  { title: 'حكايات سراج',    kicker: 'مغامرات الأرنب الأخضر', desc: 'مغامرات سِراج وأسرته عبر الزمن',        color: '#36a39a', img: 'assets/catalog-seraj-stories.png' },
+    'custom-stories': { title: 'القصص المخصصة',  kicker: 'قصة باسم طفلك',          desc: 'قصة كاملة باسم طفلك وصورته',           color: '#c9974e', img: 'assets/catalog-custom-stories.png' },
+    'play-learn':     { title: 'العب وتعلم',      kicker: 'تعلم ولعب وفرح',         desc: 'ألعاب تعليمية وكروت تفاعلية',           color: '#e85d4c', img: 'assets/catalog-play-learn.png' }
   };
 
-  function renderProductCard(slug, p) {
+  // ----- Catalog Page — grid + filter tabs -----
+  var activeCatalogTab = 'all';
+
+  function buildCatalogCard(slug, p) {
     var isSoon = p.comingSoon;
-    var href = isSoon ? '' : 'href="#/product/' + slug + '" data-link';
-    var tag = isSoon ? 'div' : 'a';
-    var soonClass = isSoon ? ' coming-soon' : '';
-    var desc = p.shortDesc || '';
-    var priceHtml = p.originalPriceText
-      ? '<span class="price old-price">' + p.originalPriceText + '</span><span class="price">' + p.priceText + '</span>'
-      : '<span class="price">' + p.priceText + '</span>';
-    var ctaHtml = isSoon ? '<span class="cta-mini soon-text">قريباً</span>' : '<span class="cta-mini">شوفي التفاصيل →</span>';
+    var photoUrl = resolvePhotoUrl(p.imageUrl, p.media);
+    var coverContent;
+    if (photoUrl) {
+      coverContent = '<img src="' + cloudinaryUrl(photoUrl, 400) + '" alt="' + escHtml(p.name) + '" loading="lazy"/>';
+    } else {
+      coverContent = renderMedia(p.media, false, null);
+    }
     var badgeHtml = p.badge
-      ? '<span class="badge' + (p.badgeSoon ? ' soon-badge' : '') + '">' + p.badge + '</span>'
+      ? '<span class="cat-badge' + (p.badgeSoon ? ' soon' : '') + '">' + escHtml(p.badge) + '</span>'
       : '';
-    var bg = (p.media && p.media.bg) ? p.media.bg : 'emerald';
-    var seriesBadge = p.series ? '<span class="series-badge">' + p.series + '</span>' : '';
+    var soonOverlay = isSoon ? '<div class="cat-soon-overlay">قريباً</div>' : '';
+    var priceHtml = p.originalPriceText
+      ? '<span class="cat-old-price">' + p.originalPriceText + '</span><span class="cat-price">' + p.priceText + '</span>'
+      : '<span class="cat-price">' + p.priceText + '</span>';
 
-    return '<' + tag + ' ' + href + ' class="product-card reveal' + soonClass + '">' +
-      '<div class="product-media ' + bg + '">' +
-        badgeHtml +
-        renderMedia(p.media, false, p.imageUrl) +
-        (isSoon ? '<div class="soon-overlay">قريباً</div>' : '') +
-      '</div>' +
-      '<div class="product-body">' +
-        seriesBadge +
-        '<h3>' + p.name + '</h3>' +
-        (desc ? '<p>' + desc + '</p>' : '') +
-        '<div class="product-foot">' + priceHtml + ctaHtml + '</div>' +
-      '</div>' +
-    '</' + tag + '>';
+    var inner =
+      '<div class="cat-cover">' + coverContent + badgeHtml + soonOverlay + '</div>' +
+      '<div class="cat-info"><h3>' + escHtml(p.name) + '</h3>' +
+      '<div class="cat-foot">' + priceHtml + '</div></div>';
+
+    if (isSoon) {
+      return '<div class="catalog-card-inner coming-soon">' + inner + '</div>';
+    }
+    return '<a href="#/product/' + slug + '" data-link class="catalog-card-inner">' + inner + '</a>';
   }
 
-  function buildSectionElement(sectionId, products) {
-    var meta = SECTIONS_META[sectionId];
-    var el = document.createElement('div');
-    el.className = 'product-section';
-    el.id = sectionId;
+  function populateCatalog() {
+    var nav = document.getElementById('catalogNav');
+    var grid = document.getElementById('catalogGrid');
+    if (!nav || !grid) return;
 
-    var header = '<header class="section-header" style="--accent:' + meta.color + '">' +
-      '<h2>' + meta.title + '</h2>' +
-      '<p>' + meta.desc + '</p>' +
-    '</header>';
-
-    if (products.length === 0) {
-      el.innerHTML = header +
-        '<div class="coming-soon-state" style="--accent:' + meta.color + '">' +
-          '<h3>قريباً إن شاء الله!</h3>' +
-          '<p>بنشتغل على محتوى جديد لهذا القسم... تابعينا!</p>' +
-        '</div>';
-      return el;
-    }
-
-    // Group by series
-    var seriesMap = {};
-    var noSeries = [];
-    products.forEach(function(p) {
-      if (p.series) {
-        if (!seriesMap[p.series]) seriesMap[p.series] = [];
-        seriesMap[p.series].push(p);
-      } else {
-        noSeries.push(p);
-      }
+    // Build category tabs
+    nav.innerHTML = '';
+    Object.keys(CATALOG_META).forEach(function(tabId) {
+      var meta = CATALOG_META[tabId];
+      var btn = document.createElement('button');
+      btn.className = 'cat-tab' + (tabId === activeCatalogTab ? ' is-active' : '');
+      btn.dataset.catTab = tabId;
+      btn.style.setProperty('--tab-color', meta.color);
+      btn.textContent = meta.title;
+      nav.appendChild(btn);
     });
 
-    var body = '';
-    var seriesNames = Object.keys(seriesMap);
-    seriesNames.forEach(function(seriesName) {
-      body += '<div class="series-group">' +
-        '<h3 class="series-title">' + seriesName + '</h3>' +
-        '<div class="products-grid">' +
-          seriesMap[seriesName].map(function(p) { return renderProductCard(p._slug, p); }).join('') +
-        '</div>' +
-      '</div>';
-    });
-    if (noSeries.length) {
-      body += '<div class="products-grid">' +
-        noSeries.map(function(p) { return renderProductCard(p._slug, p); }).join('') +
-      '</div>';
-    }
-
-    el.innerHTML = header + body;
-    return el;
-  }
-
-  function buildBundleStrip(bundles) {
-    var el = document.createElement('div');
-    el.className = 'bundle-strip';
-    var html = '<div class="bundle-strip-inner">';
-    bundles.forEach(function(p) {
-      var priceHtml = p.originalPriceText
-        ? '<span class="price old-price">' + p.originalPriceText + '</span><span class="price big">' + p.priceText + '</span>'
-        : '<span class="price big">' + p.priceText + '</span>';
-      html += '<a href="#/product/' + p._slug + '" data-link class="bundle-card reveal">' +
-        '<div class="bundle-info">' +
-          '<span class="badge">' + (p.badge || '') + '</span>' +
-          '<h3>' + p.name + '</h3>' +
-          '<p>' + (p.shortDesc || '') + '</p>' +
-        '</div>' +
-        '<div class="bundle-cta">' +
-          priceHtml +
-          '<span class="btn btn-primary">أضيفي للسلة</span>' +
-        '</div>' +
-      '</a>';
-    });
-    html += '</div>';
-    el.innerHTML = html;
-    return el;
-  }
-
-  function populateProductSections() {
-    var container = document.getElementById('productSectionsContainer');
-    var navEl = document.getElementById('sectionNav');
-    if (!container) return;
-    container.innerHTML = '';
-
-    var sectionOrder = ['tales', 'seraj-stories', 'custom-stories', 'play-learn'];
-
-    // Build nav pills
-    if (navEl) {
-      navEl.innerHTML = '';
-      sectionOrder.forEach(function(sectionId) {
-        var meta = SECTIONS_META[sectionId];
-        var btn = document.createElement('button');
-        btn.className = 'section-pill';
-        btn.dataset.scrollTo = sectionId;
-        btn.style.setProperty('--pill-color', meta.color);
-        btn.textContent = meta.title;
-        navEl.appendChild(btn);
-      });
-    }
-
-    // Build sections
-    sectionOrder.forEach(function(sectionId) {
-      var sectionProducts = [];
-      Object.keys(PRODUCTS).forEach(function(slug) {
-        var p = PRODUCTS[slug];
-        if (p.section === sectionId && p.active !== false) {
-          p._slug = slug;
-          sectionProducts.push(p);
-        }
-      });
-      sectionProducts.sort(function(a, b) { return (a.order || 0) - (b.order || 0); });
-      container.appendChild(buildSectionElement(sectionId, sectionProducts));
-    });
-
-    // Bundle cross-sell strip
-    var bundles = [];
+    // Render all product cards
+    grid.innerHTML = '';
     Object.keys(PRODUCTS).forEach(function(slug) {
       var p = PRODUCTS[slug];
-      if ((!p.section || p.section === null) && p.active !== false) {
-        p._slug = slug;
-        bundles.push(p);
-      }
+      if (p.active === false) return;
+      p._slug = slug;
+      var sectionId = p.section || 'bundle';
+      var visible = activeCatalogTab === 'all' || sectionId === activeCatalogTab;
+      var card = document.createElement('div');
+      card.className = 'catalog-card reveal';
+      card.dataset.section = sectionId;
+      if (!visible) card.style.display = 'none';
+      card.innerHTML = buildCatalogCard(slug, p);
+      grid.appendChild(card);
     });
-    if (bundles.length) {
-      container.appendChild(buildBundleStrip(bundles));
+  }
+
+  function filterCatalog(tabId) {
+    if (!CATALOG_META[tabId]) tabId = 'all';
+    activeCatalogTab = tabId;
+
+    // Update active tab button
+    document.querySelectorAll('.cat-tab').forEach(function(btn) {
+      btn.classList.toggle('is-active', btn.dataset.catTab === tabId);
+    });
+
+    // Show/hide product cards
+    var visible = 0;
+    document.querySelectorAll('#catalogGrid .catalog-card').forEach(function(card) {
+      var show = tabId === 'all' || card.dataset.section === tabId;
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+
+    // Update hero area
+    var meta = CATALOG_META[tabId];
+    var heroEl = document.getElementById('catalogHero');
+    var mascot = document.getElementById('catalogMascotImg');
+    var titleEl = document.getElementById('catalogTitle');
+    var kickerEl = document.getElementById('catalogKicker');
+    var descEl = document.getElementById('catalogDesc');
+    if (heroEl) heroEl.style.setProperty('--hero-color', meta.color);
+    if (titleEl) titleEl.textContent = meta.title;
+    if (kickerEl) kickerEl.textContent = meta.kicker;
+    if (descEl) descEl.textContent = meta.desc;
+    if (mascot) {
+      mascot.classList.add('is-transitioning');
+      var newSrc = meta.img;
+      setTimeout(function() { mascot.src = newSrc; mascot.classList.remove('is-transitioning'); }, 180);
     }
+
+    // Empty state
+    var grid = document.getElementById('catalogGrid');
+    var emptyEl = document.getElementById('catalogEmpty');
+    if (grid && visible === 0) {
+      if (!emptyEl) {
+        var em = document.createElement('div');
+        em.id = 'catalogEmpty'; em.className = 'catalog-empty-state';
+        em.innerHTML = '<p>مفيش منتجات في هذا القسم دلوقتي — تابعينا!</p>';
+        grid.appendChild(em);
+      } else { emptyEl.style.display = ''; }
+    } else if (emptyEl) { emptyEl.style.display = 'none'; }
   }
-
-  // ----- Scroll-spy for section nav -----
-  function initScrollSpy() {
-    var pills = document.querySelectorAll('.section-pill');
-    var sections = document.querySelectorAll('.product-section');
-    if (!pills.length || !sections.length) return;
-
-    var observer = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) {
-        if (entry.isIntersecting) {
-          var id = entry.target.id;
-          pills.forEach(function(pill) {
-            pill.classList.toggle('is-active', pill.dataset.scrollTo === id);
-          });
-        }
-      });
-    }, { rootMargin: '-30% 0px -60% 0px' });
-
-    sections.forEach(function(s) { observer.observe(s); });
-  }
-
-  // OLD populateProductSections removed — replaced by dynamic version above (line ~857)
 
   function getVideoPoster(videoUrl) {
     if (!videoUrl || videoUrl.indexOf('res.cloudinary.com') === -1) return '';
@@ -1362,13 +1296,16 @@
   function handleRoute() {
     var route = parseRoute();
     showPage(route.page, route.sub);
-    // Anchor scroll (after page is visible and products rendered)
-    // scroll-margin-top on .product-section handles the offset
     if (route.anchor) {
-      setTimeout(function() {
-        var target = document.getElementById(route.anchor);
-        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 350);
+      if (route.page === 'products' && CATALOG_META[route.anchor]) {
+        // Filter catalog to the specified section tab
+        filterCatalog(route.anchor);
+      } else {
+        setTimeout(function() {
+          var target = document.getElementById(route.anchor);
+          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 350);
+      }
     }
   }
 
@@ -2377,14 +2314,11 @@
     setTimeout(function () { location.hash = '#/wizard'; }, 220);
   });
 
-  // ----- Section Nav Pills (smooth scroll — NOT hash change) -----
-  // scroll-margin-top on .product-section handles the offset automatically
+  // ----- Catalog Tab Clicks (filter products by section) -----
   document.addEventListener('click', function (e) {
-    var pill = e.target.closest('.section-pill[data-scroll-to]');
-    if (!pill) return;
-    var targetId = pill.dataset.scrollTo;
-    var target = document.getElementById(targetId);
-    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    var btn = e.target.closest('.cat-tab[data-cat-tab]');
+    if (!btn) return;
+    filterCatalog(btn.dataset.catTab);
   });
 
   // ----- Hero Video: Lazy-load + Intersection Observer -----
@@ -2561,8 +2495,7 @@
     var waitForProducts = setInterval(function () {
       if (productsReady) {
         clearInterval(waitForProducts);
-        populateProductSections();
-        initScrollSpy();
+        populateCatalog();
         handleRoute();
         initReveals();
         initCounter();
@@ -2574,8 +2507,7 @@
       clearInterval(waitForProducts);
       if (!productsReady) {
         productsReady = true;
-        populateProductSections();
-        initScrollSpy();
+        populateCatalog();
         handleRoute();
         initReveals();
         initCounter();
