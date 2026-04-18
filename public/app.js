@@ -924,30 +924,7 @@
     sections.forEach(function(s) { observer.observe(s); });
   }
 
-  function populateProductSections() {
-    var sectionGridMap = {
-      tales: 'talesGrid',
-      'custom-stories': 'customGrid',
-      'play-learn': 'playLearnGrid'
-    };
-
-    // Clear all grids
-    Object.values(sectionGridMap).forEach(function(id) {
-      var el = document.getElementById(id);
-      if (el) el.innerHTML = '';
-    });
-
-    // Populate sections
-    var slugs = Object.keys(PRODUCTS);
-    slugs.forEach(function(slug) {
-      var p = PRODUCTS[slug];
-      var gridId = sectionGridMap[p.section];
-      if (!gridId || !p.active) return;
-      var grid = document.getElementById(gridId);
-      if (!grid) return;
-      grid.innerHTML += renderProductCard(slug, p);
-    });
-  }
+  // OLD populateProductSections removed — replaced by dynamic version above (line ~857)
 
   function getVideoPoster(videoUrl) {
     if (!videoUrl || videoUrl.indexOf('res.cloudinary.com') === -1) return '';
@@ -1386,14 +1363,11 @@
     var route = parseRoute();
     showPage(route.page, route.sub);
     // Anchor scroll (after page is visible and products rendered)
+    // scroll-margin-top on .product-section handles the offset
     if (route.anchor) {
       setTimeout(function() {
         var target = document.getElementById(route.anchor);
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          // Adjust for sticky section nav
-          setTimeout(function() { window.scrollBy(0, -60); }, 100);
-        }
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 350);
     }
   }
@@ -2404,16 +2378,13 @@
   });
 
   // ----- Section Nav Pills (smooth scroll — NOT hash change) -----
+  // scroll-margin-top on .product-section handles the offset automatically
   document.addEventListener('click', function (e) {
     var pill = e.target.closest('.section-pill[data-scroll-to]');
     if (!pill) return;
     var targetId = pill.dataset.scrollTo;
     var target = document.getElementById(targetId);
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      // Adjust for sticky nav height
-      setTimeout(function() { window.scrollBy(0, -60); }, 100);
-    }
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
   // ----- Hero Video: Lazy-load + Intersection Observer -----
