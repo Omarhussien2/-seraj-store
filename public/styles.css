@@ -3613,9 +3613,9 @@ input, textarea { font-family: inherit; }
 }
 .catalog-card-inner.coming-soon { opacity: .72; cursor: default; }
 
-/* Card Cover: portrait 3:4 */
+/* Card Cover: landscape 4:3 */
 .cat-cover {
-  position: relative; aspect-ratio: 3/4;
+  position: relative; aspect-ratio: 4/3;
   background: var(--cream-2); overflow: hidden;
   display: flex; align-items: center; justify-content: center;
 }

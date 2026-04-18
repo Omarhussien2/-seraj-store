@@ -20,7 +20,16 @@
       "Bash(node -e \"console.log\\(require\\('next/package.json'\\).version\\)\")",
       "Bash(node -e \"const p = require\\('./node_modules/next-auth/package.json'\\); console.log\\('installed next-auth:', p.version\\)\")",
       "Bash(curl:*)",
-      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\(JSON.stringify\\(p.scripts, null, 2\\)\\)\")"
+      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\(JSON.stringify\\(p.scripts, null, 2\\)\\)\")",
+      "Bash(node -e \"const d=[];process.stdin.on\\('data',c=>d.push\\(c\\)\\);process.stdin.on\\('end',\\(\\)=>{try{const j=JSON.parse\\(Buffer.concat\\(d\\)\\);if\\(j.data\\)j.data.forEach\\(p=>console.log\\(p.slug,'| imageUrl:',p.imageUrl||'\\(none\\)','| gallery:',p.gallery?p.gallery.length:0\\)\\)}catch\\(e\\){console.log\\('parse error or no data'\\)}}\\)\")",
+      "Bash(node -e \"const d=[];process.stdin.on\\('data',c=>d.push\\(c\\)\\);process.stdin.on\\('end',\\(\\)=>{try{const j=JSON.parse\\(Buffer.concat\\(d\\)\\);if\\(j.data\\){j.data.forEach\\(p=>{console.log\\(p.slug\\);console.log\\('  imageUrl:', p.imageUrl || '\\(empty\\)'\\);console.log\\('  media.image:', p.media?.image || '\\(empty\\)'\\);console.log\\('  gallery:', p.gallery?.length || 0, 'items'\\);console.log\\(\\)}\\)}}catch\\(e\\){console.log\\('Error:',e.message\\)}}\\)\")",
+      "Bash(node -e \"const d=[];process.stdin.on\\('data',c=>d.push\\(c\\)\\);process.stdin.on\\('end',\\(\\)=>{try{const j=JSON.parse\\(Buffer.concat\\(d\\)\\);if\\(j.data\\){j.data.forEach\\(p=>{if\\(p.gallery && p.gallery.length > 0\\){console.log\\(p.slug,'gallery:'\\);p.gallery.forEach\\(\\(g,i\\)=>console.log\\('  ['+i+']',g.resourceType,g.url?.substring\\(0,80\\)+'...'\\)\\)}}\\)}}catch\\(e\\){console.log\\('Error:',e.message\\)}}\\)\")",
+      "Bash(npx tsx:*)",
+      "Bash(npx dotenv:*)",
+      "Bash(node -e \"const d=[];process.stdin.on\\('data',c=>d.push\\(c\\)\\);process.stdin.on\\('end',\\(\\)=>{try{const j=JSON.parse\\(Buffer.concat\\(d\\)\\);if\\(j.data\\){j.data.forEach\\(p=>{console.log\\(p.slug\\);console.log\\('  imageUrl:', \\(p.imageUrl||'\\(empty\\)'\\).substring\\(0,70\\)\\);console.log\\('  media.image:', \\(p.media?.image||'\\(empty\\)'\\).substring\\(0,70\\)\\);console.log\\(\\)}\\)}}catch\\(e\\){console.log\\('Error:',e.message\\)}}\\)\")",
+      "Bash(taskkill //f //im node.exe)",
+      "Bash(node -e ':*)",
+      "Bash(node:*)"
     ]
   }
 }

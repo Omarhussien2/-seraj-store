@@ -190,7 +190,16 @@
       .then(function (data) {
         if (data.success && data.data && data.data.length > 0) {
           var apiProducts = {};
-          data.data.forEach(function (p) { apiProducts[p.slug] = p; });
+          data.data.forEach(function (p) {
+            var fallback = PRODUCTS[p.slug] || {};
+            p.media = p.media || fallback.media || { bg: 'emerald' };
+            p.features = p.features && p.features.length > 0 ? p.features : fallback.features || [];
+            p.reviews = p.reviews && p.reviews.length > 0 ? p.reviews : fallback.reviews || [];
+            p.gallery = p.gallery && p.gallery.length > 0 ? p.gallery : fallback.gallery || [];
+            p.action = p.action || fallback.action || 'cart';
+            p.imageUrl = p.imageUrl || fallback.imageUrl;
+            apiProducts[p.slug] = p;
+          });
           PRODUCTS = apiProducts;
           productsLoaded = true;
           console.log('✅ Products loaded from API (' + data.data.length + ')');
