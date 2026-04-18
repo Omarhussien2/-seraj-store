@@ -62,3 +62,52 @@ Post:   Removed budget slider + stale prices
         Offer system (text + active flag + expiry)
         Admin places page (/admin/places)
 ```
+
+---
+
+## Phase 8: Multi-Category Refactor ✅
+**Status:** COMPLETE
+**Completed:** 2026-04-18
+
+**Goal:** Transition from single-product focus (Custom Stories) to multi-category educational brand with 4 product sections.
+
+**Changes Made:**
+
+### Backend
+- `src/lib/models/Product.ts` — Added `section` (enum: tales, seraj-stories, custom-stories, play-learn), `series` (string), `shortDesc` (string) fields
+- `src/app/api/products/route.ts` — Added `?section=`, `?series=` query filters; sort by `{section: 1, order: 1}`
+- `src/app/api/products/[slug]/route.ts` — Updated PATCH Zod schema with new fields
+- `scripts/seed.ts` — 5 products with section/series/shortDesc metadata; added "بطل قهر المستحيل"
+
+### Frontend
+- `public/index.html` — Hero CTAs updated (no data-content-key); products page = fully dynamic container
+- `public/app.js` — `SECTIONS_META` config; `populateProductSections()` fully dynamic; `buildBundleStrip()`; `renderProductCard()` with series badge; `initScrollSpy()`; anchor routing support
+- `public/styles.css` — Section nav (sticky tabs + blur + scroll-spy); product cards (aspect-ratio, line-clamp); bundle strip; responsive grid
+
+### Admin
+- `src/app/admin/products/page.tsx` — Section/series columns with colored badges; editor with section dropdown, series input, shortDesc input
+
+### Infrastructure
+- `public/sw.js` — Cache bumped to `seraj-v3`
+
+**Commits:**
+```
+9ddb099 feat: add shortDesc field, improve admin table with section/series columns
+03d705f feat: fully dynamic products page with scroll-spy, bundle strip, improved UI
+079bf43 chore: bump service worker cache to seraj-v3
+81744ea feat: update homepage CTAs — hero buttons + showcase section anchors
+6e9531b feat: restructure products page into 4 sections with anchor routing
+46d71bc feat: add section and series fields to product schema + API + admin
+```
+
+**Key Decisions:**
+- `section` field (English enum) for programmatic grouping; `category` (Arabic) kept unchanged
+- Section nav uses `<button data-scroll-to>` not `<a href="#id">` to avoid SPA routing conflicts
+- Bundle products (`section: null`) shown via cross-sell strip across all sections
+- No emojis in headers/nav — color differentiation per section
+- Products page fully dynamic — sections built from API data + `SECTIONS_META` config
+
+**Future Enhancements (not blocking):**
+- Admin preview card during editing (4.4)
+- Auto-populate priceText from price field (4.5)
+- Section headers from CMS `contentDefaults.ts` instead of hardcoded `SECTIONS_META`

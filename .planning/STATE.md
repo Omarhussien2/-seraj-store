@@ -1,9 +1,9 @@
 # Seraj Store — Project State
 
 ## Current Position
-- **Phase:** 7 — Fas7a Helwa Data (Complete + Post-fixes applied)
+- **Phase:** 8 — Multi-Category Refactor
 - **Status:** ✅ Phase Complete
-- **Last Updated:** 2026-04-16
+- **Last Updated:** 2026-04-18
 
 ## Progress
 | Phase | Name | Status |
@@ -15,6 +15,7 @@
 | 5 | Polish & Integration | ✅ Complete |
 | 6 | Product Photos & Shipping | ✅ Complete |
 | 7 | Fas7a Helwa Data | ✅ Complete + post-fixes |
+| 8 | Multi-Category Refactor | ✅ Complete |
 
 ## Decisions
 1. No users collection — Admin auth via env vars with NextAuth Credentials
@@ -44,10 +45,20 @@
 25. Removed stale 2019 prices and budget slider — prices unreliable and confusing
 26. All 480 external_detail_url replaced with Google Maps links (lat,lon) — not Kidzapp
 27. "اعرف أكتر عن المكان" button → opens Google Maps for phone/photos/reviews/directions
-28. Offer system added: offer_text, offer_active, offer_expiry fields on Place model
+28. Offer system added: offer_text, offer_active, offer_expiry fields on Place Model
 29. Admin places page (/admin/places) with full CRUD + offer management
 30. 🎡 الأماكن link added to admin sidebar
+31. **Multi-category refactor:** `section` (English enum) for programmatic grouping, `category` (Arabic) kept for admin display
+32. **Section nav uses `<button>` not `<a href>`** — `<a href="#id">` breaks hash-based SPA routing
+33. **Products page fully dynamic** — `populateProductSections()` builds all sections from API data + SECTIONS_META
+34. **Bundle products have `section: null`** — shown via cross-sell strip across all sections
+35. **No emojis in section headers/nav** — color differentiation instead
+36. **`shortDesc` field** added to Product schema for card subtitle text
+37. **Series grouping** within sections via `series` field — renders series badge on cards + groups in section
+38. **SW cache bumped to seraj-v3** — forces fresh content after refactor
+39. **Scroll-spy** via IntersectionObserver for active section nav highlighting
+40. **Hero CTAs locked** — no `data-content-key` attributes to prevent CMS override
 
 ## Session Info
-- **Stopped At:** Post-completion fixes applied (Google Maps links, offer system, admin page, removed stale prices)
-- **Next Step:** Ready for Phase 8 planning or further feature work
+- **Stopped At:** Multi-category refactor complete — all 4 phases done, pushed to remote
+- **Next Step:** Ready for Phase 9 planning or further feature work
