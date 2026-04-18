@@ -750,11 +750,11 @@
   // ----- Catalog Page — metadata per section (tab label + hero copy + mascot image) -----
   // To use your own section images, add files at: assets/catalog-tales.png, etc.
   var CATALOG_META = {
-    'all':            { title: 'اقرأ أو استمع',           kicker: 'سِراج',     desc: 'اقرأ أو استمع لقصص وكتب سراج المصممة لتعلم القيم والأخلاق المتدرجة في أسلوبها وتصميمها لتناسب الفئات العمرية المختلفة لبطلك الصغير.',    color: '#6bbf3f', img: 'assets/seraj.png' },
-    'tales':          { title: 'حكايات سراج',         kicker: 'قصص الأبطال',            desc: 'قصص من سلاسل مختلفة — لكل عمر بطله',   color: '#6bbf3f', img: 'assets/catalog-tales.png' },
-    'seraj-stories':  { title: 'حكايات',    kicker: 'مغامرات الأرنب الأخضر', desc: 'مغامرات سِراج وأسرته عبر الزمن',        color: '#36a39a', img: 'assets/catalog-seraj-stories.png' },
-    'custom-stories': { title: 'القصص المخصصة',  kicker: 'قصة باسم طفلك',          desc: 'قصة كاملة باسم طفلك وصورته',           color: '#c9974e', img: 'assets/catalog-custom-stories.png' },
-    'play-learn':     { title: 'العب وتعلم',      kicker: 'تعلم ولعب وفرح',         desc: 'ألعاب تعليمية وكروت تفاعلية',           color: '#e85d4c', img: 'assets/catalog-play-learn.png' }
+    'all':            { title: 'كل الأقسام',           kicker: 'اكتشفي عالم سراج المتنوع',     desc: 'أكتر من قصص.. تجربة تعليمية متكاملة لبطلنا الصغير',    color: '#6bbf3f', img: 'assets/seraj.png' },
+    'tales':          { title: 'سباق الفتوحات',         kicker: 'أبطالنا الحقيقيين!',            desc: 'أبطالنا بجد! مستويات تناسب كل الأعمار مع جزء خاص لتجهيز الأب والأم لأسئلة طفلك.',   color: '#6bbf3f', img: 'assets/catalog-tales.png' },
+    'custom-stories': { title: 'قصة مخصوصة',  kicker: 'باسم وصورة طفلك!',          desc: 'هدية عمره ما هينساها.. قصة تفاعلية ممتعة ومطبوعة بجودة عالية بطلها طفلك!',           color: '#c9974e', img: 'assets/catalog-custom-stories.png' },
+    'play-learn':     { title: 'ألعاب سراج',      kicker: 'العب واتعلم!',         desc: 'فلاش كاردز وألعاب ترفيهية بتنمي مهارات طفلك وتخليه يكتشف العالم وهو بيضحك ومبسوط.',           color: '#e85d4c', img: 'assets/catalog-play-learn.png' },
+    'seraj-stories':  { title: 'حكايات سراج',    kicker: 'الأرنب المسافر عبر الزمن!', desc: 'رحلات مثيرة مع آلة الزمن لاكتشاف أسرار الماضي مع الأرنب سِراج وأصحابه.',        color: '#36a39a', img: 'assets/catalog-seraj-stories.png' }
   };
 
   // ----- Catalog Page — grid + filter tabs -----
