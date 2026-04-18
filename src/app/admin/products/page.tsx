@@ -94,10 +94,10 @@ const emptyProduct: Partial<Product> = {
 };
 
 const sectionLabelMap: Record<string, string> = {
-  tales: "حكايات",
+  tales: "سباق الفتوحات",
   "seraj-stories": "حكايات سراج",
-  "custom-stories": "القصص المخصصة",
-  "play-learn": "العب وتعلم",
+  "custom-stories": "قصة مخصوصة",
+  "play-learn": "ألعاب سراج",
 };
 
 const sectionColorMap: Record<string, string> = {
@@ -462,10 +462,10 @@ export default function AdminProductsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">بدون قسم (مجموعات)</SelectItem>
-                      <SelectItem value="tales">🐎 حكايات</SelectItem>
+                      <SelectItem value="tales">🐎 سباق الفتوحات</SelectItem>
                       <SelectItem value="seraj-stories">🐰 حكايات سراج</SelectItem>
-                      <SelectItem value="custom-stories">✨ القصص المخصصة</SelectItem>
-                      <SelectItem value="play-learn">🧩 العب وتعلم</SelectItem>
+                      <SelectItem value="custom-stories">✨ قصة مخصوصة</SelectItem>
+                      <SelectItem value="play-learn">🧩 ألعاب سراج</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
