@@ -70,6 +70,7 @@ export interface IProduct extends Document {
   category: string;
   section?: string | null;
   series?: string;
+  shortDesc?: string;
   longDesc: string;
   features: string[];
   imageUrl?: string;
@@ -118,6 +119,7 @@ const ProductSchema = new mongoose.Schema<IProduct>(
       index: true,
     },
     series: { type: String },
+    shortDesc: { type: String, default: '' },
     longDesc: { type: String, required: true },
     features: [{ type: String }],
     imageUrl: { type: String },

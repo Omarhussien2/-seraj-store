@@ -42,6 +42,7 @@ interface Product {
   category: string;
   section?: string | null;
   series?: string;
+  shortDesc?: string;
   longDesc: string;
   features: string[];
   imageUrl?: string;
@@ -77,6 +78,7 @@ const emptyProduct: Partial<Product> = {
   category: "قصص جاهزة",
   section: undefined,
   series: "",
+  shortDesc: "",
   longDesc: "",
   features: [],
   imageUrl: "",
@@ -89,6 +91,20 @@ const emptyProduct: Partial<Product> = {
   order: 0,
   related: [],
   reviews: [],
+};
+
+const sectionLabelMap: Record<string, string> = {
+  tales: "حكايات",
+  "seraj-stories": "حكايات سراج",
+  "custom-stories": "القصص المخصصة",
+  "play-learn": "العب وتعلم",
+};
+
+const sectionColorMap: Record<string, string> = {
+  tales: "#6bbf3f",
+  "seraj-stories": "#36a39a",
+  "custom-stories": "#c9974e",
+  "play-learn": "#e85d4c",
 };
 
 export default function AdminProductsPage() {
@@ -306,7 +322,8 @@ export default function AdminProductsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>الاسم</TableHead>
-                <TableHead>التصنيف</TableHead>
+                <TableHead>القسم</TableHead>
+                <TableHead>السلسلة</TableHead>
                 <TableHead>السعر</TableHead>
                 <TableHead>الحالة</TableHead>
                 <TableHead>قريباً؟</TableHead>
@@ -318,7 +335,16 @@ export default function AdminProductsPage() {
               {products.map((product) => (
                 <TableRow key={product._id}>
                   <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>{product.category}</TableCell>
+                  <TableCell>
+                    {product.section ? (
+                      <Badge variant="outline" style={{ borderColor: sectionColorMap[product.section] || undefined, color: sectionColorMap[product.section] || undefined }}>
+                        {sectionLabelMap[product.section] || product.section}
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>{product.series || "—"}</TableCell>
                   <TableCell>
                     <div>
                       <span>{product.price} ج.م</span>
@@ -500,7 +526,16 @@ export default function AdminProductsPage() {
 
               {/* Description */}
               <div className="space-y-2">
-                <Label>الوصف</Label>
+                <Label>الوصف المختصر (يظهر في كارت المنتج)</Label>
+                <Input
+                  value={editingProduct.shortDesc || ""}
+                  onChange={(e) => updateField("shortDesc", e.target.value)}
+                  placeholder="قصة بطولة وشجاعة بأسلوب تعليمي ممتع"
+                  maxLength={100}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>الوصف الكامل</Label>
                 <Textarea
                   value={editingProduct.longDesc || ""}
                   onChange={(e) => updateField("longDesc", e.target.value)}

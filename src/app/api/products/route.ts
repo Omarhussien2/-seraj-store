@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     }
 
     const products = await Product.find(filter)
-      .sort({ order: 1 })
+      .sort({ section: 1, order: 1 })
       .lean();
 
     return NextResponse.json({
@@ -87,6 +87,7 @@ const CreateProductSchema = z.object({
   category: z.enum(["قصص جاهزة", "قصص مخصصة", "فلاش كاردز", "مجموعات"]),
   section: z.enum(["tales", "seraj-stories", "custom-stories", "play-learn"]).optional(),
   series: z.string().optional(),
+  shortDesc: z.string().optional(),
   longDesc: z.string().min(1),
   features: z.array(z.string()),
   imageUrl: z.string().optional(),
