@@ -17,7 +17,9 @@ const SECTION_LABELS: Record<string, string> = {
   about: "حكايتنا",
   mama: "عالم ماما",
   footer: "الفوتر",
-  wizard: "معالج القصة (الساحر)"
+  wizard: "معالج القصة (الساحر)",
+  general: "نصوص عامة",
+  pages: "الصفحات الثابتة"
 };
 
 export default function ContentEditor({ initialData }: { initialData: Record<string, Record<string, string>> }) {

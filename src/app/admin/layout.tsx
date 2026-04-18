@@ -12,6 +12,7 @@ const navItems = [
   { href: "/admin/articles", label: "المقالات", icon: "📝" },
   { href: "/admin/stories", label: "القصص", icon: "📖" },
   { href: "/admin/content", label: "المحتوى", icon: "✏️" },
+  { href: "/admin/testimonials", label: "الآراء", icon: "💬" },
   { href: "/admin/places", label: "الأماكن", icon: "🎡" },
 ];
 

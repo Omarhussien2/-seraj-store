@@ -326,6 +326,12 @@
       container.innerHTML = '<div class="page-head tight"><span class="kicker">المنتج غير موجود</span><h1>منتهي!</h1><p>المنتج ده مش موجود. شوفي منتجاتنا التانية.</p><a href="#/products" data-link class="btn btn-primary" style="margin-top:20px">شوفي المنتجات</a></div>';
       return;
     }
+
+    // Dynamic SEO
+    document.title = product.name + ' | سراج';
+    var metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', product.longDesc || '');
+
     var isSoon = product.comingSoon;
     var h = '';
     // Back nav
@@ -1269,7 +1275,7 @@
   }
 
   // Valid page names for the SPA router
-  var validPages = ['home', 'products', 'about', 'wizard', 'preview', 'checkout', 'success', 'cart', 'product', 'mama-world', 'article'];
+  var validPages = ['home', 'products', 'about', 'wizard', 'preview', 'checkout', 'success', 'cart', 'product', 'mama-world', 'article', 'faq', 'shipping', 'returns'];
 
   function showPage(name, sub) {
     var target = name;
@@ -1291,6 +1297,21 @@
 
     window.scrollTo({ top: 0, behavior: 'instant' });
     setTimeout(initReveals, 80);
+
+    var pageTitles = {
+      'home': 'سراج | حكايات بتكبر مع طفلك',
+      'products': 'سراج | المنتجات',
+      'about': 'سراج | حكايتنا',
+      'wizard': 'سراج | اصنع قصتك',
+      'cart': 'سراج | سلة المشتريات',
+      'checkout': 'سراج | إتمام الطلب',
+      'mama-world': 'سراج | عالم ماما',
+      'faq': 'سراج | الأسئلة الشائعة',
+      'shipping': 'سراج | سياسة الشحن',
+      'returns': 'سراج | سياسة الاسترجاع'
+    };
+    if (pageTitles[name]) document.title = pageTitles[name];
+
 
     if (name === 'product') renderProductDetail(sub);
     if (name === 'cart') renderCartPage();
@@ -2168,6 +2189,12 @@
           return;
         }
         var a = data.data;
+
+        // Dynamic SEO
+        document.title = (a.seoTitle || a.title) + ' | سراج';
+        var metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.setAttribute('content', a.metaDescription || a.excerpt || '');
+
         var sectionColor = getSectionColor(a.section);
         var coverHtml = a.coverImage
           ? '<div class="article-detail-cover" style="background-image:url(' + a.coverImage + ')"></div>'
@@ -2441,11 +2468,35 @@
     }
   });
 
+  // ----- Fetch Testimonials -----
+  function fetchTestimonials() {
+    var grid = document.getElementById('testimonialsGrid');
+    if (!grid) return;
+
+    fetch('/api/testimonials')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data.success || !data.data || !data.data.length) return;
+        var html = '';
+        data.data.forEach(function (t, i) {
+          html += '<figure class="t-card reveal" style="--d:.' + ((i % 12) * 5 + 5) + 's">';
+          html += '<blockquote>"' + escHtml(t.quote) + '"</blockquote>';
+          html += '<figcaption>';
+          html += '<span class="avatar" style="--c:' + (t.avatarColor || '#6bbf3f') + '">' + escHtml(t.avatarInitials) + '</span>';
+          html += '<div><strong>' + escHtml(t.name) + '</strong><small>' + escHtml(t.location) + ' · ' + escHtml(t.childAge) + '</small></div>';
+          html += '</figcaption></figure>';
+        });
+        grid.innerHTML = html;
+        setTimeout(initReveals, 80);
+      });
+  }
+
   // ---------------------------------------------------------
   // CMS CONTENT / DOM INJECTION
   // ---------------------------------------------------------
   var SITE_CONTENT = {};
   var HTML_KEYS = ['hero.title', 'hero.subtitle', 'about.quote'];
+  var MARKDOWN_KEYS = ['faq.content', 'shipping.content', 'returns.content', 'about.story'];
 
   function fetchSiteContent() {
     fetch('/api/content')
@@ -2480,6 +2531,8 @@
 
         if (HTML_KEYS.indexOf(key) !== -1) {
           el.innerHTML = SITE_CONTENT[key];
+        } else if (MARKDOWN_KEYS.indexOf(key) !== -1) {
+          el.innerHTML = simpleMarkdown(SITE_CONTENT[key]);
         } else {
           el.textContent = SITE_CONTENT[key];
         }
@@ -2506,6 +2559,7 @@
     fetchProducts();
     fetchConfig();
     fetchSiteContent();
+    fetchTestimonials();
     if (!location.hash) location.hash = '#/home';
     // Wait for products API to resolve before first render to avoid flash
     var waitForProducts = setInterval(function () {
