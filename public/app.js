@@ -2725,7 +2725,7 @@
       .then(function(res) { return res.json(); })
       .then(function(data) {
         if (data.success && data.data) {
-           coloringState.pricePerPage = parseFloat(data.data.coloring_price_per_page) || 3;
+           coloringState.pricePerPage = parseFloat(data.data.pricePerPage) || 3;
         }
       });
   }
@@ -2840,7 +2840,7 @@
 
      var totalPages = coloringCart.length;
      // Fallback to SITE_CONTENT if loaded, otherwise internal state
-     var pricePer = SITE_CONTENT['coloring_price_per_page'];
+     var pricePer = SITE_CONTENT['pricePerPage'];
      if (!pricePer) pricePer = coloringState.pricePerPage;
      else pricePer = parseFloat(pricePer);
 
@@ -2849,8 +2849,8 @@
      var html = '<div class="cb-page-wrap">';
      
      // Free download notice
-     html += '<div style="background:linear-gradient(135deg,#eaf6d6,#d4edda);border-radius:14px;padding:16px 20px;margin-bottom:24px;text-align:center;border:2px solid #6bbf3f">';
-     html += '<p style="font-size:15px;color:#2d5016;margin:0"><strong>✦ تقدري تطبعيهم لوحدك مجاناً</strong> — أو اطلبي من سراج يطبعهم ويجلّدهم وهيوصلك لباب البيت</p>';
+     html += '<div class="coloring-free-notice">';
+     html += '<p>تقدري تطبعي الرسومات دي لوحدك مجاناً — أو اطلبي من سِراج كشكول مطبوع ومجلّد يوصلك لباب البيت</p>';
      html += '</div>';
      
      // Left: Items Grid
@@ -2881,7 +2881,7 @@
             '<span>' + toArabicNum(subtotal) + ' ج.م</span>' +
           '</div>' +
           '<p style="font-size: 13px; color: var(--ink-mute); text-align: center; margin-top: 14px;">شامل الطباعة والتغليف الملون — بدون مصاريف شحن</p>' +
-          '<button class="btn btn-primary cb-checkout-btn" id="btnColoringCheckout">اطلبي الكشكول المطبوع ✦</button>' +
+          '<button class="btn btn-primary cb-checkout-btn" id="btnColoringCheckout">اطلبي الكشكول المطبوع</button>' +
         '</div>';
 
      html += '</div>';
@@ -2903,26 +2903,25 @@
      // Checkout btn
      var coBtn = document.getElementById('btnColoringCheckout');
      if (coBtn) {
-       coBtn.addEventListener('click', function() {
-           // We map it to the global cart as a single bundle item so it integrates with standard checkout
-           var productDesc = "كشكول ألوان مخصص (" + toArabicNum(totalPages) + " صور)";
-           var workbookItem = {
-             id: 'custom-coloring-book',
-             name: 'كشكول ألوان سِراج',
-             price: subtotal,
-             qty: 1,
-             media: { type: 'book3d', bg: 'emerald' } // Uses a book thumbnail in cart
-           };
-           
-           // Remove existing coloring book in cart if any, then add new
-           var existingIdx = cart.findIndex(function(c) { return c.id === 'custom-coloring-book'; });
-           if (existingIdx > -1) cart.splice(existingIdx, 1);
-           
-           cart.push(workbookItem);
-           saveCart();
-           updateCartBadge();
-           window.location.hash = '#/checkout';
-       });
+          coBtn.addEventListener('click', function() {
+            // Map coloring workbook to the global cart as a single bundle item
+            var workbookItem = {
+              slug: 'coloring-workbook',
+              name: 'كشكول أنشطة سِراج (' + toArabicNum(totalPages) + ' صورة)',
+              price: subtotal,
+              qty: 1,
+              media: { type: 'book3d', bg: 'emerald' }
+            };
+            
+            // Remove existing coloring workbook in cart if any, then add new
+            var existingIdx = cart.findIndex(function(c) { return c.slug === 'coloring-workbook'; });
+            if (existingIdx > -1) cart.splice(existingIdx, 1);
+            
+            cart.push(workbookItem);
+            saveCart();
+            updateCartBadge();
+            window.location.hash = '#/checkout';
+        });
      }
   }
 

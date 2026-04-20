@@ -3939,3 +3939,51 @@ input, textarea { font-family: inherit; }
 }
 .cb-empty-state svg { width: 64px; height: 64px; opacity: .2; margin-bottom: 20px; }
 .cb-empty-state p {font-size: 18px; color: var(--ink-soft); margin-bottom: 24px;}
+
+/* ===== COLORING BRANDING ===== */
+.coloring-free-banner {
+  background: linear-gradient(135deg, #eaf6d6, #d4edda);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin: 0 0 24px;
+  text-align: center;
+  border: 2px solid var(--green);
+}
+.coloring-free-banner h2 {
+  font-size: 20px;
+  color: #2d5016;
+  margin: 0 0 6px;
+}
+.coloring-free-banner p {
+  font-size: 15px;
+  color: #3d6b22;
+  margin: 0;
+  line-height: 1.7;
+}
+.coloring-free-notice {
+  background: linear-gradient(135deg, #eaf6d6, #d4edda);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  text-align: center;
+  border: 2px solid var(--green);
+  font-size: 15px;
+  color: #2d5016;
+  line-height: 1.7;
+}
+.coloring-print-cta {
+  text-align: center;
+  margin-top: 36px;
+  padding: 24px;
+  background: var(--cream-2);
+  border-radius: 16px;
+}
+.coloring-print-cta h3 {
+  font-size: 18px;
+  margin: 0 0 8px;
+}
+.coloring-print-cta p {
+  font-size: 14px;
+  color: var(--ink-mute);
+  margin: 0 0 16px;
+}
