@@ -1333,7 +1333,19 @@
     }
     if (name === 'mama-world') initMamaWorld();
     if (name === 'article') renderArticleDetail(sub);
-    if (name === 'mama-coloring') renderColoringCatalog();
+    if (name === 'mama-coloring') {
+      // Redirect to mama-world with coloring tab activated
+      initMamaWorld();
+      var coloringTab = document.querySelector('[data-mama-tab="coloring"]');
+      var coloringPanel = document.querySelector('[data-mama-panel="coloring"]');
+      if (coloringTab && coloringPanel) {
+        document.querySelectorAll('.mama-tab').forEach(function (t) { t.classList.remove('is-active'); });
+        document.querySelectorAll('.mama-panel').forEach(function (p) { p.classList.remove('is-active'); });
+        coloringTab.classList.add('is-active');
+        coloringPanel.classList.add('is-active');
+        renderColoringCatalog();
+      }
+    }
     if (name === 'coloring-book') renderColoringBook();
     if (name === 'preview') {
       var heroName = state.heroName || 'بطلنا';

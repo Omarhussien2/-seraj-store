@@ -1109,73 +1109,12 @@
     </section>
 
     <!-- ========================================================= -->
-    <!-- MAMA COLORING (Standalone deep-link page)                  -->
+    <!-- MAMA COLORING (Redirect handled by app.js → mama-world)  -->
     <!-- ========================================================= -->
     <section class="page" data-page="mama-coloring">
-      <!-- MAMA HERO -->
-      <section class="mama-hero" style="background:var(--cream-2)">
-        <div class="mama-hero-inner wrapper">
-          <img src="assets/seraj.png" alt="سِراج الأرنب" class="mama-hero-img reveal" style="--d:.05s" loading="lazy"/>
-          <div class="mama-hero-copy reveal" style="--d:.15s">
-            <span class="kicker">مجاني 🎨</span>
-            <h1>أنشطة وتلوين سِراج</h1>
-            <p>رسومات وتمارين وأنشطة <strong>مجانية</strong> لبطلنا الصغير.. حمّلي واطبعي لوحدك، أو اطلبي كشكول مطبوع يوصلك لحد البيت!</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Free banner -->
-      <div class="wrapper" style="margin-top:-10px;margin-bottom:20px">
-        <div style="background:linear-gradient(135deg,#eaf6d6,#d4edda);border-radius:16px;padding:16px 20px;text-align:center;border:2px solid #6bbf3f">
-          <p style="font-size:15px;color:#2d5016;margin:0"><strong>✦ مجاني بالكامل</strong> — حمّلي واطبعي لوحدك.. أو <a href="#/coloring-book" data-link style="color:#2d5016;text-decoration:underline;font-weight:700">اعملي كشكول مطبوع</a> وهيوصلك لباب البيت</p>
-        </div>
-      </div>
-
-      <div class="wrapper" style="padding-top:10px; padding-bottom: 80px; position: relative;">
-        <!-- Filters Area -->
-        <div class="outings-filters">
-          <div class="filter-group reveal" style="--d:.12s">
-            <h3 class="filter-title">القسم</h3>
-            <div class="filter-chips" id="coloringTabs">
-              <!-- Dynamically populated categories -->
-            </div>
-          </div>
-          <div class="filter-group reveal" style="--d:.19s">
-             <h3 class="filter-title">الصعوبة</h3>
-             <div class="filter-chips" id="coloringDifficulty">
-                <button class="chip is-active" data-val="">الكل</button>
-                <button class="chip" data-val="easy">سهل</button>
-                <button class="chip" data-val="medium">متوسط</button>
-                <button class="chip" data-val="hard">متقدم</button>
-             </div>
-          </div>
-        </div>
-
-        <!-- SEARCH -->
-        <div class="mama-search reveal" style="--d:.2s">
-          <input type="text" id="coloringSearch" placeholder="ابحثي عن حيوانات، أرقام، طيور..."/>
-        </div>
-
-        <!-- ITEMS GRID -->
-        <div class="products-grid" id="coloringGrid" style="margin-top: 30px;">
-          <!-- Fetched from API -->
-        </div>
-
-        <div id="coloringLoading" class="outings-loading" style="display:none">
-          <div class="outings-spinner"></div>
-          <p>جاري جلب الرسومات...</p>
-        </div>
-
-        <button id="coloringLoadMore" class="btn btn-outline outings-load-more" style="display:none">عرض المزيد ↓</button>
-        
-        <!-- FAB for the workbook -->
-        <a href="#/coloring-book" class="floating-workbook-btn" id="floatingWorkbookBtn" style="display: none;">
-          <div class="fwb-icon">
-             <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-             <span id="fwbCount" class="fwb-badge">0</span>
-          </div>
-          <span>افتحي كشكولك</span>
-        </a>
+      <div style="text-align:center;padding:80px 20px">
+        <div class="outings-spinner" style="margin:0 auto 20px"></div>
+        <p>جاري التحويل لعالم ماما...</p>
       </div>
     </section>
 
