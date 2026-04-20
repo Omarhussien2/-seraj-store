@@ -15,12 +15,12 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     await connectDB();
 
-    const { slug } = params;
+    const { slug } = await params;
     const item = await ColoringItem.findOne({ slug, active: true }).lean();
 
     if (!item) {
@@ -47,12 +47,12 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     await connectDB();
 
-    const { slug } = params;
+    const { slug } = await params;
     const body = await request.json().catch(() => ({}));
     const action = body?.action;
 
@@ -113,7 +113,7 @@ const PatchItemSchema = z.object({
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const authError = await requireAdmin();
@@ -121,7 +121,7 @@ export async function PATCH(
 
     await connectDB();
 
-    const { slug } = params;
+    const { slug } = await params;
     const body = await request.json();
     const validated = PatchItemSchema.parse(body);
 
@@ -192,7 +192,7 @@ export async function PATCH(
  */
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const authError = await requireAdmin();
@@ -200,7 +200,7 @@ export async function DELETE(
 
     await connectDB();
 
-    const { slug } = params;
+    const { slug } = await params;
     const item = await ColoringItem.findOne({ slug }).lean();
 
     if (!item) {

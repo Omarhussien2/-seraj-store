@@ -17,12 +17,12 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     await connectDB();
 
-    const { slug } = params;
+    const { slug } = await params;
     const { searchParams } = new URL(request.url);
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(48, Math.max(6, parseInt(searchParams.get("limit") || "24", 10)));
@@ -101,7 +101,7 @@ const PatchCategorySchema = z.object({
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const authError = await requireAdmin();
@@ -109,7 +109,7 @@ export async function PATCH(
 
     await connectDB();
 
-    const { slug } = params;
+    const { slug } = await params;
     const body = await request.json();
     const validated = PatchCategorySchema.parse(body);
 
@@ -157,7 +157,7 @@ export async function PATCH(
  */
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const authError = await requireAdmin();
@@ -165,7 +165,7 @@ export async function DELETE(
 
     await connectDB();
 
-    const { slug } = params;
+    const { slug } = await params;
     const category = await ColoringCategory.findOne({ slug }).lean();
 
     if (!category) {

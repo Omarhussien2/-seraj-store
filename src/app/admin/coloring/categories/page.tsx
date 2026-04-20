@@ -130,7 +130,7 @@ export default function ColoringCategoriesAdmin() {
 
   // Flatten logic to render rows easily
   const renderRows = () => {
-    const rows: JSX.Element[] = [];
+    const rows: React.ReactElement[] = [];
     categories.forEach(parent => {
        rows.push(
          <tr key={parent._id} className="border-b bg-gray-50">
