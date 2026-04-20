@@ -1042,6 +1042,85 @@
       <div id="article-detail" class="article-detail-page"></div>
     </section>
 
+    <!-- ========================================================= -->
+    <!-- MAMA COLORING (Catalog)                                   -->
+    <!-- ========================================================= -->
+    <section class="page" data-page="mama-coloring">
+      <!-- MAMA HERO -->
+      <section class="mama-hero" style="background:var(--cream-2)">
+        <div class="mama-hero-inner wrapper">
+          <img src="assets/seraj.png" alt="سِراج الأرنب" class="mama-hero-img reveal" style="--d:.05s" loading="lazy"/>
+          <div class="mama-hero-copy reveal" style="--d:.15s">
+            <span class="kicker">لوّني واتعلمي</span>
+            <h1>كشكول ألوان سِراج 🎨</h1>
+            <p>آلاف الصور، التمارين، والأنشطة.. اختاري اللي يعجب بطلنا وسراج هيجمعهولك في كتاب واحد مطبوع لحد البيت!</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="wrapper" style="padding-top:20px; padding-bottom: 80px; position: relative;">
+        <!-- Filters Area -->
+        <div class="outings-filters">
+          <div class="filter-group reveal" style="--d:.12s">
+            <h3 class="filter-title">القسم</h3>
+            <div class="filter-chips" id="coloringTabs">
+              <!-- Dynamically populated categories -->
+            </div>
+          </div>
+          <div class="filter-group reveal" style="--d:.19s">
+             <h3 class="filter-title">الصعوبة</h3>
+             <div class="filter-chips" id="coloringDifficulty">
+                <button class="chip is-active" data-val="">الكل</button>
+                <button class="chip" data-val="easy">سهل</button>
+                <button class="chip" data-val="medium">متوسط</button>
+                <button class="chip" data-val="hard">متقدم</button>
+             </div>
+          </div>
+        </div>
+
+        <!-- SEARCH -->
+        <div class="mama-search reveal" style="--d:.2s">
+          <input type="text" id="coloringSearch" placeholder="ابحثي عن حيوانات، أرقام، طيور..."/>
+        </div>
+
+        <!-- ITEMS GRID -->
+        <div class="products-grid" id="coloringGrid" style="margin-top: 30px;">
+          <!-- Fetched from API -->
+        </div>
+
+        <div id="coloringLoading" class="outings-loading" style="display:none">
+          <div class="outings-spinner"></div>
+          <p>جاري جلب الرسومات...</p>
+        </div>
+
+        <button id="coloringLoadMore" class="btn btn-outline outings-load-more" style="display:none">عرض المزيد ↓</button>
+        
+        <!-- FAB for the workbook -->
+        <a href="#/coloring-book" class="floating-workbook-btn" id="floatingWorkbookBtn" style="display: none;">
+          <div class="fwb-icon">
+             <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+             <span id="fwbCount" class="fwb-badge">0</span>
+          </div>
+          <span>افتحي كشكولك</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- MAMA COLORING BOOK (Review & Checkout)                    -->
+    <!-- ========================================================= -->
+    <section class="page" data-page="coloring-book">
+      <div class="page-head tight wrapper">
+        <span class="kicker">كشكول ألوان سِراج</span>
+        <h1>راجعي كشكول بطلنا</h1>
+        <p>راجعي الصور اللي اخترتيها قبل ما سراج يطبعها ويبعتها.</p>
+      </div>
+
+      <div class="wrapper" id="coloringBookContent" style="padding-bottom: 80px;">
+        <!-- Dynamic Content from JS -->
+      </div>
+    </section>
+
   </main>
 
   <!-- ============ BOTTOM NAV (MOBILE) ============ -->

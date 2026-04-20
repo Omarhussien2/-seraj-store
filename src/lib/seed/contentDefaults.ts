@@ -75,5 +75,12 @@ export const DEFAULT_CONTENT = [
   // Custom states
   { key: "success.title", section: "general", value: "سِراج استلم الإيصال.. الحكاية بدأت!" },
   { key: "success.desc", section: "general", value: "هنراجع البيانات وهنرسل رسالة لك قريباً جداً." },
-  { key: "notfound.title", section: "general", value: "الصفحة مش موجودة" }
+  { key: "notfound.title", section: "general", value: "الصفحة مش موجودة" },
+
+  // Coloring Print Pricing (admin-configurable from dashboard)
+  { key: "coloring_price_per_page",    section: "coloring-pricing", value: "3"   },
+  { key: "coloring_cover_price",       section: "coloring-pricing", value: "20"  },
+  { key: "coloring_min_pages",         section: "coloring-pricing", value: "5"   },
+  { key: "coloring_max_pages",         section: "coloring-pricing", value: "50"  },
+  { key: "coloring_free_shipping_min", section: "coloring-pricing", value: "100" },
 ];

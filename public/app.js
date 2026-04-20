@@ -1277,7 +1277,7 @@
   }
 
   // Valid page names for the SPA router
-  var validPages = ['home', 'products', 'about', 'wizard', 'preview', 'checkout', 'success', 'cart', 'product', 'mama-world', 'article', 'faq', 'shipping', 'returns'];
+  var validPages = ['home', 'products', 'about', 'wizard', 'preview', 'checkout', 'success', 'cart', 'product', 'mama-world', 'article', 'faq', 'shipping', 'returns', 'mama-coloring', 'coloring-book'];
 
   function showPage(name, sub) {
     var target = name;
@@ -1294,7 +1294,12 @@
     });
 
     bottomTabs.forEach(function (a) {
-      a.classList.toggle('is-active', a.dataset.tab === name);
+      // mama-coloring shouldn't necessarily highlight mama-world but maybe we want it to?
+      if (a.dataset.tab === 'mama-world' && (name === 'mama-coloring' || name === 'coloring-book')) {
+         a.classList.add('is-active');
+      } else {
+         a.classList.toggle('is-active', a.dataset.tab === name);
+      }
     });
 
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -1308,6 +1313,9 @@
       'cart': 'سراج | سلة المشتريات',
       'checkout': 'سراج | إتمام الطلب',
       'mama-world': 'سراج | عالم ماما',
+      'article': 'سراج | عالم ماما', // could be dynamic
+      'mama-coloring': 'سراج | كشكول ألوان',
+      'coloring-book': 'سراج | كشكولي المطبوع',
       'faq': 'سراج | الأسئلة الشائعة',
       'shipping': 'سراج | سياسة الشحن',
       'returns': 'سراج | سياسة الاسترجاع'
@@ -1325,6 +1333,8 @@
     }
     if (name === 'mama-world') initMamaWorld();
     if (name === 'article') renderArticleDetail(sub);
+    if (name === 'mama-coloring') renderColoringCatalog();
+    if (name === 'coloring-book') renderColoringBook();
     if (name === 'preview') {
       var heroName = state.heroName || 'بطلنا';
       var el = document.getElementById('previewName');
@@ -2554,8 +2564,352 @@
     initCounter();
   }
 
+  // ---------------------------------------------------------
+  // MAMA COLORING & WORKBOOK
+  // ---------------------------------------------------------
+  var COLORING_CART_KEY = 'seraj-coloring-cart';
+  var coloringCart = [];
+  var coloringState = {
+    page: 1,
+    limit: 20,
+    search: '',
+    category: '',
+    difficulty: '',
+    hasMore: true,
+    loading: false,
+    pricePerPage: 3 // fallback, will be fetched from SiteContent optionally
+  };
+
+  function loadColoringCart() {
+    try {
+      var saved = localStorage.getItem(COLORING_CART_KEY);
+      if (saved) {
+        coloringCart = JSON.parse(saved);
+        if (!Array.isArray(coloringCart)) coloringCart = [];
+      }
+    } catch (e) { coloringCart = []; }
+    updateColoringFab();
+  }
+
+  function saveColoringCart() {
+    localStorage.setItem(COLORING_CART_KEY, JSON.stringify(coloringCart));
+    updateColoringFab();
+  }
+
+  function updateColoringFab() {
+    var fab = document.getElementById('floatingWorkbookBtn');
+    var countEl = document.getElementById('fwbCount');
+    if (!fab || !countEl) return;
+    
+    if (coloringCart.length > 0) {
+      fab.style.display = 'flex';
+      countEl.textContent = toArabicNum(coloringCart.length);
+    } else {
+      fab.style.display = 'none';
+    }
+  }
+
+  function fetchColoringItems(append) {
+    if (coloringState.loading) return;
+    coloringState.loading = true;
+    
+    var loader = document.getElementById('coloringLoading');
+    var loadMoreBtn = document.getElementById('coloringLoadMore');
+    var grid = document.getElementById('coloringGrid');
+    
+    if (!append) {
+       grid.innerHTML = '';
+       if(loader) loader.style.display = 'block';
+       if(loadMoreBtn) loadMoreBtn.style.display = 'none';
+    } else {
+       if(loadMoreBtn) {
+         loadMoreBtn.disabled = true;
+         loadMoreBtn.textContent = 'جاري التحميل...';
+       }
+    }
+
+    var params = new URLSearchParams();
+    params.set('page', coloringState.page);
+    params.set('limit', coloringState.limit);
+    if (coloringState.search) params.set('q', coloringState.search);
+    if (coloringState.category) params.set('category', coloringState.category);
+    if (coloringState.difficulty) params.set('difficulty', coloringState.difficulty);
+
+    fetch('/api/coloring/items?' + params.toString())
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+         coloringState.loading = false;
+         if(loader) loader.style.display = 'none';
+         if(loadMoreBtn) {
+           loadMoreBtn.disabled = false;
+           loadMoreBtn.textContent = 'عرض المزيد ↓';
+         }
+
+         if (data.success) {
+           var items = data.data || [];
+           coloringState.hasMore = data.pagination && data.pagination.page < data.pagination.pages;
+           
+           if (!append && items.length === 0) {
+              grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--ink-mute);">مفيش رسومات هنا، جربي بحث أو قسم تاني.</div>';
+              if(loadMoreBtn) loadMoreBtn.style.display = 'none';
+              return;
+           }
+
+           items.forEach(function(item) {
+             var isAdded = coloringCart.some(function(c) { return c._id === item._id; });
+             var card = document.createElement('div');
+             card.className = 'coloring-card';
+             card.innerHTML = 
+               '<div class="coloring-img-wrap">' +
+                 '<img src="' + item.thumbnail + '" alt="' + item.title + '" loading="lazy" />' +
+               '</div>' +
+               '<div class="coloring-body">' +
+                 '<h3 class="coloring-title">' + item.title + '</h3>' +
+                 '<button class="coloring-action-btn ' + (isAdded ? 'is-added' : '') + '" data-id="' + item._id + '" data-img="' + item.thumbnail + '" data-title="' + item.title + '">' +
+                    (isAdded ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> متضافة في الكشكول' : 'ضيفي للكشكول +') +
+                 '</button>' +
+               '</div>';
+             grid.appendChild(card);
+           });
+
+           if (coloringState.hasMore) {
+             if(loadMoreBtn) loadMoreBtn.style.display = 'block';
+           } else {
+             if(loadMoreBtn) loadMoreBtn.style.display = 'none';
+           }
+         }
+      })
+      .catch(function(err) {
+         coloringState.loading = false;
+         if(loader) loader.style.display = 'none';
+         if(loadMoreBtn) loadMoreBtn.disabled = false;
+         console.error('Fetch Coloring Error:', err);
+      });
+  }
+
+  function fetchColoringCategories() {
+    var tabsWrap = document.getElementById('coloringTabs');
+    if (!tabsWrap) return;
+    
+    // Always start with "All"
+    fetch('/api/coloring/categories')
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.success && data.data) {
+           var html = '<button class="chip ' + (!coloringState.category ? 'is-active' : '') + '" data-val="">كل الأقسام</button>';
+           data.data.forEach(function(cat) {
+             html += '<button class="chip ' + (coloringState.category === cat.slug ? 'is-active' : '') + '" data-val="' + cat.slug + '">' + cat.nameAr + '</button>';
+           });
+           tabsWrap.innerHTML = html;
+        }
+      });
+  }
+
+  function fetchColoringPricing() {
+    fetch('/api/coloring/pricing')
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.success && data.data) {
+           coloringState.pricePerPage = parseFloat(data.data.coloring_price_per_page) || 3;
+        }
+      });
+  }
+
+  function renderColoringCatalog() {
+    fetchColoringCategories();
+    fetchColoringPricing();
+    
+    coloringState.page = 1;
+    coloringState.hasMore = true;
+    
+    var searchInput = document.getElementById('coloringSearch');
+    if (searchInput) searchInput.value = coloringState.search;
+    
+    fetchColoringItems(false);
+  }
+
+  function attachColoringListeners() {
+    // Top Tabs Event
+    var tabsWrap = document.getElementById('coloringTabs');
+    if (tabsWrap) {
+      tabsWrap.addEventListener('click', function(e) {
+        if (e.target.classList.contains('chip')) {
+          tabsWrap.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('is-active'); });
+          e.target.classList.add('is-active');
+          coloringState.category = e.target.dataset.val;
+          coloringState.page = 1;
+          fetchColoringItems(false);
+        }
+      });
+    }
+
+    // Difficulty Event
+    var diffWrap = document.getElementById('coloringDifficulty');
+    if (diffWrap) {
+      diffWrap.addEventListener('click', function(e) {
+        if (e.target.classList.contains('chip')) {
+          diffWrap.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('is-active'); });
+          e.target.classList.add('is-active');
+          coloringState.difficulty = e.target.dataset.val;
+          coloringState.page = 1;
+          fetchColoringItems(false);
+        }
+      });
+    }
+
+    // Search Event
+    var searchInput = document.getElementById('coloringSearch');
+    if (searchInput) {
+      var timeout = null;
+      searchInput.addEventListener('input', function(e) {
+        clearTimeout(timeout);
+        timeout = setTimeout(function() {
+          coloringState.search = e.target.value.trim();
+          coloringState.page = 1;
+          fetchColoringItems(false);
+        }, 500);
+      });
+    }
+
+    // Load More Event
+    var loadMore = document.getElementById('coloringLoadMore');
+    if (loadMore) {
+      loadMore.addEventListener('click', function() {
+        if (coloringState.hasMore && !coloringState.loading) {
+          coloringState.page++;
+          fetchColoringItems(true);
+        }
+      });
+    }
+
+    // Grid Add/Remove Event (Delegate)
+    var grid = document.getElementById('coloringGrid');
+    if (grid) {
+      grid.addEventListener('click', function(e) {
+        var btn = e.target.closest('.coloring-action-btn');
+        if (!btn) return;
+        
+        var id = btn.dataset.id;
+        var img = btn.dataset.img;
+        var title = btn.dataset.title;
+        
+        var index = coloringCart.findIndex(function(c) { return c._id === id; });
+        if (index > -1) {
+           coloringCart.splice(index, 1);
+           btn.classList.remove('is-added');
+           btn.innerHTML = 'ضيفي للكشكول +';
+        } else {
+           coloringCart.push({ _id: id, thumbnail: img, title: title });
+           btn.classList.add('is-added');
+           btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> متضافة في الكشكول';
+        }
+        saveColoringCart();
+      });
+    }
+  }
+
+  function renderColoringBook() {
+     var wrap = document.getElementById('coloringBookContent');
+     if (!wrap) return;
+
+     if (coloringCart.length === 0) {
+        wrap.innerHTML = 
+          '<div class="cb-empty-state">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>' +
+            '<p>لسه ما اختارتيش رسومات بطلنا.</p>' +
+            '<a href="#/mama-coloring" data-link class="btn btn-primary">يلا نختار سويًا</a>' +
+          '</div>';
+        return;
+     }
+
+     var totalPages = coloringCart.length;
+     // Fallback to SITE_CONTENT if loaded, otherwise internal state
+     var pricePer = SITE_CONTENT['coloring_price_per_page'];
+     if (!pricePer) pricePer = coloringState.pricePerPage;
+     else pricePer = parseFloat(pricePer);
+
+     var subtotal = totalPages * pricePer;
+
+     var html = '<div class="cb-page-wrap">';
+     
+     // Left: Items Grid
+     html += '<div class="cb-items-wrap"><div class="cb-items-list">';
+     coloringCart.forEach(function(item) {
+        html += 
+          '<div class="cb-item-card" data-id="' + item._id + '">' +
+            '<img src="' + item.thumbnail + '" alt="' + item.title + '" class="cb-item-img" />' +
+            '<button class="cb-item-remove" data-id="' + item._id + '">شيل من الكشكول ✕</button>' +
+          '</div>';
+     });
+     html += '</div></div>';
+
+     // Right: Summary
+     html += 
+        '<div class="cb-summary-panel">' +
+          '<h3 style="margin-bottom: 20px; font-size: 20px;">ملخص الكشكول</h3>' +
+          '<div class="cb-summary-row">' +
+            '<span>عدد الرسومات</span>' +
+            '<strong>' + toArabicNum(totalPages) + '</strong>' +
+          '</div>' +
+          '<div class="cb-summary-row">' +
+            '<span>تكلفة الصفحة الواحدة</span>' +
+            '<strong>' + toArabicNum(pricePer) + ' ج.م</strong>' +
+          '</div>' +
+          '<div class="cb-summary-total">' +
+            '<span>الإجمالي</span>' +
+            '<span>' + toArabicNum(subtotal) + ' ج.م</span>' +
+          '</div>' +
+          '<p style="font-size: 13px; color: var(--ink-mute); text-align: center; margin-top: 14px;">بدون مصاريف الشحن والغلاف الملون</p>' +
+          '<button class="btn btn-primary cb-checkout-btn" id="btnColoringCheckout">اطبع الكشكول دلوقتي</button>' +
+        '</div>';
+
+     html += '</div>';
+     wrap.innerHTML = html;
+
+     // Attach Removes
+     wrap.querySelectorAll('.cb-item-remove').forEach(function(btn) {
+       btn.addEventListener('click', function(e) {
+          var id = e.target.dataset.id;
+          var index = coloringCart.findIndex(function(c) { return c._id === id; });
+          if (index > -1) {
+             coloringCart.splice(index, 1);
+             saveColoringCart();
+             renderColoringBook(); // re-render
+          }
+       });
+     });
+
+     // Checkout btn
+     var coBtn = document.getElementById('btnColoringCheckout');
+     if (coBtn) {
+       coBtn.addEventListener('click', function() {
+           // We map it to the global cart as a single bundle item so it integrates with standard checkout
+           var productDesc = "كشكول ألوان مخصص (" + toArabicNum(totalPages) + " صور)";
+           var workbookItem = {
+             id: 'custom-coloring-book',
+             name: 'كشكول ألوان سِراج',
+             price: subtotal,
+             qty: 1,
+             media: { type: 'book3d', bg: 'emerald' } // Uses a book thumbnail in cart
+           };
+           
+           // Remove existing coloring book in cart if any, then add new
+           var existingIdx = cart.findIndex(function(c) { return c.id === 'custom-coloring-book'; });
+           if (existingIdx > -1) cart.splice(existingIdx, 1);
+           
+           cart.push(workbookItem);
+           saveCart();
+           updateCartBadge();
+           window.location.hash = '#/checkout';
+       });
+     }
+  }
+
+
   // ----- Init -----
   window.addEventListener('DOMContentLoaded', function () {
+    loadColoringCart();
+    attachColoringListeners();
     loadCart();
     updateCartBadge();
     fetchProducts();
