@@ -55,7 +55,6 @@
       <img src="assets/logo/logo.svg" alt="سِراج" class="logo-mark" />
     </a>
     <nav class="topnav">
-      <a href="#/mama-coloring" data-link>ألوان سراج</a>
       <a href="#/mama-world" data-link data-content-key="nav.mama">عالم ماما</a>
       <a href="#/products" data-link data-content-key="nav.products">المنتجات</a>
       <a href="#/about" data-link data-content-key="nav.about">حكايتنا</a>
@@ -874,6 +873,10 @@
           <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
           <span>فسحة حلوة</span>
         </button>
+        <button class="mama-tab" data-mama-tab="coloring">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-1 0-.83.67-1.5 1.5-1.5H16c3.31 0 6-2.69 6-6 0-4.96-4.49-9-10-9z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="6.5" cy="11.5" r="1.5"/><circle cx="9.5" cy="7.5" r="1.5"/><circle cx="14.5" cy="7.5" r="1.5"/><circle cx="17.5" cy="11.5" r="1.5"/></svg>
+          <span>أنشطة وتلوين</span>
+        </button>
         <button class="mama-tab" data-mama-tab="ask-zainab">
           <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
           <span>اسألي زينب</span>
@@ -1004,7 +1007,69 @@
 
       </div>
 
-      <!-- PANEL 3: اسألي زينب -->
+      <!-- PANEL 3: أنشطة وتلوين -->
+      <div class="mama-panel" data-mama-panel="coloring">
+
+        <!-- Free banner -->
+        <div style="background:linear-gradient(135deg,#eaf6d6,#d4edda);border-radius:16px;padding:20px 24px;margin:0 0 24px;text-align:center;border:2px solid #6bbf3f">
+          <h2 style="font-size:20px;color:#2d5016;margin:0 0 6px">🎨 مجاني بالكامل!</h2>
+          <p style="font-size:15px;color:#3d6b22;margin:0">اختاري الرسومات والأنشطة اللي تعجبك، حمّليها واطبعيها لوحدك <strong>مجاناً</strong>.. أو خلينا نطبعهوملك في كشكول ونوصّلهولك لباب البيت ✦</p>
+        </div>
+
+        <!-- Filters Area -->
+        <div class="outings-filters">
+          <div class="filter-group reveal" style="--d:.12s">
+            <h3 class="filter-title">القسم</h3>
+            <div class="filter-chips" id="coloringTabs">
+              <!-- Dynamically populated categories -->
+            </div>
+          </div>
+          <div class="filter-group reveal" style="--d:.19s">
+             <h3 class="filter-title">الصعوبة</h3>
+             <div class="filter-chips" id="coloringDifficulty">
+                <button class="chip is-active" data-val="">الكل</button>
+                <button class="chip" data-val="easy">سهل</button>
+                <button class="chip" data-val="medium">متوسط</button>
+                <button class="chip" data-val="hard">متقدم</button>
+             </div>
+          </div>
+        </div>
+
+        <!-- SEARCH -->
+        <div class="mama-search reveal" style="--d:.2s">
+          <input type="text" id="coloringSearch" placeholder="ابحثي عن حيوانات، أرقام، طيور..."/>
+        </div>
+
+        <!-- ITEMS GRID -->
+        <div class="products-grid" id="coloringGrid" style="margin-top: 30px;">
+          <!-- Fetched from API -->
+        </div>
+
+        <div id="coloringLoading" class="outings-loading" style="display:none">
+          <div class="outings-spinner"></div>
+          <p>جاري جلب الرسومات...</p>
+        </div>
+
+        <button id="coloringLoadMore" class="btn btn-outline outings-load-more" style="display:none">عرض المزيد ↓</button>
+        
+        <!-- Print CTA -->
+        <div style="text-align:center;margin-top:36px;padding:24px;background:var(--cream-2);border-radius:16px">
+          <h3 style="font-size:18px;margin:0 0 8px">عايزة كشكول مطبوع ومجلّد؟ 📖</h3>
+          <p style="font-size:14px;color:var(--ink-mute);margin:0 0 16px">اختاري الرسومات اللي تعجبك وسراج هيطبعهم في كتاب ملون يوصلك لحد البيت</p>
+          <a href="#/coloring-book" data-link class="btn btn-primary">اعملي كشكولي المطبوع ✦</a>
+        </div>
+
+        <!-- FAB for the workbook -->
+        <a href="#/coloring-book" class="floating-workbook-btn" id="floatingWorkbookBtn" style="display: none;">
+          <div class="fwb-icon">
+             <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+             <span id="fwbCount" class="fwb-badge">0</span>
+          </div>
+          <span>افتحي كشكولك</span>
+        </a>
+      </div>
+
+      <!-- PANEL 4: اسألي زينب -->
       <div class="mama-panel" data-mama-panel="ask-zainab">
         <div class="chat-interface">
           <div class="chat-bubble">
@@ -1044,7 +1109,7 @@
     </section>
 
     <!-- ========================================================= -->
-    <!-- MAMA COLORING (Catalog)                                   -->
+    <!-- MAMA COLORING (Standalone deep-link page)                  -->
     <!-- ========================================================= -->
     <section class="page" data-page="mama-coloring">
       <!-- MAMA HERO -->
@@ -1052,14 +1117,21 @@
         <div class="mama-hero-inner wrapper">
           <img src="assets/seraj.png" alt="سِراج الأرنب" class="mama-hero-img reveal" style="--d:.05s" loading="lazy"/>
           <div class="mama-hero-copy reveal" style="--d:.15s">
-            <span class="kicker">لوّني واتعلمي</span>
-            <h1>كشكول ألوان سِراج 🎨</h1>
-            <p>آلاف الصور، التمارين، والأنشطة.. اختاري اللي يعجب بطلنا وسراج هيجمعهولك في كتاب واحد مطبوع لحد البيت!</p>
+            <span class="kicker">مجاني 🎨</span>
+            <h1>أنشطة وتلوين سِراج</h1>
+            <p>رسومات وتمارين وأنشطة <strong>مجانية</strong> لبطلنا الصغير.. حمّلي واطبعي لوحدك، أو اطلبي كشكول مطبوع يوصلك لحد البيت!</p>
           </div>
         </div>
       </section>
 
-      <div class="wrapper" style="padding-top:20px; padding-bottom: 80px; position: relative;">
+      <!-- Free banner -->
+      <div class="wrapper" style="margin-top:-10px;margin-bottom:20px">
+        <div style="background:linear-gradient(135deg,#eaf6d6,#d4edda);border-radius:16px;padding:16px 20px;text-align:center;border:2px solid #6bbf3f">
+          <p style="font-size:15px;color:#2d5016;margin:0"><strong>✦ مجاني بالكامل</strong> — حمّلي واطبعي لوحدك.. أو <a href="#/coloring-book" data-link style="color:#2d5016;text-decoration:underline;font-weight:700">اعملي كشكول مطبوع</a> وهيوصلك لباب البيت</p>
+        </div>
+      </div>
+
+      <div class="wrapper" style="padding-top:10px; padding-bottom: 80px; position: relative;">
         <!-- Filters Area -->
         <div class="outings-filters">
           <div class="filter-group reveal" style="--d:.12s">
@@ -1112,9 +1184,10 @@
     <!-- ========================================================= -->
     <section class="page" data-page="coloring-book">
       <div class="page-head tight wrapper">
+        <a href="#/mama-world" data-link class="btn btn-ghost" style="margin-bottom:16px;padding:8px 14px">← رجوع لعالم ماما</a>
         <span class="kicker">كشكول ألوان سِراج</span>
         <h1>راجعي كشكول بطلنا</h1>
-        <p>راجعي الصور اللي اخترتيها قبل ما سراج يطبعها ويبعتها.</p>
+        <p>الرسومات اللي اخترتيها <strong>مجانية</strong> تقدري تطبعيها لوحدك.. أو اطلبي من سراج يطبعهم ويوصّلهم لك</p>
       </div>
 
       <div class="wrapper" id="coloringBookContent" style="padding-bottom: 80px;">

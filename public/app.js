@@ -1314,7 +1314,7 @@
       'checkout': 'سراج | إتمام الطلب',
       'mama-world': 'سراج | عالم ماما',
       'article': 'سراج | عالم ماما', // could be dynamic
-      'mama-coloring': 'سراج | كشكول ألوان',
+      'mama-coloring': 'سراج | أنشطة وتلوين مجاني',
       'coloring-book': 'سراج | كشكولي المطبوع',
       'faq': 'سراج | الأسئلة الشائعة',
       'shipping': 'سراج | سياسة الشحن',
@@ -1734,6 +1734,9 @@
           setTimeout(initReveals, 80);
           if (target === 'outings' && !outingsInited) {
             initOutings();
+          }
+          if (target === 'coloring') {
+            renderColoringCatalog();
           }
         });
       });
@@ -2816,8 +2819,9 @@
         wrap.innerHTML = 
           '<div class="cb-empty-state">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>' +
-            '<p>لسه ما اختارتيش رسومات بطلنا.</p>' +
-            '<a href="#/mama-coloring" data-link class="btn btn-primary">يلا نختار سويًا</a>' +
+            '<p>لسه ما اخترتيش رسومات لبطلنا.</p>' +
+            '<p style="font-size:14px;color:var(--ink-mute)">اختاري رسومات مجانية من قسم الأنشطة والتلوين</p>' +
+            '<a href="#/mama-world" data-link class="btn btn-primary">يلا نختار سويًا</a>' +
           '</div>';
         return;
      }
@@ -2831,6 +2835,11 @@
      var subtotal = totalPages * pricePer;
 
      var html = '<div class="cb-page-wrap">';
+     
+     // Free download notice
+     html += '<div style="background:linear-gradient(135deg,#eaf6d6,#d4edda);border-radius:14px;padding:16px 20px;margin-bottom:24px;text-align:center;border:2px solid #6bbf3f">';
+     html += '<p style="font-size:15px;color:#2d5016;margin:0"><strong>✦ تقدري تطبعيهم لوحدك مجاناً</strong> — أو اطلبي من سراج يطبعهم ويجلّدهم وهيوصلك لباب البيت</p>';
+     html += '</div>';
      
      // Left: Items Grid
      html += '<div class="cb-items-wrap"><div class="cb-items-list">';
@@ -2846,7 +2855,7 @@
      // Right: Summary
      html += 
         '<div class="cb-summary-panel">' +
-          '<h3 style="margin-bottom: 20px; font-size: 20px;">ملخص الكشكول</h3>' +
+          '<h3 style="margin-bottom: 20px; font-size: 20px;">ملخص الكشكول المطبوع</h3>' +
           '<div class="cb-summary-row">' +
             '<span>عدد الرسومات</span>' +
             '<strong>' + toArabicNum(totalPages) + '</strong>' +
@@ -2859,8 +2868,8 @@
             '<span>الإجمالي</span>' +
             '<span>' + toArabicNum(subtotal) + ' ج.م</span>' +
           '</div>' +
-          '<p style="font-size: 13px; color: var(--ink-mute); text-align: center; margin-top: 14px;">بدون مصاريف الشحن والغلاف الملون</p>' +
-          '<button class="btn btn-primary cb-checkout-btn" id="btnColoringCheckout">اطبع الكشكول دلوقتي</button>' +
+          '<p style="font-size: 13px; color: var(--ink-mute); text-align: center; margin-top: 14px;">شامل الطباعة والتغليف الملون — بدون مصاريف شحن</p>' +
+          '<button class="btn btn-primary cb-checkout-btn" id="btnColoringCheckout">اطلبي الكشكول المطبوع ✦</button>' +
         '</div>';
 
      html += '</div>';
