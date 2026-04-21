@@ -1328,8 +1328,13 @@ input, textarea { font-family: inherit; }
   padding: 30px 20px 20px;
 }
 .wizard-character img {
-  width: 170px;
-  filter: drop-shadow(0 15px 25px rgba(0,0,0,.12));
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #fff;
+  box-shadow: 0 8px 24px rgba(0,0,0,.15);
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,.08));
   animation: bob 3s ease-in-out infinite;
   order: 2;
   position: relative;
@@ -1338,11 +1343,11 @@ input, textarea { font-family: inherit; }
 .wizard-character::before {
   content: '';
   position: absolute;
-  top: 0;
+  top: -6px;
   left: 50%;
   transform: translateX(-50%);
-  width: 220px;
-  height: 220px;
+  width: 210px;
+  height: 210px;
   border-radius: 50%;
   background: rgba(255,255,255,.25);
   backdrop-filter: blur(16px);
@@ -1552,8 +1557,12 @@ input, textarea { font-family: inherit; }
 
 .gen-mascot {
   width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #fff;
+  box-shadow: 0 8px 24px rgba(0,0,0,.15);
   animation: bob 1.6s ease-in-out infinite, spinWobble 4s ease-in-out infinite;
-  filter: drop-shadow(0 15px 25px rgba(0,0,0,.12));
   margin-top: 40px;
   z-index: 1;
 }
