@@ -1,15 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://seraj-store.vercel.app";
+
 /**
- * Middleware: Protects /admin/* routes.
- *
- * Uses a lightweight session-cookie check instead of NextAuth's auth() wrapper,
- * which is incompatible with Next.js 16 on Vercel's edge runtime and was causing
- * API routes to return HTML instead of JSON.
- *
- * Full authentication is still enforced server-side via requireAdmin() in admin
- * API routes and via auth() in admin server components.
+ * Middleware: Protects /admin/* routes + adds Link headers for agent discovery.
  */
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -37,9 +32,21 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  // Add Link headers for agent/crawler discovery on homepage
+  const response = NextResponse.next();
+  if (pathname === "/") {
+    response.headers.set(
+      "Link",
+      [
+        `<${SITE_URL}/sitemap.xml>; rel="sitemap"; type="application/xml"`,
+        `<${SITE_URL}/robots.txt>; rel="robots"`,
+      ].join(", ")
+    );
+  }
+
+  return response;
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|assets|sw.js|manifest.json|.*\\.html$).*)"],
 };
