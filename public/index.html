@@ -1062,10 +1062,17 @@
       <!-- PANEL 3: أنشطة وتلوين -->
       <div class="mama-panel" data-mama-panel="coloring">
 
-        <!-- Free banner -->
-        <div class="coloring-free-banner">
-          <h2>أنشطة وتلوين — مجاني من سِراج 🎨</h2>
-          <p>آلاف الرسومات والأنشطة التعليمية لبطلنا الصغير. <strong>حمّليها مجاناً</strong> أو جمّعيها في <strong>كشكول مطبوع بغلاف مخصص باسمه</strong> يوصلك لباب البيت!</p>
+        <!-- Coloring banner with Seraj characters -->
+        <div class="coloring-hero-banner">
+          <div class="coloring-hero-chars">
+            <img src="assets/khaled-v2.png" alt="خالد" class="coloring-char ch-khaled" />
+            <img src="assets/seraj.png" alt="سِراج" class="coloring-char ch-seraj" />
+            <img src="assets/layla.png" alt="ليلى" class="coloring-char ch-layla" />
+          </div>
+          <div class="coloring-hero-text">
+            <h2>اختاري رسومات لبطلنا 🎨</h2>
+            <p>اختاري الرسومات اللي تعجبك وسِراج يطبعها في <strong>كشكول احترافي بغلاف مخصص</strong> باسمه يوصلك لباب البيت!</p>
+          </div>
         </div>
 
         <!-- Filters Area -->
@@ -1112,19 +1119,15 @@
         </div>
 
         <button id="coloringLoadMore" class="btn btn-outline outings-load-more" style="display:none">عرض المزيد ↓</button>
-        
-        <!-- Print CTA -->
-        <div class="coloring-print-cta">
-          <h3>عايزة كشكول مطبوع ومجلّد؟</h3>
-          <p>اختاري الرسومات اللي تعجبك وسِراج هيطبعهم في كتاب ملون يوصلك لحد البيت</p>
-          <a href="#/coloring-book" data-link class="btn btn-primary">اطلبي كشكول مطبوع</a>
-        </div>
 
-        <!-- FAB for the workbook -->
-        <a href="#/coloring-book" class="floating-workbook-btn" id="floatingWorkbookBtn" style="display: none;">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-          <span>كشكولك (<span id="fwbCount">0</span>)</span>
-        </a>
+        <!-- Sticky workbook bar — replaces old FAB -->
+        <div class="coloring-workbook-bar" id="coloringWorkbookBar" style="display:none;">
+          <div class="cwb-info">
+            <span class="cwb-icon">📚</span>
+            <span>كشكولك (<span id="cwbCount">0</span> رسمة)</span>
+          </div>
+          <a href="#/coloring-book" data-link class="btn btn-primary" id="cwbBtn">اطلبي الكشكول ←</a>
+        </div>
       </div>
 
       <!-- PANEL 4: اسألي زينب -->

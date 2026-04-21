@@ -27,11 +27,20 @@ import {
 } from "@/components/ui/dialog";
 
 // ---------- Types ----------
+interface ColoringDetails {
+  itemCount: number;
+  format: "sheets" | "book";
+  coverImage?: string;
+  coverTitle?: string;
+  items: string[];
+}
+
 interface OrderItem {
   productSlug: string;
   name: string;
   price: number;
   qty: number;
+  coloringDetails?: ColoringDetails;
 }
 
 interface CustomStory {
@@ -528,6 +537,48 @@ export default function AdminOrdersPage() {
                         />
                       </div>
                     )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Coloring Workbook Details */}
+              {selectedOrder.items.some(item => item.coloringDetails) && (
+                <Card className="border-2 border-green-300 bg-green-50/50">
+                  <CardHeader>
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      📚 تفاصيل كشكول الألوان
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-sm space-y-3">
+                    {selectedOrder.items.filter(item => item.coloringDetails).map((item, i) => {
+                      const cd = item.coloringDetails!;
+                      return (
+                        <div key={i} className="space-y-2">
+                          <div className="flex flex-wrap gap-2">
+                            <Badge variant="outline" className="bg-white">
+                              {cd.format === "book" ? "📚 كشكول بغلاف مخصص" : "📄 ورق مطبوع"}
+                            </Badge>
+                            <Badge variant="outline" className="bg-white">
+                              {cd.itemCount} رسمة
+                            </Badge>
+                            {cd.coverImage && (
+                              <Badge variant="outline" className="bg-white">
+                                غلاف: {cd.coverImage.replace("cover-", "")}
+                              </Badge>
+                            )}
+                          </div>
+                          {cd.coverTitle && (
+                            <p><strong>اسم الكشكول:</strong> {cd.coverTitle}</p>
+                          )}
+                          <div>
+                            <p className="font-bold mb-1">الرسومات المطلوبة ({cd.items.length}):</p>
+                            <div className="bg-white rounded-lg p-2 border text-xs text-muted-foreground break-all">
+                              IDs: {cd.items.join("، ")}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </CardContent>
                 </Card>
               )}

@@ -4162,25 +4162,138 @@ input, textarea { font-family: inherit; }
 .cb-empty-state svg { width: 64px; height: 64px; opacity: .2; margin-bottom: 20px; }
 .cb-empty-state p {font-size: 18px; color: var(--ink-soft); margin-bottom: 24px;}
 
-/* ===== COLORING BRANDING ===== */
-.coloring-free-banner {
-  background: linear-gradient(135deg, #eaf6d6, #d4edda);
-  border-radius: 16px;
+/* ============ COLORING HERO BANNER ============ */
+.coloring-hero-banner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: linear-gradient(135deg, #e8f5e1 0%, #d4edda 50%, #c3e6cb 100%);
+  border: 2px solid var(--seraj);
+  border-radius: 20px;
   padding: 20px 24px;
   margin: 0 0 24px;
-  text-align: center;
-  border: 2px solid var(--green);
+  position: relative;
+  overflow: hidden;
 }
-.coloring-free-banner h2 {
+.coloring-hero-chars {
+  display: flex;
+  gap: 0;
+  flex-shrink: 0;
+}
+.coloring-char {
+  width: 64px;
+  height: 80px;
+  object-fit: contain;
+  margin-left: -10px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.1));
+}
+.coloring-char:first-child { margin-left: 0; }
+.ch-seraj { width: 72px; height: 88px; z-index: 1; }
+.coloring-hero-text h2 {
   font-size: 20px;
+  font-weight: 800;
   color: #2d5016;
   margin: 0 0 6px;
 }
-.coloring-free-banner p {
-  font-size: 15px;
+.coloring-hero-text p {
+  font-size: 14px;
   color: #3d6b22;
   margin: 0;
   line-height: 1.7;
+}
+@media (max-width: 600px) {
+  .coloring-hero-banner {
+    flex-direction: column;
+    text-align: center;
+    padding: 16px;
+  }
+  .coloring-char { width: 50px; height: 64px; }
+  .ch-seraj { width: 58px; height: 72px; }
+  .coloring-hero-text h2 { font-size: 17px; }
+}
+
+/* ===== COLORING WORKBOOK STICKY BAR ===== */
+.coloring-workbook-bar {
+  position: sticky;
+  bottom: 70px;
+  z-index: 90;
+  background: var(--seraj);
+  color: #fff;
+  padding: 14px 20px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 20px 0 0;
+  box-shadow: 0 -4px 20px rgba(74,145,40,.25);
+  border: 2px solid var(--seraj-dark);
+  animation: slideUpBar .4s ease;
+}
+@keyframes slideUpBar {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.cwb-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 16px;
+}
+.cwb-icon { font-size: 22px; }
+.coloring-workbook-bar .btn {
+  background: #fff;
+  color: var(--seraj-dark);
+  border: none;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 800;
+}
+.coloring-workbook-bar .btn:hover {
+  background: var(--seraj-dark);
+  color: #fff;
+}
+
+/* Cart workbook details */
+.cart-item-workbook {
+  border: 2px solid var(--seraj) !important;
+  background: var(--seraj-wash) !important;
+}
+.cart-workbook-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0;
+}
+.cwd-tag {
+  font-size: 11px;
+  font-weight: 700;
+  background: #fff;
+  color: var(--seraj-dark);
+  padding: 3px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--seraj);
+}
+
+/* Workbook warning */
+.cb-warning {
+  background: #FFF3E0;
+  border: 2px solid #FF9800;
+  border-radius: 12px;
+  padding: 12px 16px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: #E65100;
+  margin-bottom: 20px;
+}
+
+/* Disabled checkout */
+.cb-checkout-btn.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--ink-mute);
 }
 .coloring-free-notice {
   background: linear-gradient(135deg, #eaf6d6, #d4edda);

@@ -11,7 +11,7 @@ const ColoringDetailsSchema = new mongoose.Schema(
       enum: ["sheets", "book"],
       default: "sheets",
     },
-    coverImageUrl: { type: String },  // Cloudinary URL of chosen cover (format=book only)
+    coverImage: { type: String },     // Cover key e.g. 'cover-seraj' (format=book only)
     coverTitle: { type: String },     // Custom title written on cover
     printStatus: {
       type: String,
@@ -56,7 +56,7 @@ export interface IColoringDetails {
   items: mongoose.Types.ObjectId[];
   itemCount: number;
   format: "sheets" | "book";
-  coverImageUrl?: string;
+  coverImage?: string;
   coverTitle?: string;
   printStatus: "pending" | "downloading" | "printing" | "packed";
 }

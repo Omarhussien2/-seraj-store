@@ -12,11 +12,20 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 // ---------- Zod validation schemas ----------
+const ColoringDetailsSchema = z.object({
+  itemCount: z.number().int().min(1).max(50),
+  format: z.enum(["sheets", "book"]),
+  coverImage: z.string().optional(),
+  coverTitle: z.string().optional(),
+  items: z.array(z.string()).min(1),
+});
+
 const OrderItemSchema = z.object({
   productSlug: z.string().min(1),
   name: z.string().min(1),
   price: z.number().min(0),
   qty: z.number().int().min(1).default(1),
+  coloringDetails: ColoringDetailsSchema.optional(),
 });
 
 const CustomStorySchema = z.object({
@@ -123,6 +132,11 @@ export async function POST(request: Request) {
 
     let calculatedTotal = 0;
     for (const item of validated.items) {
+      // coloring-workbook has dynamic pricing — use client price
+      if (item.productSlug === "coloring-workbook") {
+        calculatedTotal += item.price * item.qty;
+        continue;
+      }
       const price = productMap.get(item.productSlug);
       if (price === undefined) {
         return NextResponse.json(

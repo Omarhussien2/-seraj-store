@@ -967,9 +967,29 @@
 
     cart.forEach(function (item) {
       var product = PRODUCTS[item.slug];
-      if (!product) return;
+      if (!product && item.slug !== 'coloring-workbook') return;
       var lineTotal = item.price * item.qty;
       total += lineTotal;
+
+      // Coloring workbook — show special card
+      if (item.slug === 'coloring-workbook' && item.coloringDetails) {
+        var cd = item.coloringDetails;
+        h += '<div class="cart-item cart-item-workbook">';
+        h += '<div class="cart-item-media emerald-bg"><svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></div>';
+        h += '<div class="cart-item-info">';
+        h += '<h3>' + item.name + '</h3>';
+        h += '<div class="cart-workbook-details">';
+        h += '<span class="cwd-tag">' + (cd.format === 'book' ? '📚 كشكول بغلاف' : '📄 ورق مطبوع') + '</span>';
+        h += '<span class="cwd-tag">' + toArabicNum(cd.itemCount) + ' رسمة</span>';
+        if (cd.coverTitle) h += '<span class="cwd-tag">✏️ ' + cd.coverTitle + '</span>';
+        h += '</div>';
+        h += '<span class="price">' + toArabicNum(item.price) + ' ج.م</span>';
+        h += '</div>';
+        h += '<button class="cart-remove" data-remove-cart="' + item.slug + '" title="شيلي">✕</button>';
+        h += '</div>';
+        return;
+      }
+
       var bgClass = product.media.bg === 'emerald' ? 'emerald-bg' : product.media.bg === 'sand' ? 'sand-bg' : 'teal-bg';
       h += '<div class="cart-item">';
       h += '<div class="cart-item-media ' + bgClass + '">' + renderCartMedia(product.media, product.imageUrl) + '</div>';
@@ -1125,12 +1145,17 @@
       address: addressEl.value.trim(),
       notes: notesEl.value.trim() || '',
       items: cart.map(function (item) {
-        return {
+        var orderItem = {
           productSlug: item.slug,
           name: item.name,
           price: item.price,
           qty: item.qty
         };
+        // Include coloring details for workbook items
+        if (item.slug === 'coloring-workbook' && item.coloringDetails) {
+          orderItem.coloringDetails = item.coloringDetails;
+        }
+        return orderItem;
       }),
       total: grandTotal,
       shippingFee: shipping,
@@ -2614,15 +2639,15 @@
   }
 
   function updateColoringFab() {
-    var fab = document.getElementById('floatingWorkbookBtn');
-    var countEl = document.getElementById('fwbCount');
-    if (!fab || !countEl) return;
+    var bar = document.getElementById('coloringWorkbookBar');
+    var countEl = document.getElementById('cwbCount');
+    if (!bar || !countEl) return;
     
     if (coloringCart.length > 0) {
-      fab.style.display = 'flex';
+      bar.style.display = 'flex';
       countEl.textContent = toArabicNum(coloringCart.length);
     } else {
-      fab.style.display = 'none';
+      bar.style.display = 'none';
     }
   }
 
@@ -2917,8 +2942,19 @@
         return;
      }
 
-     var totalPages = coloringCart.length;
-     var pricePer = SITE_CONTENT['pricePerPage'];
+      var totalPages = coloringCart.length;
+
+      // Min/max pages validation
+      var minPages = parseInt(SITE_CONTENT['coloring_min_pages']) || 5;
+      var maxPages = parseInt(SITE_CONTENT['coloring_max_pages']) || 50;
+      var pagesWarning = '';
+      if (totalPages < minPages) {
+        pagesWarning = '<div class="cb-warning">⚠️ الحد الأدنى ' + toArabicNum(minPages) + ' رسومات — اختاري ' + toArabicNum(minPages - totalPages) + ' كمان</div>';
+      } else if (totalPages > maxPages) {
+        pagesWarning = '<div class="cb-warning">⚠️ الحد الأقصى ' + toArabicNum(maxPages) + ' رسمة — شيلي ' + toArabicNum(totalPages - maxPages) + '</div>';
+      }
+
+      var pricePer = SITE_CONTENT['pricePerPage'];
      if (!pricePer) pricePer = coloringState.pricePerPage;
      else pricePer = parseFloat(pricePer);
 
@@ -2928,10 +2964,13 @@
 
      var html = '<div class="cb-page-wrap">';
      
-     // Free download notice
-     html += '<div class="coloring-free-notice">';
-     html += '<p>تقدري تطبعي الرسومات دي لوحدك مجاناً — أو اطلبي من سِراج كشكول مطبوع ومجلّد يوصلك لباب البيت ✦</p>';
-     html += '</div>';
+      // Free download notice
+      html += '<div class="coloring-free-notice">';
+      html += '<p>اختاري الرسومات اللي تعجبك وحددي شكل الكشكول — وسِراج هيطبعها ويجلّدها ويوصّلها ✦</p>';
+      html += '</div>';
+
+      // Pages warning
+      html += pagesWarning;
      
      // Left: Items Grid
      html += '<div class="cb-items-wrap"><div class="cb-items-list">';
@@ -2999,8 +3038,9 @@
      html += '  <div class="cb-summary-total" id="cbTotalRow"><span>الإجمالي</span><span id="cbTotalPrice">' + toArabicNum(totalPages * pricePer) + ' ج.م</span></div>';
      html += '</div>';
 
-     html += '<p style="font-size:12px;color:var(--ink-mute);text-align:center;margin-top:12px;line-height:1.6;">شامل الطباعة والتغليف — مصاريف الشحن بتتحسب عند الطلب</p>';
-     html += '<button class="btn btn-primary cb-checkout-btn" id="btnColoringCheckout">أضيفي للسلة 🛒</button>';
+      html += '<p style="font-size:12px;color:var(--ink-mute);text-align:center;margin-top:12px;line-height:1.6;">شامل الطباعة والتغليف — مصاريف الشحن بتتحسب عند الطلب</p>';
+      var canCheckout = totalPages >= minPages && totalPages <= maxPages;
+      html += '<button class="btn btn-primary cb-checkout-btn' + (canCheckout ? '' : ' is-disabled') + '" id="btnColoringCheckout"' + (canCheckout ? '' : ' disabled') + '>' + (canCheckout ? 'أضيفي للسلة 🛒' : 'اختاري ' + toArabicNum(minPages) + ' رسومات على الأقل') + '</button>';
      html += '</div>'; // end summary panel
 
      html += '</div>'; // end cb-page-wrap
