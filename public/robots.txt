@@ -1,0 +1,13 @@
+# ==========================================
+# سِراج — robots.txt
+# https://seraj-store.vercel.app
+# ==========================================
+
+# Standard Crawlers
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://seraj-store.vercel.app/sitemap.xml
