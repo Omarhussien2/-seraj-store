@@ -2590,9 +2590,11 @@
     search: '',
     category: '',
     difficulty: '',
+    ageRange: '',
     hasMore: true,
     loading: false,
-    pricePerPage: 3 // fallback, will be fetched from SiteContent optionally
+    pricePerPage: 3, // fallback, will be fetched from SiteContent
+    coverPrice: 20   // fallback, will be fetched from SiteContent
   };
 
   function loadColoringCart() {
@@ -2649,6 +2651,7 @@
     if (coloringState.search) params.set('q', coloringState.search);
     if (coloringState.category) params.set('category', coloringState.category);
     if (coloringState.difficulty) params.set('difficulty', coloringState.difficulty);
+    if (coloringState.ageRange) params.set('age', coloringState.ageRange);
 
     fetch('/api/coloring/items?' + params.toString())
       .then(function(res) { return res.json(); })
@@ -2670,22 +2673,31 @@
               return;
            }
 
-           items.forEach(function(item) {
-             var isAdded = coloringCart.some(function(c) { return c._id === item._id; });
-             var card = document.createElement('div');
-             card.className = 'coloring-card';
-             card.innerHTML = 
-               '<div class="coloring-img-wrap">' +
-                 '<img src="' + item.thumbnail + '" alt="' + item.title + '" loading="lazy" />' +
-               '</div>' +
-               '<div class="coloring-body">' +
-                 '<h3 class="coloring-title">' + item.title + '</h3>' +
-                 '<button class="coloring-action-btn ' + (isAdded ? 'is-added' : '') + '" data-id="' + item._id + '" data-img="' + item.thumbnail + '" data-title="' + item.title + '">' +
-                    (isAdded ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> متضافة في الكشكول' : 'ضيفي للكشكول +') +
-                 '</button>' +
-               '</div>';
-             grid.appendChild(card);
-           });
+            items.forEach(function(item) {
+              var isAdded = coloringCart.some(function(c) { return c._id === item._id; });
+              var card = document.createElement('div');
+              card.className = 'coloring-card';
+              var sourceAttr = item.sourceUrl ? ' data-source="' + item.sourceUrl.replace(/"/g, '&quot;') + '"' : '';
+              card.innerHTML = 
+                '<div class="coloring-img-wrap">' +
+                  '<img src="' + item.thumbnail + '" alt="' + item.title + '" loading="lazy" />' +
+                  '<button class="coloring-heart ' + (isAdded ? 'is-loved' : '') + '" data-action="toggle" data-id="' + item._id + '" data-img="' + item.thumbnail + '" data-title="' + item.title + '" title="' + (isAdded ? 'شيلي من الكشكول' : 'ضيفي للكشكول') + '">' +
+                    '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="' + (isAdded ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2"/></svg>' +
+                  '</button>' +
+                '</div>' +
+                '<div class="coloring-body">' +
+                  '<h3 class="coloring-title">' + item.title + '</h3>' +
+                  '<div class="coloring-actions">' +
+                    '<button class="coloring-btn-add ' + (isAdded ? 'is-added' : '') + '" data-action="toggle" data-id="' + item._id + '" data-img="' + item.thumbnail + '" data-title="' + item.title + '">' +
+                       (isAdded ? '✓ في الكشكول' : '+ ضيفي للكشكول') +
+                    '</button>' +
+                    '<button class="coloring-btn-share" data-action="share" data-title="' + item.title + '"' + sourceAttr + '>' +
+                      '🔗 مشاركة' +
+                    '</button>' +
+                  '</div>' +
+                '</div>';
+              grid.appendChild(card);
+            });
 
            if (coloringState.hasMore) {
              if(loadMoreBtn) loadMoreBtn.style.display = 'block';
@@ -2726,6 +2738,7 @@
       .then(function(data) {
         if (data.success && data.data) {
            coloringState.pricePerPage = parseFloat(data.data.pricePerPage) || 3;
+           coloringState.coverPrice = parseFloat(data.data.coverPrice) || 20;
         }
       });
   }
@@ -2772,6 +2785,20 @@
       });
     }
 
+    // Age Range Event
+    var ageWrap = document.getElementById('coloringAge');
+    if (ageWrap) {
+      ageWrap.addEventListener('click', function(e) {
+        if (e.target.classList.contains('chip')) {
+          ageWrap.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('is-active'); });
+          e.target.classList.add('is-active');
+          coloringState.ageRange = e.target.dataset.val;
+          coloringState.page = 1;
+          fetchColoringItems(false);
+        }
+      });
+    }
+
     // Search Event
     var searchInput = document.getElementById('coloringSearch');
     if (searchInput) {
@@ -2797,26 +2824,56 @@
       });
     }
 
-    // Grid Add/Remove Event (Delegate)
+    // Grid Event Delegate (toggle + share)
     var grid = document.getElementById('coloringGrid');
     if (grid) {
       grid.addEventListener('click', function(e) {
-        var btn = e.target.closest('.coloring-action-btn');
+        // Share button
+        var shareBtn = e.target.closest('[data-action="share"]');
+        if (shareBtn) {
+          var shareTitle = shareBtn.dataset.title || 'رسومة تلوين من سِراج';
+          var shareUrl = shareBtn.dataset.source || window.location.href;
+          if (navigator.share) {
+            navigator.share({ title: shareTitle, url: shareUrl }).catch(function(){});
+          } else {
+            navigator.clipboard.writeText(shareUrl).then(function() {
+              showToast('تم نسخ الرابط ✓');
+            }).catch(function() {
+              showToast('مفيش دعم للمشاركة على المتصفح ده');
+            });
+          }
+          return;
+        }
+
+        // Toggle add/remove — works for both heart and text button
+        var btn = e.target.closest('[data-action="toggle"]');
         if (!btn) return;
         
         var id = btn.dataset.id;
         var img = btn.dataset.img;
         var title = btn.dataset.title;
+        var card = btn.closest('.coloring-card');
         
         var index = coloringCart.findIndex(function(c) { return c._id === id; });
         if (index > -1) {
            coloringCart.splice(index, 1);
-           btn.classList.remove('is-added');
-           btn.innerHTML = 'ضيفي للكشكول +';
+           // Update all toggle buttons in this card
+           if (card) {
+             var hearts = card.querySelectorAll('.coloring-heart');
+             var addBtns = card.querySelectorAll('.coloring-btn-add');
+             hearts.forEach(function(h) { h.classList.remove('is-loved'); h.querySelector('path').setAttribute('fill','none'); h.title = 'ضيفي للكشكول'; });
+             addBtns.forEach(function(b) { b.classList.remove('is-added'); b.textContent = '+ ضيفي للكشكول'; });
+           }
+           showToast('اتشالت من الكشكول');
         } else {
            coloringCart.push({ _id: id, thumbnail: img, title: title });
-           btn.classList.add('is-added');
-           btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> متضافة في الكشكول';
+           if (card) {
+             var hearts2 = card.querySelectorAll('.coloring-heart');
+             var addBtns2 = card.querySelectorAll('.coloring-btn-add');
+             hearts2.forEach(function(h) { h.classList.add('is-loved'); h.querySelector('path').setAttribute('fill','currentColor'); h.title = 'شيلي من الكشكول'; });
+             addBtns2.forEach(function(b) { b.classList.add('is-added'); b.textContent = '✓ في الكشكول'; });
+           }
+           showToast('اتضافت للكشكول ✓');
         }
         saveColoringCart();
       });
@@ -2826,6 +2883,28 @@
   function renderColoringBook() {
      var wrap = document.getElementById('coloringBookContent');
      if (!wrap) return;
+
+     // Check for shared workbook in URL
+     var loadFromUrl = function() {
+       try {
+         var hash = window.location.hash || '';
+         var match = hash.match(/[\?&]w=([^&]+)/);
+         if (match) {
+           var decoded = JSON.parse(atob(decodeURIComponent(match[1])));
+           if (Array.isArray(decoded) && decoded.length > 0) {
+             // Merge shared items into cart (don't overwrite existing)
+             decoded.forEach(function(shared) {
+               var exists = coloringCart.some(function(c) { return c._id === (shared._id || shared); });
+               if (!exists) {
+                 coloringCart.push(typeof shared === 'string' ? { _id: shared, thumbnail: '', title: 'رسومة' } : shared);
+               }
+             });
+             saveColoringCart();
+           }
+         }
+       } catch(e) {}
+     };
+     loadFromUrl();
 
      if (coloringCart.length === 0) {
         wrap.innerHTML = 
@@ -2839,18 +2918,19 @@
      }
 
      var totalPages = coloringCart.length;
-     // Fallback to SITE_CONTENT if loaded, otherwise internal state
      var pricePer = SITE_CONTENT['pricePerPage'];
      if (!pricePer) pricePer = coloringState.pricePerPage;
      else pricePer = parseFloat(pricePer);
 
-     var subtotal = totalPages * pricePer;
+     var coverPriceVal = SITE_CONTENT['coverPrice'];
+     if (!coverPriceVal) coverPriceVal = coloringState.coverPrice || 20;
+     else coverPriceVal = parseFloat(coverPriceVal);
 
      var html = '<div class="cb-page-wrap">';
      
      // Free download notice
      html += '<div class="coloring-free-notice">';
-     html += '<p>تقدري تطبعي الرسومات دي لوحدك مجاناً — أو اطلبي من سِراج كشكول مطبوع ومجلّد يوصلك لباب البيت</p>';
+     html += '<p>تقدري تطبعي الرسومات دي لوحدك مجاناً — أو اطلبي من سِراج كشكول مطبوع ومجلّد يوصلك لباب البيت ✦</p>';
      html += '</div>';
      
      // Left: Items Grid
@@ -2859,35 +2939,106 @@
         html += 
           '<div class="cb-item-card" data-id="' + item._id + '">' +
             '<img src="' + item.thumbnail + '" alt="' + item.title + '" class="cb-item-img" />' +
-            '<button class="cb-item-remove" data-id="' + item._id + '">شيل من الكشكول ✕</button>' +
+            '<span class="cb-item-title">' + item.title + '</span>' +
+            '<button class="cb-item-remove" data-id="' + item._id + '">✕ شيل</button>' +
           '</div>';
      });
-     html += '</div></div>';
-
-     // Right: Summary
-     html += 
-        '<div class="cb-summary-panel">' +
-          '<h3 style="margin-bottom: 20px; font-size: 20px;">ملخص الكشكول المطبوع</h3>' +
-          '<div class="cb-summary-row">' +
-            '<span>عدد الرسومات</span>' +
-            '<strong>' + toArabicNum(totalPages) + '</strong>' +
-          '</div>' +
-          '<div class="cb-summary-row">' +
-            '<span>تكلفة الصفحة الواحدة</span>' +
-            '<strong>' + toArabicNum(pricePer) + ' ج.م</strong>' +
-          '</div>' +
-          '<div class="cb-summary-total">' +
-            '<span>الإجمالي</span>' +
-            '<span>' + toArabicNum(subtotal) + ' ج.م</span>' +
-          '</div>' +
-          '<p style="font-size: 13px; color: var(--ink-mute); text-align: center; margin-top: 14px;">شامل الطباعة والتغليف الملون — بدون مصاريف شحن</p>' +
-          '<button class="btn btn-primary cb-checkout-btn" id="btnColoringCheckout">اطلبي الكشكول المطبوع</button>' +
-        '</div>';
-
      html += '</div>';
+
+     // Share workbook link
+     html += '<div class="cb-share-bar">';
+     html += '  <button class="btn btn-outline" id="cbShareLink">🔗 شاركي كشكولك (ابعتيله لنفسك على واتساب)</button>';
+     html += '</div>';
+     html += '</div>'; // end cb-items-wrap
+
+     // Right: Summary Panel with format options
+     html += '<div class="cb-summary-panel">';
+
+     // Format selection
+     html += '<h3 class="cb-panel-title">اختاري الشكل</h3>';
+     html += '<div class="cb-format-options">';
+     html += '  <label class="cb-format-card is-selected">';
+     html += '    <input type="radio" name="cbFormat" value="sheets" checked style="display:none" />';
+     html += '    <div class="cb-format-icon">📄</div>';
+     html += '    <div class="cb-format-info">';
+     html += '      <strong>ورق مطبوع</strong>';
+     html += '      <span>أوراق تلوين مفردة</span>';
+     html += '    </div>';
+     html += '  </label>';
+     html += '  <label class="cb-format-card">';
+     html += '    <input type="radio" name="cbFormat" value="book" style="display:none" />';
+     html += '    <div class="cb-format-icon">📚</div>';
+     html += '    <div class="cb-format-info">';
+     html += '      <strong>كشكول بغلاف مخصص</strong>';
+     html += '      <span>+ ' + toArabicNum(coverPriceVal) + ' ج.م للغلاف</span>';
+     html += '    </div>';
+     html += '  </label>';
+     html += '</div>';
+
+     // Cover selection (hidden by default, shows when "book" is selected)
+     html += '<div class="cb-cover-section" id="cbCoverSection" style="display:none">';
+     html += '  <h4>اختاري غلاف الكشكول</h4>';
+     html += '  <div class="cb-cover-grid" id="cbCoverGrid">';
+     html += '    <label class="cb-cover-option is-selected"><input type="radio" name="cbCover" value="cover-seraj" checked style="display:none" /><img src="assets/seraj.png" alt="سِراج" /><span>سِراج</span></label>';
+     html += '    <label class="cb-cover-option"><input type="radio" name="cbCover" value="cover-khaled" style="display:none" /><img src="assets/khaled-v2.png" alt="خالد" /><span>خالد</span></label>';
+     html += '    <label class="cb-cover-option"><input type="radio" name="cbCover" value="cover-layla" style="display:none" /><img src="assets/layla.png" alt="ليلى" /><span>ليلى</span></label>';
+     html += '    <label class="cb-cover-option"><input type="radio" name="cbCover" value="cover-zain" style="display:none" /><img src="assets/zain.png" alt="زين" /><span>زين</span></label>';
+     html += '  </div>';
+     html += '  <div class="cb-cover-name">';
+     html += '    <label>اسم الكشكول (اختياري):</label>';
+     html += '    <input type="text" id="cbCoverTitle" placeholder="مثلاً: كشكول يوسف للتلوين" maxlength="40" />';
+     html += '  </div>';
+     html += '</div>';
+
+     // Price breakdown
+     html += '<div class="cb-price-breakdown">';
+     html += '  <div class="cb-summary-row"><span>عدد الرسومات</span><strong>' + toArabicNum(totalPages) + '</strong></div>';
+     html += '  <div class="cb-summary-row"><span>سعر الورقة</span><strong>' + toArabicNum(pricePer) + ' ج.م</strong></div>';
+     html += '  <div class="cb-summary-row"><span>الأوراق</span><strong>' + toArabicNum(totalPages * pricePer) + ' ج.م</strong></div>';
+     html += '  <div class="cb-summary-row cb-cover-price-row" id="cbCoverPriceRow" style="display:none"><span>غلاف مخصص</span><strong>+' + toArabicNum(coverPriceVal) + ' ج.م</strong></div>';
+     html += '  <div class="cb-summary-total" id="cbTotalRow"><span>الإجمالي</span><span id="cbTotalPrice">' + toArabicNum(totalPages * pricePer) + ' ج.م</span></div>';
+     html += '</div>';
+
+     html += '<p style="font-size:12px;color:var(--ink-mute);text-align:center;margin-top:12px;line-height:1.6;">شامل الطباعة والتغليف — مصاريف الشحن بتتحسب عند الطلب</p>';
+     html += '<button class="btn btn-primary cb-checkout-btn" id="btnColoringCheckout">أضيفي للسلة 🛒</button>';
+     html += '</div>'; // end summary panel
+
+     html += '</div>'; // end cb-page-wrap
      wrap.innerHTML = html;
 
-     // Attach Removes
+     // --- Event listeners ---
+
+     // Format toggle (sheets / book)
+     wrap.querySelectorAll('input[name="cbFormat"]').forEach(function(radio) {
+       radio.addEventListener('change', function() {
+         // Update visual selection
+         wrap.querySelectorAll('.cb-format-card').forEach(function(c) { c.classList.remove('is-selected'); });
+         radio.closest('.cb-format-card').classList.add('is-selected');
+         var isBook = radio.value === 'book';
+         document.getElementById('cbCoverSection').style.display = isBook ? 'block' : 'none';
+         document.getElementById('cbCoverPriceRow').style.display = isBook ? 'flex' : 'none';
+         updateBookPrice();
+       });
+     });
+
+     // Cover selection
+     wrap.querySelectorAll('input[name="cbCover"]').forEach(function(radio) {
+       radio.addEventListener('change', function() {
+         wrap.querySelectorAll('.cb-cover-option').forEach(function(c) { c.classList.remove('is-selected'); });
+         radio.closest('.cb-cover-option').classList.add('is-selected');
+       });
+     });
+
+     function updateBookPrice() {
+       var format = wrap.querySelector('input[name="cbFormat"]:checked').value;
+       var pagesTotal = totalPages * pricePer;
+       var total = format === 'book' ? pagesTotal + coverPriceVal : pagesTotal;
+       var totalEl = document.getElementById('cbTotalPrice');
+       if (totalEl) totalEl.textContent = toArabicNum(total) + ' ج.م';
+       return total;
+     }
+
+     // Remove items
      wrap.querySelectorAll('.cb-item-remove').forEach(function(btn) {
        btn.addEventListener('click', function(e) {
           var id = e.target.dataset.id;
@@ -2895,22 +3046,61 @@
           if (index > -1) {
              coloringCart.splice(index, 1);
              saveColoringCart();
-             renderColoringBook(); // re-render
+             renderColoringBook();
           }
        });
      });
+
+     // Share workbook link
+     var shareBtn = document.getElementById('cbShareLink');
+     if (shareBtn) {
+       shareBtn.addEventListener('click', function() {
+         var ids = coloringCart.map(function(c) { return { _id: c._id, thumbnail: c.thumbnail, title: c.title }; });
+         var encoded = encodeURIComponent(btoa(JSON.stringify(ids)));
+         var shareUrl = window.location.origin + '/#/coloring-book?w=' + encoded;
+         if (navigator.share) {
+           navigator.share({ title: 'كشكول ألوان من سِراج', url: shareUrl }).catch(function(){});
+         } else {
+           navigator.clipboard.writeText(shareUrl).then(function() {
+             showToast('تم نسخ رابط الكشكول ✓ ابعتيله لنفسك على واتساب');
+           });
+         }
+       });
+     }
 
      // Checkout btn
      var coBtn = document.getElementById('btnColoringCheckout');
      if (coBtn) {
           coBtn.addEventListener('click', function() {
-            // Map coloring workbook to the global cart as a single bundle item
+            var format = wrap.querySelector('input[name="cbFormat"]:checked').value;
+            var coverTitle = '';
+            var coverImg = '';
+            if (format === 'book') {
+              var coverInput = document.getElementById('cbCoverTitle');
+              coverTitle = coverInput ? coverInput.value.trim() : '';
+              var selectedCover = wrap.querySelector('input[name="cbCover"]:checked');
+              coverImg = selectedCover ? selectedCover.value : '';
+            }
+
+            var pagesTotal = totalPages * pricePer;
+            var total = format === 'book' ? pagesTotal + coverPriceVal : pagesTotal;
+            var itemName = format === 'book'
+              ? 'كشكول ألوان سِراج (' + toArabicNum(totalPages) + ' ورقة)' + (coverTitle ? ' — ' + coverTitle : '')
+              : 'ورق تلوين مطبوع (' + toArabicNum(totalPages) + ' ورقة)';
+
             var workbookItem = {
               slug: 'coloring-workbook',
-              name: 'كشكول أنشطة سِراج (' + toArabicNum(totalPages) + ' صورة)',
-              price: subtotal,
+              name: itemName,
+              price: total,
               qty: 1,
-              media: { type: 'book3d', bg: 'emerald' }
+              media: { type: 'book3d', bg: 'emerald' },
+              coloringDetails: {
+                itemCount: totalPages,
+                format: format,
+                coverTitle: coverTitle,
+                coverImage: coverImg,
+                items: coloringCart.map(function(c) { return c._id; })
+              }
             };
             
             // Remove existing coloring workbook in cart if any, then add new
@@ -2920,7 +3110,8 @@
             cart.push(workbookItem);
             saveCart();
             updateCartBadge();
-            window.location.hash = '#/checkout';
+            showToast('اتضاف للسلة ✓');
+            window.location.hash = '#/cart';
         });
      }
   }

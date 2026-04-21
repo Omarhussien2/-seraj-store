@@ -3698,12 +3698,12 @@ input, textarea { font-family: inherit; }
 }
 .product-foot { border-top: 1px solid var(--line); padding-top: 12px; margin-top: auto; }
 
-/* ============ COLORING SECTION & FLOATING BUTTON ============ */
+/* ============ COLORING SECTION ============ */
 .coloring-card {
   position: relative;
   background: var(--paper);
   border: 2px solid var(--line);
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -3712,36 +3712,66 @@ input, textarea { font-family: inherit; }
 .coloring-card:hover {
   border-color: var(--seraj);
   transform: translateY(-4px);
-  box-shadow: 0 6px 16px rgba(0,0,0,.06);
+  box-shadow: 0 8px 20px rgba(0,0,0,.08);
 }
 
 .coloring-img-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 1; /* Square for coloring pages */
+  aspect-ratio: 1;
   background: #fff;
-  padding: 10px;
+  padding: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
 .coloring-img-wrap img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  filter: grayscale(100%); /* Usually black and white */
-  mix-blend-mode: multiply;
+}
+
+/* Heart button on image */
+.coloring-heart {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,.9);
+  color: var(--ink-mute);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+  backdrop-filter: blur(4px);
+  padding: 0;
+}
+.coloring-heart:hover {
+  transform: scale(1.15);
+  color: var(--ember);
+}
+.coloring-heart.is-loved {
+  background: var(--ember);
+  color: #fff;
+  animation: heartPop .35s ease;
+}
+@keyframes heartPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.3); }
+  100% { transform: scale(1); }
 }
 
 .coloring-body {
-  padding: 12px;
-  text-align: center;
+  padding: 14px 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   border-top: 1px solid rgb(0 0 0 / 5%);
-  background: rgb(0 0 0 / 2%);
 }
 
 .coloring-title {
@@ -3753,97 +3783,124 @@ input, textarea { font-family: inherit; }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: right;
 }
 
-.coloring-action-btn {
-  background: #fff;
-  border: 2px solid var(--line);
-  color: var(--ink-soft);
-  border-radius: 12px;
-  padding: 8px 12px;
-  font-weight: 700;
-  font-size: 13px;
-  cursor: pointer;
+/* Action buttons row */
+.coloring-actions {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+  gap: 8px;
+}
+
+.coloring-btn-add {
+  flex: 1;
+  background: var(--seraj-wash);
+  border: 2px solid var(--seraj);
+  color: var(--seraj-dark);
+  border-radius: 12px;
+  padding: 10px 8px;
+  font-weight: 800;
+  font-size: 13px;
+  font-family: var(--body);
+  cursor: pointer;
+  text-align: center;
   transition: all .2s;
 }
-
-.coloring-action-btn:hover {
-  background: var(--seraj-wash);
-  border-color: var(--seraj);
-  color: var(--seraj-dark);
+.coloring-btn-add:hover {
+  background: var(--seraj);
+  color: #fff;
 }
-
-.coloring-action-btn.is-added {
+.coloring-btn-add.is-added {
   background: var(--seraj);
   border-color: var(--seraj-dark);
   color: #fff;
 }
-.coloring-action-btn.is-added svg {
-  stroke: #fff;
+
+.coloring-btn-share {
+  background: #fff;
+  border: 2px solid var(--line);
+  color: var(--ink-soft);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-weight: 700;
+  font-size: 13px;
+  font-family: var(--body);
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.coloring-btn-share:hover {
+  border-color: #1976D2;
+  color: #1976D2;
+  background: #E3F2FD;
 }
 
+/* Floating Workbook Button — improved */
 .floating-workbook-btn {
   position: fixed;
-  bottom: 80px; /* Above bottom nav */
-  left: 20px;
+  bottom: 80px;
+  left: 16px;
+  right: 16px;
+  max-width: 340px;
+  margin: 0 auto;
   background: var(--seraj);
   color: #fff;
-  padding: 12px 20px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: 16px;
-  text-decoration: none;
-  box-shadow: 0 4px 16px rgba(74,145,40,.3);
-  border: 2.5px solid var(--seraj-dark);
-  z-index: 100;
-  animation: bounceUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-@keyframes bounceUp {
-  0% { transform: translateY(50px) scale(0.8); opacity: 0; }
-  100% { transform: translateY(0) scale(1); opacity: 1; }
-}
-
-.fwb-icon {
-  position: relative;
-  display: flex;
-}
-
-.fwb-badge {
-  position: absolute;
-  top: -8px;
-  right: -10px;
-  background: var(--ember);
-  color: #fff;
-  font-size: 11px;
-  font-family: var(--body);
-  font-weight: 800;
-  min-width: 20px;
-  height: 20px;
-  border-radius: 10px;
+  padding: 14px 24px;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 4px;
-  border: 2px solid #fff;
+  gap: 10px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 17px;
+  text-decoration: none;
+  box-shadow: 0 6px 24px rgba(74,145,40,.35);
+  border: 3px solid var(--seraj-dark);
+  z-index: 100;
+  animation: slideUpBounce .5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes slideUpBounce {
+  0% { transform: translateY(60px) scale(0.9); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+.floating-workbook-btn:active {
+  transform: scale(0.96);
 }
 
-/* Coloring Book Page */
+/* Responsive for coloring cards */
+@media (max-width: 640px) {
+  .coloring-actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .coloring-btn-add, .coloring-btn-share {
+    padding: 8px;
+    font-size: 12px;
+  }
+  .coloring-heart {
+    width: 34px;
+    height: 34px;
+    top: 6px;
+    left: 6px;
+  }
+  .floating-workbook-btn {
+    bottom: 76px;
+    left: 12px;
+    right: 12px;
+    font-size: 15px;
+    padding: 12px 18px;
+  }
+}
+
+/* ============ COLORING BOOK PAGE ============ */
 .cb-page-wrap {
   display: grid;
   gap: 24px;
 }
 @media(min-width: 800px) {
   .cb-page-wrap {
-    grid-template-columns: 1fr 340px;
+    grid-template-columns: 1fr 360px;
     align-items: start;
   }
 }
@@ -3869,7 +3926,19 @@ input, textarea { font-family: inherit; }
   width: 100%;
   aspect-ratio: 1;
   object-fit: contain;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+}
+
+.cb-item-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  margin-bottom: 6px;
 }
 
 .cb-item-remove {
@@ -3889,6 +3958,16 @@ input, textarea { font-family: inherit; }
   color: #fff;
 }
 
+/* Share bar under items */
+.cb-share-bar {
+  margin-top: 16px;
+  text-align: center;
+}
+.cb-share-bar .btn {
+  font-size: 14px;
+}
+
+/* Summary panel */
 .cb-summary-panel {
   background: var(--paper);
   border: 2px solid var(--ink);
@@ -3896,6 +3975,149 @@ input, textarea { font-family: inherit; }
   padding: 24px;
   position: sticky;
   top: 90px;
+}
+
+.cb-panel-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0 0 16px;
+  color: var(--ink);
+}
+
+/* Format selection cards */
+.cb-format-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.cb-format-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 12px;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all .2s;
+  background: #fff;
+}
+.cb-format-card:hover {
+  border-color: var(--seraj);
+}
+.cb-format-card.is-selected {
+  border-color: var(--seraj);
+  background: var(--seraj-wash);
+  box-shadow: 0 3px 0 var(--seraj-dark);
+}
+
+.cb-format-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.cb-format-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cb-format-info strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.cb-format-info span {
+  font-size: 12px;
+  color: var(--ink-mute);
+}
+
+/* Cover section */
+.cb-cover-section {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 16px;
+  animation: slideDown .25s ease;
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.cb-cover-section h4 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: var(--ink);
+}
+
+.cb-cover-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.cb-cover-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all .2s;
+  background: #fff;
+}
+.cb-cover-option:hover {
+  border-color: var(--seraj);
+}
+.cb-cover-option.is-selected {
+  border-color: var(--seraj);
+  background: var(--seraj-wash);
+}
+.cb-cover-option img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+.cb-cover-option span {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.cb-cover-name {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cb-cover-name label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.cb-cover-name input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  font-size: 15px;
+  font-family: var(--body);
+  color: var(--ink);
+  background: #fff;
+  transition: border-color .2s;
+}
+.cb-cover-name input:focus {
+  outline: none;
+  border-color: var(--seraj);
+}
+
+/* Price breakdown */
+.cb-price-breakdown {
+  margin-bottom: 4px;
 }
 
 .cb-summary-row {
@@ -3986,4 +4208,43 @@ input, textarea { font-family: inherit; }
   font-size: 14px;
   color: var(--ink-mute);
   margin: 0 0 16px;
+}
+
+/* ===== COLORING RESPONSIVE ===== */
+@media (max-width: 640px) {
+  .cb-format-options {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .cb-format-card {
+    padding: 12px 10px;
+  }
+  .cb-format-icon {
+    font-size: 24px;
+  }
+  .cb-cover-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .cb-cover-option img {
+    width: 40px;
+    height: 40px;
+  }
+  .cb-summary-panel {
+    padding: 18px;
+  }
+  .cb-summary-total {
+    font-size: 20px;
+  }
+  .coloring-actions {
+    gap: 4px;
+  }
+  .coloring-icon-btn {
+    width: 32px;
+    height: 32px;
+  }
+  .coloring-action-btn {
+    padding: 6px 4px;
+    font-size: 14px;
+  }
 }
