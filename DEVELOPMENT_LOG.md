@@ -51,7 +51,7 @@
 ├─────────────────────────────────────────────────────┤
 │ Unsectioned: مجموعات (bundles)                      │
 │   └── Product: مجموعة الأبطال الصغار                 │
-│   └── Appears in all sections as cross-sell          │
+│   └── Coming Soon Appears in all sections as cross-sell          │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -479,41 +479,28 @@
 
 ---
 
-### Phase 3: Homepage Links Update (Hero + Showcase)
+### Phase 3: Hero Section & Showcase CTAs
 **Duration:** ~15 min | **Files:** `public/index.html`
-**⚠️ CRITICAL: This phase MUST run AFTER Phase 2 (products page exists with section IDs). The anchor links (`#tales`, `#play-learn`, etc.) won't work until the target elements exist.**
 
-> **Why this matters:** The homepage has 7 CTAs that point to old destinations. After restructuring the products page into 4 sections, every homepage link must point to the correct section anchor. If we update these links BEFORE the products page is ready, users will see a broken/empty page.
-
-#### Task 3.1: Update Hero CTA Buttons (line ~108-115)
-- **File:** `public/index.html`
+#### Task 3.1: Update Hero CTA Buttons
+- **File:** `public/index.html` (lines ~108-115)
 - **Changes:**
   - Primary Button: Text → `"استكشفي عالم سراج"`, href → `#/products`
   - Secondary Button: Text → `"اصنعي قصة لابنك"`, href → `#/product/custom-story`
   - Confirm NO `data-content-key` attributes (already removed)
 - **Verify:** Both buttons render with correct text and link targets
 
-#### Task 3.2: Update Showcase Category CTAs (lines ~237, 261, 285, 309, 333)
-- **File:** `public/index.html` — the zig-zag showcase section (5 cards)
-- **⚠️ This is the step the user flagged as critical — all 5 homepage showcase CTAs must be updated**
-
-  **Detailed mapping with exact line numbers:**
-
-  | Line | Card | Current `href` | New `href` | Why |
-  |------|------|---------------|------------|-----|
-  | ~237 | 🐎 قصص "سباق الفتوحات" | `#/products` | **`#/products#tales`** | Scroll to tales section |
-  | ~261 | 🌟 قصة مخصوصة | `#/wizard` | **`#/product/custom-story`** | Product detail first, then wizard CTA |
-  | ~285 | 🧩 ألعاب سراج | `#/products` | **`#/products#play-learn`** | Scroll to play-learn section |
-  | ~309 | 👩‍👧‍👦 عالم ماما | `#/mama-world` | `#/mama-world` ✅ | No change needed |
-  | ~333 | 🐰 سلسلة حكايات سراج | `#/products` | **`#/products#seraj-stories`** | Scroll to coming soon section |
-
-  **4 out of 5 links need updating.** Only "عالم ماما" is already correct.
-
-- **How to verify:**
-  1. Click each showcase CTA from homepage
-  2. Verify it navigates to the correct section on the products page
-  3. Verify anchor scroll works (page scrolls to section, not just top)
-  4. Verify back button returns to homepage
+#### Task 3.2: Update Showcase Category CTAs
+- **File:** `public/index.html` (zig-zag showcase section)
+- **Changes:**
+  | Showcase Card | Current Link | New Link |
+  |--------------|-------------|----------|
+  | 🐎 قصص "سباق الفتوحات" | `#/products` | `#/products#tales` |
+  | 🌟 قصة مخصوصة | `#/wizard` | `#/product/custom-story` |
+  | 🧩 ألعاب سراج | `#/products` | `#/products#play-learn` |
+  | 👩‍👧‍👦 عالم ماما | `#/mama-world` | keep `#/mama-world` (unchanged) |
+  | 🐰 سلسلة حكايات سراج | `#/products` | `#/products#seraj-stories` |
+- **Verify:** Each showcase CTA links to correct section anchor
 
 ---
 
