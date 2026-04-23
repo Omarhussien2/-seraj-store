@@ -12,6 +12,8 @@
   var CART_KEY = 'seraj-cart';
   var WIZARD_KEY = 'seraj-wizard';
   var ORDER_KEY = 'seraj-last-order';
+  var PRODUCTS_CACHE_KEY = 'seraj-products-cache-v1';
+  var PRODUCTS_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
   var SHIPPING_FEE = 35; // fallback — overridden by /api/config
   var FREE_SHIPPING_ABOVE = 500; // fallback — overridden by /api/config
 
@@ -136,6 +138,37 @@
     }
   };
 
+  // Preload the real product photo and only then swap the static mockup
+  // with the new <img> element. Reading the already-decoded image from the
+  // browser cache makes the swap instant, so users never see an empty
+  // container between the mockup disappearing and the image rendering.
+  function swapMediaWithPhoto(mediaDiv, mockup, product) {
+    var photoUrl = resolvePhotoUrl(product.imageUrl, product.media);
+    if (!photoUrl) return;
+    var optimized = cloudinaryUrl(photoUrl, 500);
+    var replaced = false;
+    function doSwap() {
+      if (replaced) return;
+      replaced = true;
+      // Re-check the mockup is still attached — route changes may have
+      // re-rendered the page while the image was loading.
+      if (!mockup.isConnected) return;
+      if (mediaDiv.querySelector('.product-photo')) return;
+      mediaDiv.style.background = 'var(--cream-2)';
+      mockup.outerHTML = renderMedia(product.media, false, product.imageUrl);
+    }
+    var img = new Image();
+    img.src = optimized;
+    if (typeof img.decode === 'function') {
+      img.decode().then(doSwap, doSwap);
+    } else if (img.complete) {
+      doSwap();
+    } else {
+      img.onload = doSwap;
+      img.onerror = doSwap;
+    }
+  }
+
   // ----- Dynamic Price & Image Update -----
   function updateDOMPrices() {
     var cards = document.querySelectorAll('.product-card');
@@ -162,18 +195,17 @@
           }
           foot.innerHTML = priceHTML + ctaHTML;
         }
-        // Replace CSS mockup with real product image when available
+        // Replace CSS mockup with real product image when available.
+        // Preload & decode the image BEFORE swapping to avoid the empty-container
+        // flicker that caused images to "change" between refreshes.
         var photoUrl = resolvePhotoUrl(p.imageUrl, p.media);
         if (photoUrl) {
           var mediaDiv = card.querySelector('.product-media');
           if (mediaDiv) {
-            mediaDiv.style.background = 'var(--cream-2)';
             var mockup = mediaDiv.querySelector('.book3d, .cards-fan, .bundle-stack');
-            if (mockup) {
-              var existing = mediaDiv.querySelector('.product-photo');
-              if (!existing) {
-                mockup.outerHTML = renderMedia(p.media, false, p.imageUrl);
-              }
+            var existing = mediaDiv.querySelector('.product-photo');
+            if (mockup && !existing) {
+              swapMediaWithPhoto(mediaDiv, mockup, p);
             }
           }
         }
@@ -186,24 +218,53 @@
   // ----- Fetch Products from API (graceful fallback) -----
   var productsLoaded = false;
   var productsReady = false; // true once fetch resolves (success or fail)
+
+  function mergeApiProducts(list) {
+    var merged = {};
+    list.forEach(function (p) {
+      var fallback = PRODUCTS[p.slug] || {};
+      p.media = p.media || fallback.media || { bg: 'emerald' };
+      p.features = p.features && p.features.length > 0 ? p.features : fallback.features || [];
+      p.reviews = p.reviews && p.reviews.length > 0 ? p.reviews : fallback.reviews || [];
+      p.gallery = p.gallery && p.gallery.length > 0 ? p.gallery : fallback.gallery || [];
+      p.action = p.action || fallback.action || 'cart';
+      p.imageUrl = p.imageUrl || fallback.imageUrl;
+      merged[p.slug] = p;
+    });
+    return merged;
+  }
+
+  // Hydrate PRODUCTS synchronously from localStorage so returning visitors
+  // render real product images on first paint — avoiding the mockup → photo
+  // flicker they used to see on every refresh.
+  function hydrateProductsFromCache() {
+    try {
+      var raw = localStorage.getItem(PRODUCTS_CACHE_KEY);
+      if (!raw) return false;
+      var parsed = JSON.parse(raw);
+      if (!parsed || !Array.isArray(parsed.data) || parsed.data.length === 0) return false;
+      if (typeof parsed.ts === 'number' && (Date.now() - parsed.ts) > PRODUCTS_CACHE_TTL_MS) return false;
+      PRODUCTS = mergeApiProducts(parsed.data);
+      productsLoaded = true;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function fetchProducts() {
     fetch('/api/products')
       .then(function (res) { return res.json(); })
       .then(function (data) {
         if (data.success && data.data && data.data.length > 0) {
-          var apiProducts = {};
-          data.data.forEach(function (p) {
-            var fallback = PRODUCTS[p.slug] || {};
-            p.media = p.media || fallback.media || { bg: 'emerald' };
-            p.features = p.features && p.features.length > 0 ? p.features : fallback.features || [];
-            p.reviews = p.reviews && p.reviews.length > 0 ? p.reviews : fallback.reviews || [];
-            p.gallery = p.gallery && p.gallery.length > 0 ? p.gallery : fallback.gallery || [];
-            p.action = p.action || fallback.action || 'cart';
-            p.imageUrl = p.imageUrl || fallback.imageUrl;
-            apiProducts[p.slug] = p;
-          });
-          PRODUCTS = apiProducts;
+          PRODUCTS = mergeApiProducts(data.data);
           productsLoaded = true;
+          try {
+            localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify({
+              ts: Date.now(),
+              data: data.data
+            }));
+          } catch (e) { /* quota — silent */ }
           console.log('✅ Products loaded from API (' + data.data.length + ')');
         }
         updateDOMPrices();
@@ -3220,34 +3281,47 @@
     attachColoringListeners();
     loadCart();
     updateCartBadge();
+    // Hydrate products from localStorage FIRST so returning visitors render
+    // real product images immediately — no mockup → photo flicker on refresh.
+    // The network fetch still runs in the background and refreshes the cache.
+    var hasCachedProducts = hydrateProductsFromCache();
     fetchProducts();
     fetchConfig();
     fetchSiteContent();
     fetchTestimonials();
     if (!location.hash) location.hash = '#/home';
-    // Wait for products API to resolve before first render to avoid flash
-    var waitForProducts = setInterval(function () {
-      if (productsReady) {
+
+    var didInitialRender = false;
+    function doInitialRender() {
+      if (didInitialRender) return;
+      didInitialRender = true;
+      populateCatalog();
+      handleRoute();
+      initReveals();
+      initCounter();
+      initZigzagVideos();
+    }
+
+    if (hasCachedProducts) {
+      // We already have product data — render straight away with real images.
+      doInitialRender();
+    } else {
+      // First-time visitors: wait briefly for the API before the first render
+      // to avoid a fallback-data flash. 2s safety timeout still applies.
+      var waitForProducts = setInterval(function () {
+        if (productsReady) {
+          clearInterval(waitForProducts);
+          doInitialRender();
+        }
+      }, 50);
+      setTimeout(function () {
         clearInterval(waitForProducts);
-        populateCatalog();
-        handleRoute();
-        initReveals();
-        initCounter();
-        initZigzagVideos();
-      }
-    }, 50);
-    // Safety timeout: render with fallback data after 2s even if API hasn't responded
-    setTimeout(function () {
-      clearInterval(waitForProducts);
-      if (!productsReady) {
-        productsReady = true;
-        populateCatalog();
-        handleRoute();
-        initReveals();
-        initCounter();
-        initZigzagVideos();
-      }
-    }, 2000);
+        if (!productsReady) {
+          productsReady = true;
+        }
+        doInitialRender();
+      }, 2000);
+    }
   });
 
   if (document.readyState !== 'loading') {
