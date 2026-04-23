@@ -29,7 +29,7 @@ const PRODUCTS = [
       bg: "emerald",
     },
     action: "cart",
-    ctaText: "أضيفي للسلة",
+    ctaText: "أضيف للسلة",
     comingSoon: false,
     reviews: [
       {
@@ -77,7 +77,7 @@ const PRODUCTS = [
       bg: "emerald",
     },
     action: "cart",
-    ctaText: "أضيفي للسلة",
+    ctaText: "أضيف للسلة",
     comingSoon: false,
     reviews: [
       {
@@ -108,7 +108,7 @@ const PRODUCTS = [
       "غلاف مقوّى مقاوم",
       "رسوم أصلية بإيد فنانين مصريين",
       "باسم طفلك على الغلاف والصفحات",
-      "اختاري القيمة اللي عايزاه يتعلمها",
+      "اختار القيمة اللي عايزه يتعلمها",
     ],
     media: {
       type: "book3d",
@@ -117,7 +117,7 @@ const PRODUCTS = [
       bg: "emerald",
     },
     action: "wizard",
-    ctaText: "ابدئي القصة",
+    ctaText: "ابدأ القصة",
     comingSoon: false,
     reviews: [
       {
@@ -191,7 +191,7 @@ const PRODUCTS = [
   {
     slug: "bundle",
     name: "مجموعة الأبطال الصغار",
-    badge: "وفّري ٢٠٪",
+    badge: "وفّر ٢٠٪",
     badgeSoon: false,
     price: 420,
     originalPrice: 530,
@@ -200,17 +200,17 @@ const PRODUCTS = [
     category: "مجموعات",
     // No section — bundles appear as cross-sell
     longDesc:
-      "المجموعة الكاملة لبطلنا! قصة مخصصة باسمه + كروت روتين يومي + قصة من سلسلة سباق الفتوحات. وفّري ٢٠٪ لما تطلبيهم مع بعض!",
+      "المجموعة الكاملة لبطلنا! قصة مخصصة باسمه + كروت روتين يومي + قصة من سلسلة سباق الفتوحات. وفّر ٢٠٪ لما تطلبهم مع بعض!",
     features: [
       "قصة مخصصة باسم طفلك (٢٤ صفحة)",
       "كروت الروتين اليومي (٣٠ كارت)",
       "قصة من سلسلة سباق الفتوحات",
       "غلاف مقوّى لكل المنتجات",
-      "بتوفّري ١١٠ جنيه!",
+      "بتوفّر ١١٠ جنيه!",
     ],
     media: { type: "bundle-stack", bg: "teal" },
     action: "cart",
-    ctaText: "أضيفي للسلة",
+    ctaText: "أضيف للسلة",
     comingSoon: false,
     reviews: [
       {
