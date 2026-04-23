@@ -21,6 +21,7 @@ export async function GET(request: Request) {
     const category = searchParams.get("category");
     const isFree = searchParams.get("is_free");
     const indoorOutdoor = searchParams.get("indoor_outdoor");
+    const area = searchParams.get("area");
     const q = searchParams.get("q");
     const showAll = searchParams.get("all") === "true";
     const minPriceAbove = searchParams.get("min_price_above");
@@ -47,6 +48,9 @@ export async function GET(request: Request) {
     }
     if (indoorOutdoor) {
       filter.indoor_outdoor = indoorOutdoor;
+    }
+    if (area) {
+      filter.area = area;
     }
     if (minPriceAbove !== null) {
       const val = parseInt(minPriceAbove, 10);

@@ -1751,6 +1751,7 @@
   // ----- Outings (Fas7a Helwa) state -----
   var outingsState = {
     city: '',
+    area: '',          // Cairo sub-district filter
     type: '',          // '', 'indoor', 'outdoor', 'mixed'
     category: '',      // '', '1', '2', '3', '4', '5', '6'
     search: '',
@@ -1945,7 +1946,16 @@
         document.querySelectorAll('#cityChips .chip').forEach(function (c) { c.classList.remove('is-active'); });
         chip.classList.add('is-active');
         outingsState.city = chip.dataset.city || '';
+        outingsState.area = '';
         outingsState.page = 1;
+        // Show/hide area sub-filter for Cairo
+        var areaGroup = document.getElementById('areaFilterGroup');
+        if (areaGroup) {
+          areaGroup.style.display = (outingsState.city === 'Cairo') ? '' : 'none';
+          document.querySelectorAll('#areaChips .chip').forEach(function (c, i) {
+            c.classList.toggle('is-active', i === 0);
+          });
+        }
         fetchPlaces();
       });
     });
@@ -1967,6 +1977,17 @@
         document.querySelectorAll('#catChips .chip').forEach(function (c) { c.classList.remove('is-active'); });
         chip.classList.add('is-active');
         outingsState.category = chip.dataset.cat || '';
+        outingsState.page = 1;
+        fetchPlaces();
+      });
+    });
+
+    // Area chips (Cairo sub-filter)
+    document.querySelectorAll('#areaChips .chip').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        document.querySelectorAll('#areaChips .chip').forEach(function (c) { c.classList.remove('is-active'); });
+        chip.classList.add('is-active');
+        outingsState.area = chip.dataset.area || '';
         outingsState.page = 1;
         fetchPlaces();
       });
@@ -2049,6 +2070,7 @@
     params.set('limit', outingsState.limit);
     params.set('page', outingsState.page);
     if (outingsState.city) params.set('city', outingsState.city);
+    if (outingsState.area) params.set('area', outingsState.area);
     if (outingsState.type) params.set('indoor_outdoor', outingsState.type);
     if (outingsState.category) params.set('category', outingsState.category);
     if (outingsState.search) params.set('q', outingsState.search);
@@ -2075,7 +2097,7 @@
         }
 
         // Show clear button if any filter is active
-        var hasFilters = outingsState.city || outingsState.type || outingsState.category || outingsState.search;
+        var hasFilters = outingsState.city || outingsState.area || outingsState.type || outingsState.category || outingsState.search;
         if (clearBtn) clearBtn.style.display = hasFilters ? 'block' : 'none';
 
         if (outingsState.data.length === 0) {
@@ -2134,9 +2156,9 @@
   }
 
   function getPlaceSearchUrl(place) {
-    if (place.website_url) return place.website_url;
-    if (place.external_detail_url) return place.external_detail_url;
-    return 'https://www.google.com/search?q=' + encodeURIComponent((place.name_en || place.name_ar) + ' ' + (place.city || '') + ' Egypt');
+    var name = place.name_ar || place.name_en || '';
+    var city = place.city || '';
+    return 'https://www.google.com/search?q=' + encodeURIComponent(name + ' ' + city + ' مصر');
   }
 
   function getPlaceMapUrl(place) {
@@ -2216,17 +2238,20 @@
 
   function resetOutingsFilters() {
     outingsState.city = '';
+    outingsState.area = '';
     outingsState.type = '';
     outingsState.category = '';
     outingsState.search = '';
     outingsState.page = 1;
 
     // Reset UI
-    ['#cityChips', '#typeChips', '#catChips'].forEach(function (sel) {
+    ['#cityChips', '#typeChips', '#catChips', '#areaChips'].forEach(function (sel) {
       document.querySelectorAll(sel + ' .chip').forEach(function (c, i) {
         c.classList.toggle('is-active', i === 0);
       });
     });
+    var areaGroup = document.getElementById('areaFilterGroup');
+    if (areaGroup) areaGroup.style.display = 'none';
     var searchInput = document.querySelector('[data-mama-panel="outings"] .mama-search input');
     if (searchInput) searchInput.value = '';
 

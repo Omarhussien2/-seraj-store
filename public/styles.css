@@ -2949,6 +2949,7 @@ input, textarea { font-family: inherit; }
   padding-bottom: 4px;
 }
 .filter-chips::-webkit-scrollbar { display: none; }
+#areaFilterGroup { animation: slideDown .25s ease; }
 
 /* BUDGET SLIDER */
 .budget-slider { position: relative; padding: 0 4px; }
