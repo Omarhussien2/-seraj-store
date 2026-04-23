@@ -118,103 +118,155 @@ export async function POST(req: NextRequest) {
     // Add current message
     messages.push({ role: "user", content: message.trim() });
 
-    // Call DeepSeek API with streaming
-    const apiKey = process.env.DEEPSEEK_API_KEY;
-    const baseUrl = process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com";
-    const model = process.env.DEEPSEEK_MODEL || "deepseek-chat";
+    // ── Multi-provider fallback ──────────────────────────
+    // Try providers in order: DeepSeek → Gemini (key1) → Gemini (key2)
+    type Provider = { name: string; call: () => Promise<Response> };
+    
+    const providers: Provider[] = [];
 
-    if (!apiKey) {
+    // Provider 1: DeepSeek (OpenAI-compatible)
+    const dsKey = process.env.DEEPSEEK_API_KEY;
+    const dsUrl = process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com";
+    const dsModel = process.env.DEEPSEEK_MODEL || "deepseek-chat";
+    if (dsKey) {
+      providers.push({
+        name: "deepseek",
+        call: () =>
+          fetch(`${dsUrl}/chat/completions`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${dsKey}` },
+            body: JSON.stringify({ model: dsModel, messages, temperature: 0.8, max_tokens: 500, top_p: 0.9, stream: true }),
+          }),
+      });
+    }
+
+    // Provider 2 & 3: Gemini (native API, non-streaming → convert)
+    const geminiKeys = [
+      process.env.GEMINI_API_KEY_1,
+      process.env.GEMINI_API_KEY_2,
+    ].filter(Boolean);
+    const geminiModel = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+
+    for (const gKey of geminiKeys) {
+      providers.push({
+        name: "gemini",
+        call: () => {
+          // Convert OpenAI messages to Gemini format
+          const contents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
+          for (const m of messages) {
+            const role = m.role === "assistant" ? "model" : m.role === "system" ? "user" : "user";
+            contents.push({ role, parts: [{ text: m.content }] });
+          }
+          // If system prompt was first, merge with user message
+          if (messages[0]?.role === "system" && contents.length > 1) {
+            contents[1].parts[0].text = contents[0].parts[0].text + "\n\n" + contents[1].parts[0].text;
+            contents.shift();
+          }
+
+          return fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${gKey}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents,
+                generationConfig: { temperature: 0.8, maxOutputTokens: 500, topP: 0.9 },
+              }),
+            }
+          );
+        },
+      });
+    }
+
+    if (providers.length === 0) {
       return new Response(
         JSON.stringify({ error: "البوت مش متصل دلوقتي — جربي بعد كده" }),
         { status: 503, headers: { "Content-Type": "application/json; charset=utf-8" } }
       );
     }
 
-    const response = await fetch(`${baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages,
-        temperature: 0.8,
-        max_tokens: 500,
-        top_p: 0.9,
-        stream: true,
-      }),
-    });
+    // Try each provider until one works
+    let providerResponse: Response | null = null;
+    let usedProvider = "";
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("DeepSeek API error:", response.status, errText);
+    for (const provider of providers) {
+      try {
+        const res = await provider.call();
+        if (res.ok) {
+          providerResponse = res;
+          usedProvider = provider.name;
+          console.log(`Chat API: using ${provider.name}`);
+          break;
+        }
+        const errText = await res.text().catch(() => "");
+        console.warn(`Provider ${provider.name} failed: ${res.status} ${errText.substring(0, 100)}`);
+      } catch (err) {
+        console.warn(`Provider ${provider.name} error:`, err);
+      }
+    }
+
+    if (!providerResponse) {
       return new Response(
-        JSON.stringify({ error: "حصلت مشكلة — جربي تاني يا قمر" }),
+        JSON.stringify({ error: "كل الخدمات مشغولة دلوقتي — جربي بعد دقيقة يا قمر 😊" }),
         { status: 502, headers: { "Content-Type": "application/json; charset=utf-8" } }
       );
     }
 
-    // Stream the response back as SSE
+    // ── Handle response based on provider type ───────────
     const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      async start(controller) {
-        const reader = response.body?.getReader();
-        if (!reader) {
-          controller.close();
-          return;
-        }
 
-        const decoder = new TextDecoder();
-        let buffer = "";
-
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n");
-            buffer = lines.pop() || "";
-
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (!trimmed || !trimmed.startsWith("data: ")) continue;
-
-              const data = trimmed.slice(6);
-              if (data === "[DONE]") {
-                controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-                continue;
-              }
-
-              try {
-                const parsed = JSON.parse(data);
-                const content = parsed.choices?.[0]?.delta?.content;
-                if (content) {
-                  controller.enqueue(
-                    encoder.encode(`data: ${JSON.stringify({ content })}\n\n`)
-                  );
-                }
-              } catch {
-                // Skip malformed chunks
+    if (usedProvider === "deepseek") {
+      // DeepSeek: SSE streaming (OpenAI format)
+      const stream = new ReadableStream({
+        async start(controller) {
+          const reader = providerResponse!.body?.getReader();
+          if (!reader) { controller.close(); return; }
+          const decoder = new TextDecoder();
+          let buffer = "";
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split("\n");
+              buffer = lines.pop() || "";
+              for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || !trimmed.startsWith("data: ")) continue;
+                const data = trimmed.slice(6);
+                if (data === "[DONE]") { controller.enqueue(encoder.encode("data: [DONE]\n\n")); continue; }
+                try {
+                  const parsed = JSON.parse(data);
+                  const content = parsed.choices?.[0]?.delta?.content;
+                  if (content) controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
+                } catch { /* skip */ }
               }
             }
-          }
-        } catch (err) {
-          console.error("Stream error:", err);
-        } finally {
-          controller.close();
+          } catch (err) { console.error("Stream error:", err); }
+          finally { controller.close(); }
+        },
+      });
+      return new Response(stream, { headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", Connection: "keep-alive" } });
+    }
+
+    // Gemini: non-streaming → simulate streaming
+    const geminiBody = await providerResponse.json();
+    const text = geminiBody?.candidates?.[0]?.content?.parts?.[0]?.text || "جربي تاني يا قمر 😊";
+
+    // Send text in chunks to simulate streaming
+    const stream = new ReadableStream({
+      start(controller) {
+        const chunkSize = 8;
+        for (let i = 0; i < text.length; i += chunkSize) {
+          const chunk = text.slice(i, i + chunkSize);
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: chunk })}\n\n`));
         }
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        controller.close();
       },
     });
 
-    return new Response(stream, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-      },
-    });
+    return new Response(stream, { headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", Connection: "keep-alive" } });
   } catch (error) {
     console.error("Chat API error:", error);
     return new Response(
