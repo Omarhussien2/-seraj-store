@@ -81,7 +81,10 @@ function cacheFirstImage(request) {
           }
           return response;
         })
-        .catch(() => cached);
+        // Offline fallback: also check the general cache for pre-cached image
+        // assets (e.g. /assets/logo.svg) that install-time `cache.addAll` stored
+        // in CACHE_NAME, so offline visits keep rendering static imagery.
+        .catch(() => caches.match(request));
     });
   });
 }
