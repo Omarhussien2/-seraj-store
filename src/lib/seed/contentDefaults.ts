@@ -3,7 +3,7 @@ export const DEFAULT_CONTENT = [
   { key: "hero.title", section: "hero", value: "متعة القراءة واللعب.. بطلها ابنك!" },
   { key: "hero.subtitle", section: "hero", value: "قصص وتجارب مخصصة<br/>تنمّي <span class=\"highlight\">مهاراته</span> وتبني <span class=\"highlight\">شخصيته</span>" },
   { key: "hero.cta_primary", section: "hero", value: "يلا يا سراج.. ألف قصة لبطلنا" },
-  { key: "hero.cta_secondary", section: "hero", value: "شوفي المنتجات" },
+  { key: "hero.cta_secondary", section: "hero", value: "شوف المنتجات" },
   
   // Products
   { key: "products.kicker", section: "products", value: "أبطالنا الصغار بيحبوهم" },
@@ -12,28 +12,28 @@ export const DEFAULT_CONTENT = [
   // Counter
   { key: "counter.kicker", section: "counter", value: "من قلب البيوت المصرية" },
   { key: "counter.heading", section: "counter", value: "أكتر من <strong id=\"storiesCount\">١,٥٠٠</strong> قصة اتألفت لأبطالنا ✦" },
-  { key: "counter.subtext", section: "counter", value: "صور حقيقية من أمهات وثقوا في سِراج عشان يرسموا الفرحة على وشوش أطفالهم." },
+  { key: "counter.subtext", section: "counter", value: "صور حقيقية من عائلات وثقت في سِراج عشان ترسم الفرحة على وشوش أطفالها." },
   
   // How it works
   { key: "how.kicker", section: "how", value: "٣ خطوات بس" },
   { key: "how.heading", section: "how", value: "إزاي سراج بيعمل قصة بصورة ابنك؟" },
-  { key: "how.step1_title", section: "how", value: "قولي لسراج اسم بطلنا وسنه" },
-  { key: "how.step1_desc", section: "how", value: "اكتبي بياناته واختاري القيمة الأخلاقية اللي محتاج يتعلمها." },
-  { key: "how.step2_title", section: "how", value: "ارفعي أحلى صورة ليه" },
+  { key: "how.step1_title", section: "how", value: "قول لسراج اسم بطلنا وسنه" },
+  { key: "how.step1_desc", section: "how", value: "اكتب بياناته واختار القيمة الأخلاقية اللي محتاج يتعلمها." },
+  { key: "how.step2_title", section: "how", value: "ارفع أحلى صورة ليه" },
   { key: "how.step2_desc", section: "how", value: "سراج هياخد الصورة ويخلي ابنك هو البطل الحقيقي للقصة." },
-  { key: "how.step3_title", section: "how", value: "استلمي قصتك لحد البيت" },
-  { key: "how.step3_desc", section: "how", value: "هتستلمي قصة مطبوعة بألوان مبهجة وتغليف يفرّح القلب." },
+  { key: "how.step3_title", section: "how", value: "استلم قصتك لحد البيت" },
+  { key: "how.step3_desc", section: "how", value: "هتستلم قصة مطبوعة بألوان مبهجة وتغليف يفرّح القلب." },
   
   // Values
   { key: "values.kicker", section: "values", value: "القيم اللي هيتعلمها" },
-  { key: "values.heading", section: "values", value: "اختاري القيمة اللي بطلنا محتاجها النهاردة" },
+  { key: "values.heading", section: "values", value: "اختار القيمة اللي بطلنا محتاجها النهاردة" },
   
   // Testimonials
-  { key: "testimonials.kicker", section: "testimonials", value: "كلام أمهاتنا" },
+  { key: "testimonials.kicker", section: "testimonials", value: "كلام عائلاتنا" },
   { key: "testimonials.heading", section: "testimonials", value: "اللي قالتوه عن سِراج" },
   
   // Ribbon
-  { key: "ribbon.heading", section: "ribbon", value: "مستنية إيه؟ خلّي بطلنا يبدأ حكايته النهاردة!" },
+  { key: "ribbon.heading", section: "ribbon", value: "مستني إيه؟ خلّي بطلنا يبدأ حكايته النهاردة!" },
   { key: "ribbon.subtext", section: "ribbon", value: "بس ٣ خطوات صغيرة.. والقصة هتكون بين إيديه." },
   { key: "ribbon.cta", section: "ribbon", value: "اصنع قصة لابنك" },
   
@@ -48,15 +48,15 @@ export const DEFAULT_CONTENT = [
   { key: "footer.copyright", section: "footer", value: "© ٢٠٢٦ سِراج. صُنع بحب في مصر." },
   
   // Mama World
-  { key: "mama.hero_title", section: "mama", value: "أهلاً بِكِ في عالم ماما" },
-  { key: "mama.hero_desc", section: "mama", value: "مساحة من القلب للأم.. مقالات، نصايح، وأماكن تحبيها لبطلنا الصغير ✦" },
+  { key: "mama.hero_title", section: "mama", value: "أهلاً بيك في عالم ماما" },
+  { key: "mama.hero_desc", section: "mama", value: "مساحة من القلب للأهل.. مقالات، نصايح، وأماكن هتحبها لبطلنا الصغير ✦" },
   
   // Wizard
   { key: "wizard.step1_q", section: "wizard", value: "اسم بطلنا إيه؟ وعمره كام؟" },
-  { key: "wizard.step1_speech", section: "wizard", value: "أنا سراج! عشان أكتب قصة حلوة، محتاج أعرف اسم بطلنا وسنه وتقولي هو ولد ولا بنت؟" },
+  { key: "wizard.step1_speech", section: "wizard", value: "أنا سراج! عشان أكتب قصة حلوة، محتاج أعرف اسم بطلنا وسنه وتقوللي هو ولد ولا بنت؟" },
   { key: "wizard.step2_q", section: "wizard", value: "إيه التحدي اللي بيواجهه البطل؟" },
-  { key: "wizard.step2_speech", section: "wizard", value: "أبطالنا ساعات بيقابلوا تحديات. اختاري قيمة محتاج البطل يتعلمها." },
-  { key: "wizard.step3_q", section: "wizard", value: "ارفعي صورة لبطلنا" },
+  { key: "wizard.step2_speech", section: "wizard", value: "أبطالنا ساعات بيقابلوا تحديات. اختار قيمة محتاج البطل يتعلمها." },
+  { key: "wizard.step3_q", section: "wizard", value: "ارفع صورة لبطلنا" },
   { key: "wizard.step3_speech", section: "wizard", value: "عشان اخلي البطل في القصة شبه ابنك، محتاج أحلى صورة ليه يكون وشه فيها واضح." },
   
   // Navigation & Missing elements
