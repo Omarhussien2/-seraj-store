@@ -1306,7 +1306,7 @@
           location.hash = '#/success';
         } else {
           // Show actual error from server
-          var errorMsg = 'حصلت مشكلة، حاولي تاني ✦';
+          var errorMsg = 'حصلت مشكلة، حاول تاني ✦';
           if (data.error === 'Validation failed' && data.details && data.details.length > 0) {
             var fields = data.details.map(function (d) { return d.field; }).join('، ');
             errorMsg = 'خطأ في: ' + fields + ' ✦';
@@ -1318,7 +1318,7 @@
       })
       .catch(function (err) {
         console.error('Order submission error:', err);
-        showToast(err.message || 'حصلت مشكلة، حاولي تاني ✦');
+        showToast(err.message || 'حصلت مشكلة، حاول تاني ✦');
         if (btn) {
           btn.disabled = false;
           btn.textContent = 'تأكيد الطلب';
@@ -1430,8 +1430,8 @@
       'wizard': 'سراج | اصنع قصتك',
       'cart': 'سراج | سلة المشتريات',
       'checkout': 'سراج | إتمام الطلب',
-      'mama-world': 'سراج | عالم ماما',
-      'article': 'سراج | عالم ماما', // could be dynamic
+      'mama-world': 'سراج | عالم ماما وبابا',
+      'article': 'سراج | عالم ماما وبابا', // could be dynamic
       'mama-coloring': 'سراج | أنشطة وتلوين مجاني',
       'coloring-book': 'سراج | كشكولي المطبوع',
       'faq': 'سراج | الأسئلة الشائعة',
@@ -2355,7 +2355,7 @@
       .then(function (r) { return r.json(); })
       .then(function (data) {
         if (!data.success || !data.data) {
-          container.innerHTML = '<div class="articles-error"><p>المقال غير موجود</p><a href="#/mama-world" class="btn btn-outline" style="margin-top:16px;display:inline-block">← رجوع لعالم ماما</a></div>';
+          container.innerHTML = '<div class="articles-error"><p>المقال غير موجود</p><a href="#/mama-world" class="btn btn-outline" style="margin-top:16px;display:inline-block">← رجوع لعالم ماما وبابا</a></div>';
           return;
         }
         var a = data.data;
@@ -2424,7 +2424,7 @@
         }
 
         container.innerHTML =
-          '<a href="#/mama-world" class="article-back">← رجوع لعالم ماما</a>' +
+          '<a href="#/mama-world" class="article-back">← رجوع لعالم ماما وبابا</a>' +
           coverHtml +
           '<div class="article-detail-content">' +
           '<span class="article-badge" style="background:' + sectionColor + '">' + escHtml(a.section) + '</span>' +
@@ -2440,7 +2440,7 @@
         window.scrollTo({ top: 0, behavior: 'instant' });
       })
       .catch(function () {
-        container.innerHTML = '<div class="articles-error"><p>حصلت مشكلة في تحميل المقال</p><a href="#/mama-world" class="btn btn-outline" style="margin-top:16px;display:inline-block">← رجوع لعالم ماما</a></div>';
+        container.innerHTML = '<div class="articles-error"><p>حصلت مشكلة في تحميل المقال</p><a href="#/mama-world" class="btn btn-outline" style="margin-top:16px;display:inline-block">← رجوع لعالم ماما وبابا</a></div>';
       });
   }
 

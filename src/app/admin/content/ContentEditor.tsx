@@ -15,7 +15,7 @@ const SECTION_LABELS: Record<string, string> = {
   testimonials: "آراء العملاء",
   ribbon: "شريط الدعوة للعمل (Ribbon)",
   about: "حكايتنا",
-  mama: "عالم ماما",
+  mama: "عالم ماما وبابا",
   footer: "الفوتر",
   wizard: "معالج القصة (الساحر)",
   general: "نصوص عامة",
