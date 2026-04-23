@@ -2,8 +2,8 @@ export const DEFAULT_CONTENT = [
   // Hero
   { key: "hero.title", section: "hero", value: "متعة القراءة واللعب.. بطلها ابنك!" },
   { key: "hero.subtitle", section: "hero", value: "قصص وتجارب مخصصة<br/>تنمّي <span class=\"highlight\">مهاراته</span> وتبني <span class=\"highlight\">شخصيته</span>" },
-  { key: "hero.cta_primary", section: "hero", value: "يلا يا سراج.. ألف قصة لبطلنا" },
-  { key: "hero.cta_secondary", section: "hero", value: "شوف المنتجات" },
+  { key: "hero.cta_primary", section: "hero", value: "استكشف عالم سراج" },
+  { key: "hero.cta_secondary", section: "hero", value: "اصنع قصة لابنك" },
   
   // Products
   { key: "products.kicker", section: "products", value: "أبطالنا الصغار بيحبوهم" },
