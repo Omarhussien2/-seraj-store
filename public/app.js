@@ -48,7 +48,7 @@
       features: ['٢٤ صفحة ملوّنة بجودة عالية', 'غلاف مقوّى مقاوم', 'رسوم أصلية بإيد فنانين مصريين', 'بتعلّم قيمة الشجاعة والإقدام', 'مناسبة من ٤ لـ ٩ سنين'],
       media: { type: 'book3d', image: 'assets/khaled-v2.png', title: 'خالد بن<br/>الوليد', bg: 'emerald' },
       action: 'cart',
-      ctaText: 'أضيفي للسلة',
+      ctaText: 'أضيف للسلة',
       reviews: [
         { text: 'ابني قعد يقرأ القصة مرتين في نفس اليوم! بقى بيقول "أنا شجاع زي خالد".', name: 'منى — أم يوسف', place: 'القاهرة · ٦ سنين', color: '#6bbf3f', initial: 'م' },
         { text: 'الرسومات تحفة والقصة مكتوبة بلغة بسيطة مفهومة. بنقرأها مع بعض كل يوم.', name: 'سارة — أم عمر', place: 'المنصورة · ٥ سنين', color: '#c9974e', initial: 'س' }
@@ -68,7 +68,7 @@
       features: ['٢٤ صفحة ملوّنة بجودة عالية', 'غلاف مقوّى مقاوم', 'رسوم أصلية بإيد فنانين مصريين', 'بتعلّم قيمة الإرادة والثبات', 'مناسبة من ٤ لـ ٩ سنين'],
       media: { type: 'book3d', image: 'assets/seraj.png', title: 'بطل قهر<br/>المستحيل', bg: 'emerald' },
       action: 'cart',
-      ctaText: 'أضيفي للسلة',
+      ctaText: 'أضيف للسلة',
       reviews: [
         { text: 'القصة الجديدة من السلسلة تحفة! ابني مستني كل قصة جديدة.', name: 'هدى — أم ياسين', place: 'الإسكندرية · ٥ سنين', color: '#36a39a', initial: 'ه' }
       ],
@@ -83,10 +83,10 @@
       section: 'custom-stories',
       shortDesc: 'قصة كاملة باسم طفلك وصورته',
       longDesc: 'قصة مغامرة كاملة باسم بطلك وبتعلّم قيمة من اختيارك. سراج بيكتب القصة مخصوص ليه وبيرسمها بإيد فنانين مصريين. غلاف مقوّى وورق سميك يستحمل كل مرات القراية.',
-      features: ['٢٤ صفحة ملوّنة باسم طفلك', 'غلاف مقوّى مقاوم', 'رسوم أصلية بإيد فنانين مصريين', 'باسم طفلك على الغلاف والصفحات', 'اختاري القيمة اللي عايزاه يتعلمها'],
+      features: ['٢٤ صفحة ملوّنة باسم طفلك', 'غلاف مقوّى مقاوم', 'رسوم أصلية بإيد فنانين مصريين', 'باسم طفلك على الغلاف والصفحات', 'اختار القيمة اللي عايزه يتعلمها'],
       media: { type: 'book3d', image: 'assets/seraj.png', title: 'حكاية<br/>بطلنا', bg: 'emerald' },
       action: 'wizard',
-      ctaText: 'ابدئي القصة',
+      ctaText: 'ابدأ القصة',
       reviews: [
         { text: 'ابني لسه مش مصدق إن فيه قصة باسمه! قعد يقراها مع بابا لحد ما نام.', name: 'منى — أم أحمد', place: 'القاهرة · ٦ سنين', color: '#6bbf3f', initial: 'م' },
         { text: 'أحلى حاجة إن القصة بتعلّم قيمة.. بنتي بقت بتقول "أنا شجاعة زي خالد".', name: 'نور — أم ليلى', place: 'الإسكندرية · ٥ سنين', color: '#e85d4c', initial: 'ن' },
@@ -117,7 +117,7 @@
     },
     'bundle': {
       name: 'مجموعة الأبطال الصغار',
-      badge: 'وفّري ٢٠٪',
+      badge: 'وفّر ٢٠٪',
       price: 420,
       originalPrice: 530,
       priceText: '٤٢٠ ج.م',
@@ -125,11 +125,11 @@
       category: 'مجموعات',
       section: null,
       shortDesc: 'قصة مخصصة + كروت + قصة من السلسلة',
-      longDesc: 'المجموعة الكاملة لبطلنا! قصة مخصصة باسمه + كروت روتين يومي + قصة من سلسلة سباق الفتوحات. وفّري ٢٠٪ لما تطلبيهم مع بعض!',
-      features: ['قصة مخصصة باسم طفلك (٢٤ صفحة)', 'كروت الروتين اليومي (٣٠ كارت)', 'قصة من سلسلة سباق الفتوحات', 'غلاف مقوّى لكل المنتجات', 'بتوفّري ١١٠ جنيه!'],
+      longDesc: 'المجموعة الكاملة لبطلنا! قصة مخصصة باسمه + كروت روتين يومي + قصة من سلسلة سباق الفتوحات. وفّر ٢٠٪ لما تطلبهم مع بعض!',
+      features: ['قصة مخصصة باسم طفلك (٢٤ صفحة)', 'كروت الروتين اليومي (٣٠ كارت)', 'قصة من سلسلة سباق الفتوحات', 'غلاف مقوّى لكل المنتجات', 'بتوفّر ١١٠ جنيه!'],
       media: { type: 'bundle-stack', bg: 'teal' },
       action: 'cart',
-      ctaText: 'أضيفي للسلة',
+      ctaText: 'أضيف للسلة',
       reviews: [
         { text: 'طلبت المجموعة الكاملة وأولادي ماخلصوش منها لحد دلوقتي! كل قرش يستاهل.', name: 'أمينة — أم توأم', place: 'القاهرة · ٥ سنين', color: '#c9974e', initial: 'أ' },
         { text: 'أحلى هدية لأحفادي! الجودة ممتازة والمحتوى تعليمي وممتع في نفس الوقت.', name: 'فاطمة — جدة', place: 'المنصورة · ٤ و ٦ سنين', color: '#6bbf3f', initial: 'ف' }
@@ -415,7 +415,7 @@
     if (!container) return;
     var product = PRODUCTS[slug];
     if (!product) {
-      container.innerHTML = '<div class="page-head tight"><span class="kicker">المنتج غير موجود</span><h1>منتهي!</h1><p>المنتج ده مش موجود. شوفي منتجاتنا التانية.</p><a href="#/products" data-link class="btn btn-primary" style="margin-top:20px">شوفي المنتجات</a></div>';
+      container.innerHTML = '<div class="page-head tight"><span class="kicker">المنتج غير موجود</span><h1>منتهي!</h1><p>المنتج ده مش موجود. شوف منتجاتنا التانية.</p><a href="#/products" data-link class="btn btn-primary" style="margin-top:20px">شوف المنتجات</a></div>';
       return;
     }
 
@@ -491,7 +491,7 @@
     }
 
     if (allGalleryItems.length > 0) {
-      h += '<section class="section pd-gallery-section"><div class="section-head"><span class="kicker">معرض المنتج</span><h2>شوفي المنتج بالتفصيل</h2></div>';
+      h += '<section class="section pd-gallery-section"><div class="section-head"><span class="kicker">معرض المنتج</span><h2>شوف المنتج بالتفصيل</h2></div>';
       h += '<div class="pd-gallery-wrap">';
       // Main display — show first item
       h += '<div class="pd-gallery-main" data-gallery-main>';
@@ -528,7 +528,7 @@
       h += '</section>';
     }
     // Reviews
-    h += '<section class="section pd-reviews-section"><div class="section-head"><span class="kicker">آراء الأمهات</span><h2>اللي جربوا المنتج ده</h2></div><div class="testimonials-grid">';
+    h += '<section class="section pd-reviews-section"><div class="section-head"><span class="kicker">آراء العائلات</span><h2>اللي جربوا المنتج ده</h2></div><div class="testimonials-grid">';
     for (var r = 0; r < product.reviews.length; r++) {
       var rev = product.reviews[r];
       h += '<figure class="t-card"><blockquote>"' + rev.text + '"</blockquote><figcaption><span class="avatar" style="--c:' + rev.color + '">' + rev.initial + '</span><div><strong>' + rev.name + '</strong><small>' + rev.place + '</small></div></figcaption></figure>';
@@ -542,7 +542,7 @@
       h += '<div class="counter-left">';
       h += '<span class="kicker">من قلب البيوت المصرية</span>';
       h += '<h2><span>أكتر من</span> <span class="counter" data-to="842">٠</span> <span>قصة اتألفت لأبطالنا الصغار</span></h2>';
-      h += '<p>صور حقيقية من أمهات جربوا سِراج وبعتوا لنا كتب بطلهم في إيديه</p>';
+      h += '<p>صور حقيقية من عائلات جربت سِراج وبعتت لنا كتب بطلهم في إيديه</p>';
       h += '</div>';
       h += '<div class="counter-gallery">';
       h += '<div class="mini-card" style="--r:-6deg"><div class="mini-cover"><span>بطلنا يوسف</span></div></div>';
@@ -562,8 +562,8 @@
       h += '<video class="zz-video" src="assets/1-.mp4" autoplay muted loop playsinline preload="auto" poster="assets/seraj.png" aria-label="الخطوة ١"></video>';
       h += '</div></div>';
       h += '<div class="zz-text"><span class="zz-num">١</span>';
-      h += '<h3>قولي لسراج اسم بطلنا وسنه</h3>';
-      h += '<p>ادخلي اسم طفلك وسنّه، واختاري القيمة اللي عايزاه يتعلمها.. وسراج هيبدأ الشغل.</p>';
+      h += '<h3>قول لسراج اسم بطلنا وسنه</h3>';
+      h += '<p>ادخل اسم طفلك وسنّه، واختار القيمة اللي عايزه يتعلمها.. وسراج هيبدأ الشغل.</p>';
       h += '</div></article>';
       // Step 2
       h += '<article class="zz-row zz-reversed reveal" style="--d:.1s">';
@@ -592,7 +592,7 @@
       h += '<section class="section values-section">';
       h += '<header class="section-head reveal">';
       h += '<span class="kicker">القيم اللي هيتعلمها</span>';
-      h += '<h2>اختاري القيمة اللي بطلنا محتاجها النهاردة</h2>';
+      h += '<h2>اختار القيمة اللي بطلنا محتاجها النهاردة</h2>';
       h += '<p>كل قيمة ليها قصة ومغامرة مختلفة</p>';
       h += '</header>';
       h += '<div class="values-grid">';
@@ -608,7 +608,7 @@
       h += '<div class="ribbon-inner">';
       h += '<img src="assets/seraj.png" class="ribbon-mascot" alt="سِراج" loading="lazy"/>';
       h += '<div class="ribbon-copy">';
-      h += '<h2>مستنية إيه؟ خلّي بطلنا يبدأ حكايته النهاردة!</h2>';
+      h += '<h2>مستني إيه؟ خلّي بطلنا يبدأ حكايته النهاردة!</h2>';
       h += '<p>بس ٣ خطوات صغيرة، وسِراج هيقعد يشتغل في الورشة</p>';
       h += '</div>';
       h += '<a href="#/wizard" data-link class="btn btn-primary btn-xl">اصنع قصة لابنك';
@@ -624,7 +624,7 @@
         if (!rp) continue;
         var href = rp.action === 'wizard' ? '#/wizard' : '#/product/' + rs;
         var rpPrice = rp.priceText || (toArabicNum(rp.price) + ' ج.م');
-        h += '<a href="' + href + '" data-link class="product-card"><div class="product-media ' + rp.media.bg + '">' + renderMedia(rp.media, false, rp.imageUrl) + '</div><div class="product-body"><h3>' + rp.name + '</h3><div class="product-foot"><span class="price">' + rpPrice + '</span><span class="cta-mini">شوفيها →</span></div></div></a>';
+        h += '<a href="' + href + '" data-link class="product-card"><div class="product-media ' + rp.media.bg + '">' + renderMedia(rp.media, false, rp.imageUrl) + '</div><div class="product-body"><h3>' + rp.name + '</h3><div class="product-foot"><span class="price">' + rpPrice + '</span><span class="cta-mini">شوفها →</span></div></div></a>';
       }
       h += '</div></section>';
     }
@@ -1044,8 +1044,8 @@
         '<div class="cart-empty">' +
         '<svg viewBox="0 0 24 24" width="64" height="64"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
         '<h2>السلة فاضية!</h2>' +
-        '<p>مفيش منتجات في السلة دلوقتي.. شوفي منتجاتنا الحلوة!</p>' +
-        '<a href="#/products" data-link class="btn btn-primary btn-xl">شوفي المنتجات</a>' +
+        '<p>مفيش منتجات في السلة دلوقتي.. شوف منتجاتنا الحلوة!</p>' +
+        '<a href="#/products" data-link class="btn btn-primary btn-xl">شوف المنتجات</a>' +
         '</div>';
       return;
     }
@@ -1127,7 +1127,7 @@
         '<div class="cart-empty">' +
         '<h2>السلة فاضية!</h2>' +
         '<p>مفيش منتجات في الطلب دلوقتي.</p>' +
-        '<a href="#/products" data-link class="btn btn-primary btn-xl">شوفي المنتجات</a>' +
+        '<a href="#/products" data-link class="btn btn-primary btn-xl">شوف المنتجات</a>' +
         '</div>';
       return;
     }
@@ -2811,7 +2811,7 @@
            coloringState.hasMore = data.pagination && data.pagination.page < data.pagination.pages;
            
            if (!append && items.length === 0) {
-              grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--ink-mute);">مفيش رسومات هنا، جربي بحث أو قسم تاني.</div>';
+              grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--ink-mute);">مفيش رسومات هنا، جرب بحث أو قسم تاني.</div>';
               if(loadMoreBtn) loadMoreBtn.style.display = 'none';
               return;
            }
@@ -3053,8 +3053,8 @@
         wrap.innerHTML = 
           '<div class="cb-empty-state">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>' +
-            '<p>لسه ما اخترتيش رسومات لبطلنا.</p>' +
-            '<p style="font-size:14px;color:var(--ink-mute)">اختاري رسومات مجانية من قسم الأنشطة والتلوين</p>' +
+            '<p>لسه ما اخترتش رسومات لبطلنا.</p>' +
+            '<p style="font-size:14px;color:var(--ink-mute)">اختار رسومات مجانية من قسم الأنشطة والتلوين</p>' +
             '<a href="#/mama-world" data-link class="btn btn-primary">يلا نختار سويًا</a>' +
           '</div>';
         return;
@@ -3067,7 +3067,7 @@
       var maxPages = parseInt(SITE_CONTENT['coloring_max_pages']) || 50;
       var pagesWarning = '';
       if (totalPages < minPages) {
-        pagesWarning = '<div class="cb-warning">⚠️ الحد الأدنى ' + toArabicNum(minPages) + ' رسومات — اختاري ' + toArabicNum(minPages - totalPages) + ' كمان</div>';
+        pagesWarning = '<div class="cb-warning">⚠️ الحد الأدنى ' + toArabicNum(minPages) + ' رسومات — اختار ' + toArabicNum(minPages - totalPages) + ' كمان</div>';
       } else if (totalPages > maxPages) {
         pagesWarning = '<div class="cb-warning">⚠️ الحد الأقصى ' + toArabicNum(maxPages) + ' رسمة — شيلي ' + toArabicNum(totalPages - maxPages) + '</div>';
       }
@@ -3084,7 +3084,7 @@
      
       // Free download notice
       html += '<div class="coloring-free-notice">';
-      html += '<p>اختاري الرسومات اللي تعجبك وحددي شكل الكشكول — وسِراج هيطبعها ويجلّدها ويوصّلها ✦</p>';
+      html += '<p>اختار الرسومات اللي تعجبك وحدد شكل الكشكول — وسِراج هيطبعها ويجلّدها ويوصّلها ✦</p>';
       html += '</div>';
 
       // Pages warning
@@ -3104,7 +3104,7 @@
 
      // Share workbook link
      html += '<div class="cb-share-bar">';
-     html += '  <button class="btn btn-outline" id="cbShareLink">🔗 شاركي كشكولك (ابعتيله لنفسك على واتساب)</button>';
+     html += '  <button class="btn btn-outline" id="cbShareLink">🔗 شارك كشكولك (ابعته لنفسك على واتساب)</button>';
      html += '</div>';
      html += '</div>'; // end cb-items-wrap
 
@@ -3112,7 +3112,7 @@
      html += '<div class="cb-summary-panel">';
 
      // Format selection
-     html += '<h3 class="cb-panel-title">اختاري الشكل</h3>';
+     html += '<h3 class="cb-panel-title">اختار الشكل</h3>';
      html += '<div class="cb-format-options">';
      html += '  <label class="cb-format-card is-selected">';
      html += '    <input type="radio" name="cbFormat" value="sheets" checked style="display:none" />';
@@ -3134,7 +3134,7 @@
 
      // Cover selection (hidden by default, shows when "book" is selected)
      html += '<div class="cb-cover-section" id="cbCoverSection" style="display:none">';
-     html += '  <h4>اختاري غلاف الكشكول</h4>';
+     html += '  <h4>اختار غلاف الكشكول</h4>';
      html += '  <div class="cb-cover-grid" id="cbCoverGrid">';
      html += '    <label class="cb-cover-option is-selected"><input type="radio" name="cbCover" value="cover-seraj" checked style="display:none" /><img src="assets/seraj.png" alt="سِراج" /><span>سِراج</span></label>';
      html += '    <label class="cb-cover-option"><input type="radio" name="cbCover" value="cover-khaled" style="display:none" /><img src="assets/khaled-v2.png" alt="خالد" /><span>خالد</span></label>';
@@ -3158,7 +3158,7 @@
 
       html += '<p style="font-size:12px;color:var(--ink-mute);text-align:center;margin-top:12px;line-height:1.6;">شامل الطباعة والتغليف — مصاريف الشحن بتتحسب عند الطلب</p>';
       var canCheckout = totalPages >= minPages && totalPages <= maxPages;
-      html += '<button class="btn btn-primary cb-checkout-btn' + (canCheckout ? '' : ' is-disabled') + '" id="btnColoringCheckout"' + (canCheckout ? '' : ' disabled') + '>' + (canCheckout ? 'أضيفي للسلة 🛒' : 'اختاري ' + toArabicNum(minPages) + ' رسومات على الأقل') + '</button>';
+      html += '<button class="btn btn-primary cb-checkout-btn' + (canCheckout ? '' : ' is-disabled') + '" id="btnColoringCheckout"' + (canCheckout ? '' : ' disabled') + '>' + (canCheckout ? 'أضيف للسلة 🛒' : 'اختار ' + toArabicNum(minPages) + ' رسومات على الأقل') + '</button>';
      html += '</div>'; // end summary panel
 
      html += '</div>'; // end cb-page-wrap
@@ -3220,7 +3220,7 @@
            navigator.share({ title: 'كشكول ألوان من سِراج', url: shareUrl }).catch(function(){});
          } else {
            navigator.clipboard.writeText(shareUrl).then(function() {
-             showToast('تم نسخ رابط الكشكول ✓ ابعتيله لنفسك على واتساب');
+             showToast('تم نسخ رابط الكشكول ✓ ابعته لنفسك على واتساب');
            });
          }
        });
@@ -3425,14 +3425,14 @@
       })
       .then(function (fullText) {
         if (typingEl.parentNode) typingEl.remove();
-        var text = fullText || 'جربي تاني يا قمر 😊';
+        var text = fullText || 'جرب تاني يا قمر 😊';
         appendBotMsg(text);
         chatHistory.push({ role: 'assistant', content: text });
         saveHistory();
       })
       .catch(function (err) {
         if (typingEl.parentNode) typingEl.remove();
-        appendError(err.message || 'حصلت مشكلة — جربي تاني');
+        appendError(err.message || 'حصلت مشكلة — جرب تاني');
       })
       .finally(function () {
         chatSending = false;
