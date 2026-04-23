@@ -3305,6 +3305,10 @@
     if (hasCachedProducts) {
       // We already have product data — render straight away with real images.
       doInitialRender();
+      // Swap the static HTML mockups on the home page with cached photo URLs
+      // synchronously (before the network request resolves) so returning
+      // visitors never see the mockup → photo flicker on refresh.
+      updateDOMPrices();
     } else {
       // First-time visitors: wait briefly for the API before the first render
       // to avoid a fallback-data flash. 2s safety timeout still applies.
