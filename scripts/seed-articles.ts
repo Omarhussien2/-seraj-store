@@ -219,7 +219,7 @@ function extractExcerpt(content: string): string {
       return clean.substring(0, 180).trim() + (clean.length > 180 ? "..." : "");
     }
   }
-  return "مقال تربوي من سلسلة عالم ماما";
+  return "مقال تربوي من سلسلة عالم ماما وبابا";
 }
 
 function extractSources(content: string): { label: string; url?: string; note?: string }[] {

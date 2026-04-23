@@ -32,7 +32,7 @@ const data = [
   { key: "footer.brand_text", val: "قصص مخصصة بتعلّم بطلنا قيمنا الجميلة وتألف قلبه." },
   { key: "footer.copyright", val: "© ٢٠٢٦ سِراج. صُنع بحب في مصر." },
   
-  { key: "mama.hero_title", val: "أهلاً بيك في عالم ماما" },
+  { key: "mama.hero_title", val: "أهلاً بيك في عالم ماما وبابا" },
   { key: "mama.hero_desc", val: "مساحة من القلب للأهل.. مقالات، نصايح، وأماكن هتحبها لبطلنا الصغير ✦" }
 ];
 

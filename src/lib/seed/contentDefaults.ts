@@ -48,7 +48,7 @@ export const DEFAULT_CONTENT = [
   { key: "footer.copyright", section: "footer", value: "© ٢٠٢٦ سِراج. صُنع بحب في مصر." },
   
   // Mama World
-  { key: "mama.hero_title", section: "mama", value: "أهلاً بيك في عالم ماما" },
+  { key: "mama.hero_title", section: "mama", value: "أهلاً بيك في عالم ماما وبابا" },
   { key: "mama.hero_desc", section: "mama", value: "مساحة من القلب للأهل.. مقالات، نصايح، وأماكن هتحبها لبطلنا الصغير ✦" },
   
   // Wizard
@@ -60,7 +60,7 @@ export const DEFAULT_CONTENT = [
   { key: "wizard.step3_speech", section: "wizard", value: "عشان اخلي البطل في القصة شبه ابنك، محتاج أحلى صورة ليه يكون وشه فيها واضح." },
   
   // Navigation & Missing elements
-  { key: "nav.mama", section: "general", value: "عالم ماما" },
+  { key: "nav.mama", section: "general", value: "عالم ماما وبابا" },
   { key: "nav.products", section: "general", value: "المنتجات" },
   { key: "nav.about", section: "general", value: "حكايتنا" },
   

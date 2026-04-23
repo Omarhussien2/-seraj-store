@@ -5,13 +5,13 @@ const filePath = path.join(__dirname, 'public', 'index.html');
 let html = fs.readFileSync(filePath, 'utf-8');
 
 // Replace topnav
-html = html.replace(/<a href="#\/mama-world" data-link>عالم ماما<\/a>/g, '<a href="#/mama-world" data-link data-content-key="nav.mama">عالم ماما</a>');
+html = html.replace(/<a href="#\/mama-world" data-link>عالم ماما وبابا<\/a>/g, '<a href="#/mama-world" data-link data-content-key="nav.mama">عالم ماما وبابا</a>');
 html = html.replace(/<a href="#\/products" data-link>المنتجات<\/a>/g, '<a href="#/products" data-link data-content-key="nav.products">المنتجات</a>');
 html = html.replace(/<a href="#\/about" data-link>حكايتنا<\/a>/g, '<a href="#/about" data-link data-content-key="nav.about">حكايتنا</a>');
 
 // Hero CTAs
-html = html.replace(/<span>استكشفي عالم سراج<\/span>/g, '<span data-content-key="hero.cta_primary">استكشفي عالم سراج</span>');
-html = html.replace(/<span>اصنعي قصة لابنك<\/span>/g, '<span data-content-key="hero.cta_secondary">اصنعي قصة لابنك</span>');
+html = html.replace(/<span>استكشف عالم سراج<\/span>/g, '<span data-content-key="hero.cta_primary">استكشف عالم سراج</span>');
+html = html.replace(/<span>اصنع قصة لابنك<\/span>/g, '<span data-content-key="hero.cta_secondary">اصنع قصة لابنك</span>');
 
 // Top marquee
 html = html.replace(/<div class="marquee-track">([\s\S]*?)<\/div>/g, `<div class="marquee-track" data-content-key="hero.marquee">
