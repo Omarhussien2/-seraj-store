@@ -6,6 +6,19 @@
 
 ---
 
+## [v2.6.0] — 2026-04-23
+
+### Added
+- بوت الجدة زينب — AI parenting advisor في صفحة عالم ماما [`28b536b`]
+- `POST /api/chat` route مع SSE streaming + rate limiting (30 رسالة/ساعة لكل IP) [`28b536b`]
+- System prompt: شخصية الجدة زينب المصرية، عامية، تربية إسلامية، أمثال شعبية [`28b536b`]
+- 5 few-shot examples: العند، النوم، الأكل، القراءة، الضرب [`28b536b`]
+- واجهة شات كاملة: message bubbles، typing indicator، suggestion chips [`28b536b`]
+- حفظ تاريخ المحادثة في localStorage (آخر 50 رسالة) [`28b536b`]
+- Configurable API: `DEEPSEEK_API_KEY` + `DEEPSEEK_BASE_URL` + `DEEPSEEK_MODEL` [`28b536b`]
+
+---
+
 ## [v2.5.0] — 2026-04-21
 
 ### Added
