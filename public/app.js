@@ -13,7 +13,7 @@
   var WIZARD_KEY = 'seraj-wizard';
   var ORDER_KEY = 'seraj-last-order';
   var SHIPPING_FEE = 35; // fallback — overridden by /api/config
-  var FREE_SHIPPING_ABOVE = 0; // 0 = never free unless fee is 0
+  var FREE_SHIPPING_ABOVE = 500; // fallback — overridden by /api/config
 
   // ----- Cloudinary Config -----
   var CLOUD_NAME = 'dkhndsrhr';
@@ -228,11 +228,13 @@
           if (data.data.instaPayLink) INSTAPAY_LINK = data.data.instaPayLink;
           if (typeof data.data.shippingFee === 'number') SHIPPING_FEE = data.data.shippingFee;
           if (typeof data.data.freeShippingAbove === 'number') FREE_SHIPPING_ABOVE = data.data.freeShippingAbove;
+          showFreeShipBanner();
           console.log('✅ Config loaded from API');
         }
       })
       .catch(function () {
         console.warn('⚠️ Config fetch failed, using fallback values');
+        showFreeShipBanner();
       });
   }
 
@@ -302,6 +304,27 @@
     if (SHIPPING_FEE === 0) return 0;
     if (FREE_SHIPPING_ABOVE > 0 && subtotal >= FREE_SHIPPING_ABOVE) return 0;
     return SHIPPING_FEE;
+  }
+
+  function renderShippingProgress(subtotal) {
+    if (FREE_SHIPPING_ABOVE <= 0) return '';
+    var remaining = FREE_SHIPPING_ABOVE - subtotal;
+    if (remaining <= 0) {
+      return '<div class="ship-progress"><div class="ship-progress-done">🎉 الشحن مجاني! نيالك ✦</div></div>';
+    }
+    var pct = Math.min(100, Math.round((subtotal / FREE_SHIPPING_ABOVE) * 100));
+    return '<div class="ship-progress">' +
+      '<div class="ship-progress-text">فاوتي بـ <b>' + toArabicNum(remaining) + ' ج.م</b> والشحن يجي مجاني!</div>' +
+      '<div class="ship-progress-bar"><div class="ship-progress-fill" style="width:' + pct + '%"></div></div>' +
+      '</div>';
+  }
+
+  function showFreeShipBanner() {
+    var banner = document.getElementById('freeShipBanner');
+    var text = document.getElementById('freeShipText');
+    if (!banner || FREE_SHIPPING_ABOVE <= 0) return;
+    text.textContent = 'شحن مجاني للطلبات فوق ' + toArabicNum(FREE_SHIPPING_ABOVE) + ' ج.م ✦';
+    banner.hidden = false;
   }
 
   function cartItemCount() {
@@ -1010,6 +1033,9 @@
     });
 
     h += '</div>';
+
+    // Free shipping progress
+    h += renderShippingProgress(total);
 
     // Summary
     var shipping = getShippingFee(total);
