@@ -19,13 +19,12 @@ const ASSETS_TO_CACHE = [
   '/assets/instapay-qr.jpeg'
 ];
 
-const IMAGE_EXTENSIONS = /\.(?:png|jpg|jpeg|gif|webp|avif|svg|ico)(?:\?.*)?$/i;
-
-function isImageRequest(request) {
-  if (request.destination === 'image') return true;
-  const url = request.url;
-  if (url.includes('res.cloudinary.com')) return true;
-  return IMAGE_EXTENSIONS.test(url);
+// We only use cache-first for Cloudinary because its URLs are immutable
+// (they embed a version hash, e.g. `/v1776193295/...`), so a cached copy is
+// always correct. Local images (/assets/*.png, etc.) keep using network-first
+// so they refresh when the server copy changes.
+function isCloudinaryImageRequest(request) {
+  return request.url.includes('res.cloudinary.com');
 }
 
 // Install — cache essential assets
@@ -52,23 +51,23 @@ self.addEventListener('activate', (event) => {
 });
 
 // Fetch handler
-//   - Images  → cache-first (immutable by URL, kills the refresh flicker)
-//   - Others  → network-first with cache fallback
+//   - Cloudinary images → cache-first (immutable URLs, kills refresh flicker)
+//   - Everything else   → network-first with cache fallback
 self.addEventListener('fetch', (event) => {
   const request = event.request;
 
   if (request.method !== 'GET') return;
   if (request.url.includes('/api/')) return;
 
-  if (isImageRequest(request)) {
-    event.respondWith(cacheFirstImage(request));
+  if (isCloudinaryImageRequest(request)) {
+    event.respondWith(cacheFirstCloudinary(request));
     return;
   }
 
   event.respondWith(networkFirst(request));
 });
 
-function cacheFirstImage(request) {
+function cacheFirstCloudinary(request) {
   return caches.open(IMAGE_CACHE_NAME).then((cache) => {
     return cache.match(request).then((cached) => {
       if (cached) return cached;
@@ -80,11 +79,7 @@ function cacheFirstImage(request) {
             cache.put(request, response.clone()).catch(() => {});
           }
           return response;
-        })
-        // Offline fallback: also check the general cache for pre-cached image
-        // assets (e.g. /assets/logo.svg) that install-time `cache.addAll` stored
-        // in CACHE_NAME, so offline visits keep rendering static imagery.
-        .catch(() => caches.match(request));
+        });
     });
   });
 }
