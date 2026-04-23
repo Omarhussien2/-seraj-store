@@ -1133,7 +1133,7 @@
       <!-- PANEL 4: اسألي زينب -->
       <div class="mama-panel" data-mama-panel="ask-zainab">
         <div class="chat-interface">
-          <div class="chat-bubble">
+          <div class="chat-bubble chat-intro">
             <img src="assets/grandma-fatima-seated.png" alt="الجدة زينب" class="chat-avatar" loading="lazy"/>
             <div class="chat-msg">
               <strong>الجدة زينب بتقولك:</strong>
@@ -1141,22 +1141,18 @@
             </div>
           </div>
           <div class="chat-suggestions">
-            <button class="chip" disabled>إزاي أتعامل مع العند؟</button>
-            <button class="chip" disabled>طفلي بيرفض الأكل</button>
-            <button class="chip" disabled>إزاي أحفظه يحب القراءة؟</button>
-            <button class="chip" disabled>روتين نوم صحي</button>
+            <button class="chip" data-q="إزاي أتعامل مع العند؟">إزاي أتعامل مع العند؟</button>
+            <button class="chip" data-q="طفلي بيرفض الأكل">طفلي بيرفض الأكل</button>
+            <button class="chip" data-q="إزاي أحفظه يحب القراءة؟">إزاي أحفظه يحب القراءة؟</button>
+            <button class="chip" data-q="روتين نوم صحي">روتين نوم صحي</button>
           </div>
+          <div id="chatMessages" class="chat-messages"></div>
           <div class="chat-input-wrap">
-            <input type="text" placeholder="اكتبي سؤالك هنا..." disabled/>
-            <button class="btn btn-primary" disabled>
+            <input type="text" id="chatInput" placeholder="اكتبي سؤالك هنا..." maxlength="500"/>
+            <button class="btn btn-primary" id="chatSendBtn">
               <svg viewBox="0 0 24 24" width="20" height="20"><path d="M6 12l12-6-6 12V12z" fill="currentColor"/></svg>
             </button>
           </div>
-        </div>
-        <div class="coming-soon-overlay">
-          <svg viewBox="0 0 24 24" width="32" height="32"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM12 17c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM15.1 8H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z" fill="var(--brass)"/></svg>
-          <h3>قريباً إن شاء الله ✦</h3>
-          <p>شات مع الجدة زينب.. هتسألي وهي تجاوبكِ من القلب بالعامية!</p>
         </div>
       </div>
 

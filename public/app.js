@@ -319,6 +319,12 @@
     return String(n).replace(/[0-9]/g, function (d) { return digits[+d]; });
   }
 
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
+
   // ----- Product Detail Rendering -----
   function renderProductDetail(slug) {
     var container = document.getElementById('productDetail');
@@ -3198,5 +3204,231 @@
   } else {
     document.addEventListener('DOMContentLoaded', initHeroVideo);
   }
+
+  // ═══════════════════════════════════════════════════════════
+  // CHAT — Mama Zainab Bot
+  // ═══════════════════════════════════════════════════════════
+  var chatInited = false;
+  var chatHistory = [];
+  var chatSending = false;
+
+  function initChat() {
+    if (chatInited) return;
+    chatInited = true;
+
+    var input = document.getElementById('chatInput');
+    var sendBtn = document.getElementById('chatSendBtn');
+    var messagesDiv = document.getElementById('chatMessages');
+    var avatarSrc = 'assets/grandma-fatima-seated.png';
+
+    // Load history from localStorage
+    try {
+      var saved = localStorage.getItem('seraj-chat-history');
+      if (saved) {
+        chatHistory = JSON.parse(saved);
+        // Render saved messages
+        for (var i = 0; i < chatHistory.length; i++) {
+          if (chatHistory[i].role === 'user') {
+            appendUserMsg(chatHistory[i].content);
+          } else if (chatHistory[i].role === 'assistant') {
+            appendBotMsg(chatHistory[i].content);
+          }
+        }
+      }
+    } catch (e) {}
+
+    // Suggestion chips
+    document.querySelectorAll('[data-mama-panel="ask-zainab"] .chip[data-q]').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        var q = chip.getAttribute('data-q');
+        if (q && !chatSending) {
+          input.value = q;
+          sendChatMessage();
+        }
+      });
+    });
+
+    // Send button
+    sendBtn.addEventListener('click', function () {
+      if (!chatSending) sendChatMessage();
+    });
+
+    // Enter key
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !chatSending) {
+        e.preventDefault();
+        sendChatMessage();
+      }
+    });
+
+    function sendChatMessage() {
+      var msg = input.value.trim();
+      if (!msg || chatSending) return;
+      input.value = '';
+      chatSending = true;
+      sendBtn.disabled = true;
+
+      // Show user message
+      appendUserMsg(msg);
+      chatHistory.push({ role: 'user', content: msg });
+      saveHistory();
+
+      // Show typing indicator
+      var typingEl = document.createElement('div');
+      typingEl.className = 'chat-typing';
+      typingEl.innerHTML = '<img src="' + avatarSrc + '" alt="..." class="chat-avatar-sm"/><div class="chat-typing-dots"><span></span><span></span><span></span></div>';
+      messagesDiv.appendChild(typingEl);
+      scrollMessages();
+
+      // Call API with streaming
+      fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg, history: chatHistory.slice(-10) })
+      })
+      .then(function (res) {
+        if (!res.ok) {
+          return res.json().then(function (err) {
+            throw new Error(err.error || 'حصلت مشكلة');
+          });
+        }
+        return readStream(res, typingEl);
+      })
+      .then(function (fullText) {
+        if (typingEl.parentNode) typingEl.remove();
+        var text = fullText || 'جربي تاني يا قمر 😊';
+        appendBotMsg(text);
+        chatHistory.push({ role: 'assistant', content: text });
+        saveHistory();
+      })
+      .catch(function (err) {
+        if (typingEl.parentNode) typingEl.remove();
+        appendError(err.message || 'حصلت مشكلة — جربي تاني');
+      })
+      .finally(function () {
+        chatSending = false;
+        sendBtn.disabled = false;
+        input.focus();
+      });
+    }
+
+    function readStream(res, typingEl) {
+      return new Promise(function (resolve, reject) {
+        var reader = res.body.getReader();
+        var decoder = new TextDecoder();
+        var fullText = '';
+        var botEl = null;
+        var botText = null;
+        var buffer = '';
+
+        // Remove typing, create bot message element
+        function ensureBotEl() {
+          if (botEl) return;
+          if (typingEl.parentNode) typingEl.remove();
+          botEl = document.createElement('div');
+          botEl.className = 'chat-msg-bot';
+          botEl.innerHTML = '<img src="' + avatarSrc + '" alt="الجدة زينب" class="chat-avatar-sm"/><div class="chat-msg-text"></div>';
+          messagesDiv.appendChild(botEl);
+          botText = botEl.querySelector('.chat-msg-text');
+        }
+
+        function pump() {
+          reader.read().then(function (result) {
+            if (result.done) {
+              resolve(fullText);
+              return;
+            }
+
+            buffer += decoder.decode(result.value, { stream: true });
+            var lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (var i = 0; i < lines.length; i++) {
+              var line = lines[i].trim();
+              if (!line || !line.startsWith('data: ')) continue;
+              var data = line.slice(6);
+              if (data === '[DONE]') {
+                resolve(fullText);
+                return;
+              }
+              try {
+                var parsed = JSON.parse(data);
+                if (parsed.content) {
+                  ensureBotEl();
+                  fullText += parsed.content;
+                  botText.textContent = fullText;
+                  scrollMessages();
+                }
+              } catch (e) {}
+            }
+
+            pump();
+          }).catch(reject);
+        }
+
+        pump();
+      });
+    }
+
+    function appendUserMsg(text) {
+      var el = document.createElement('div');
+      el.className = 'chat-msg-user';
+      el.innerHTML = '<div class="chat-msg-text">' + escapeHtml(text) + '</div>';
+      messagesDiv.appendChild(el);
+      scrollMessages();
+    }
+
+    function appendBotMsg(text) {
+      var el = document.createElement('div');
+      el.className = 'chat-msg-bot';
+      el.innerHTML = '<img src="' + avatarSrc + '" alt="الجدة زينب" class="chat-avatar-sm"/><div class="chat-msg-text">' + escapeHtml(text) + '</div>';
+      messagesDiv.appendChild(el);
+      scrollMessages();
+    }
+
+    function appendError(text) {
+      var el = document.createElement('div');
+      el.className = 'chat-error';
+      el.textContent = text;
+      messagesDiv.appendChild(el);
+      scrollMessages();
+    }
+
+    function scrollMessages() {
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function saveHistory() {
+      try {
+        // Keep last 50 messages only
+        var toSave = chatHistory.slice(-50);
+        localStorage.setItem('seraj-chat-history', JSON.stringify(toSave));
+      } catch (e) {}
+    }
+  }
+
+  // Init chat when the ask-zainab panel is shown
+  function maybeInitChat() {
+    var panel = document.querySelector('[data-mama-panel="ask-zainab"]');
+    if (panel && panel.classList.contains('is-active')) {
+      initChat();
+    }
+  }
+
+  // Patch into mama tab clicks
+  document.addEventListener('click', function (e) {
+    var tab = e.target.closest('[data-mama-tab="ask-zainab"]');
+    if (tab) {
+      setTimeout(maybeInitChat, 100);
+    }
+  });
+
+  // Also init if we're already on the panel (deep link)
+  setTimeout(function () {
+    var panel = document.querySelector('[data-mama-panel="ask-zainab"]');
+    if (panel && panel.classList.contains('is-active')) {
+      initChat();
+    }
+  }, 500);
 
 })();
