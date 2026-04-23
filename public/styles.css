@@ -4520,3 +4520,137 @@ input, textarea { font-family: inherit; }
     font-size: 14px;
   }
 }
+
+/* ============================================================
+   PWA Install Banner
+   Bottom sheet (mobile-first), auto-repositioned above .bottom-nav
+   ============================================================ */
+.pwa-install-banner {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--bottomnav-h) + 12px + env(safe-area-inset-bottom, 0px));
+  z-index: 9000;
+  background: var(--cream);
+  border: 2.5px solid var(--ink);
+  border-radius: 18px;
+  padding: 12px 14px;
+  box-shadow: 0 5px 0 var(--ink), 0 12px 30px rgba(0, 0, 0, .12);
+  max-width: 520px;
+  margin-inline: auto;
+  font-family: var(--body);
+  transform: translateY(calc(100% + 40px));
+  opacity: 0;
+  transition: transform .35s cubic-bezier(.2, .8, .2, 1), opacity .25s ease;
+  pointer-events: none;
+}
+.pwa-install-banner[hidden] { display: none; }
+.pwa-install-banner.is-open {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.pwa-install-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pwa-install-icon {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--seraj-wash);
+  padding: 4px;
+  object-fit: contain;
+  box-shadow: 0 2px 0 var(--seraj-dark);
+}
+.pwa-install-body {
+  flex: 1;
+  min-width: 0;
+}
+.pwa-install-title {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1.2;
+  color: var(--ink);
+  margin: 0 0 3px;
+}
+.pwa-install-sub {
+  font-size: 12px;
+  color: var(--ink-mute);
+  line-height: 1.35;
+  margin: 0;
+}
+.pwa-install-cta {
+  flex-shrink: 0;
+  background: var(--seraj);
+  color: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  padding: 8px 16px;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 14px;
+  box-shadow: 0 3px 0 var(--ink);
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.pwa-install-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 var(--ink);
+}
+.pwa-install-cta:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--ink);
+}
+.pwa-install-close {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--cream-2);
+  color: var(--ink-mute);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s ease, color .15s ease;
+}
+.pwa-install-close:hover {
+  background: var(--line);
+  color: var(--ink);
+}
+.pwa-install-ios-hint {
+  margin-top: 10px;
+  padding: 9px 12px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  background: var(--brass-wash);
+  border-radius: 10px;
+}
+.pwa-install-ios-hint[hidden] { display: none; }
+.pwa-install-share-icon {
+  display: inline-block;
+  vertical-align: -3px;
+  margin: 0 3px;
+  color: var(--brass-dark);
+}
+
+/* On wider screens with no bottom nav visible, sit flush against the bottom */
+@media (min-width: 900px) {
+  .pwa-install-banner {
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pwa-install-banner {
+    transition: opacity .2s ease;
+    transform: none;
+  }
+}

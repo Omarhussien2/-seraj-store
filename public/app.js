@@ -3482,4 +3482,113 @@
     }
   }, 500);
 
+  // ═══════════════════════════════════════════════════════════
+  // PWA INSTALL BANNER
+  //   Android / Desktop Chrome / Edge → beforeinstallprompt button
+  //   iOS Safari                     → manual Share → Add to Home instructions
+  //   Already-installed users        → banner stays hidden
+  //   Dismissed users                → hidden for 30 days
+  // ═══════════════════════════════════════════════════════════
+  var PWA_DISMISS_KEY = 'seraj-pwa-install-dismissed-at';
+  var PWA_DISMISS_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+  var PWA_SHOW_DELAY_MS = 5000;
+
+  function isStandaloneMode() {
+    try {
+      if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+      if (window.navigator && window.navigator.standalone === true) return true; // iOS Safari
+    } catch (e) {}
+    return false;
+  }
+
+  function recentlyDismissed() {
+    try {
+      var raw = localStorage.getItem(PWA_DISMISS_KEY);
+      if (!raw) return false;
+      var ts = parseInt(raw, 10);
+      if (!isFinite(ts)) return false;
+      return (Date.now() - ts) < PWA_DISMISS_MS;
+    } catch (e) { return false; }
+  }
+
+  function isIosSafari() {
+    var ua = navigator.userAgent || '';
+    var isIos = /iphone|ipad|ipod/i.test(ua) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPadOS 13+
+    if (!isIos) return false;
+    // Exclude in-app browsers (FBAV, Instagram, Line, etc) — they don't support A2HS reliably
+    var isSafari = /safari/i.test(ua) && !/crios|fxios|edgios|opios|ya?browser|fbav|fban|instagram|line/i.test(ua);
+    return isSafari;
+  }
+
+  function initPwaInstallBanner() {
+    var banner = document.getElementById('pwaInstallBanner');
+    if (!banner) return;
+    if (isStandaloneMode()) return;
+    if (recentlyDismissed()) return;
+
+    var cta = document.getElementById('pwaInstallCta');
+    var closeBtn = document.getElementById('pwaInstallClose');
+    var iosHint = document.getElementById('pwaInstallIosHint');
+    var deferredPrompt = null;
+    var shown = false;
+
+    function show() {
+      if (shown) return;
+      shown = true;
+      banner.hidden = false;
+      banner.setAttribute('aria-hidden', 'false');
+      // Defer one frame so the browser picks up the transition from transform → translate(0)
+      requestAnimationFrame(function () {
+        banner.classList.add('is-open');
+      });
+    }
+
+    function hide(persistDismissal) {
+      banner.classList.remove('is-open');
+      banner.setAttribute('aria-hidden', 'true');
+      setTimeout(function () { banner.hidden = true; }, 400);
+      if (persistDismissal) {
+        try { localStorage.setItem(PWA_DISMISS_KEY, String(Date.now())); } catch (e) {}
+      }
+    }
+
+    closeBtn.addEventListener('click', function () { hide(true); });
+
+    cta.addEventListener('click', function () {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function (choice) {
+        deferredPrompt = null;
+        // Hide after choice regardless; appinstalled fires on accept
+        hide(choice && choice.outcome !== 'accepted');
+      }).catch(function () { hide(false); });
+    });
+
+    window.addEventListener('appinstalled', function () { hide(false); });
+
+    if (isIosSafari()) {
+      // iOS Safari: no prompt API — surface manual instructions after the delay.
+      iosHint.hidden = false;
+      cta.hidden = true;
+      setTimeout(show, PWA_SHOW_DELAY_MS);
+      return;
+    }
+
+    // Everyone else: wait for beforeinstallprompt (fired only by installable browsers)
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      cta.hidden = false;
+      iosHint.hidden = true;
+      setTimeout(show, PWA_SHOW_DELAY_MS);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPwaInstallBanner);
+  } else {
+    initPwaInstallBanner();
+  }
+
 })();

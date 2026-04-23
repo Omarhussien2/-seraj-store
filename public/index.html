@@ -1246,6 +1246,24 @@
     </a>
   </nav>
 
+  <!-- ============ PWA INSTALL BANNER ============ -->
+  <aside class="pwa-install-banner" id="pwaInstallBanner" hidden aria-hidden="true" role="dialog" aria-label="تثبيت التطبيق">
+    <div class="pwa-install-top">
+      <img class="pwa-install-icon" src="/assets/logo/logo-icon.svg" alt="" width="46" height="46">
+      <div class="pwa-install-body">
+        <p class="pwa-install-title" id="pwaInstallTitle">ثبّت تطبيق سِراج على شاشة الموبايل</p>
+        <p class="pwa-install-sub" id="pwaInstallSub">اطلب بسرعة حتى بدون إنترنت</p>
+      </div>
+      <button type="button" class="pwa-install-cta" id="pwaInstallCta" hidden>ثبّت</button>
+      <button type="button" class="pwa-install-close" id="pwaInstallClose" aria-label="إخفاء"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6l-6 12"/></svg></button>
+    </div>
+    <div class="pwa-install-ios-hint" id="pwaInstallIosHint" hidden>
+      اضغط زر المشاركة
+      <svg class="pwa-install-share-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M7 8l5-5 5 5"/><path d="M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
+      ثم اختار <strong>«إضافة إلى الشاشة الرئيسية»</strong>
+    </div>
+  </aside>
+
   <script src="app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
