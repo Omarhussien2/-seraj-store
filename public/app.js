@@ -3561,6 +3561,183 @@
   }, 500);
 
   // ═══════════════════════════════════════════════════════════
+  // SERAJ CHAT WIDGET (floating)
+  // ═══════════════════════════════════════════════════════════
+  var scChatOpen = false;
+  var scHistory = [];
+  var scSending = false;
+  var scInited = false;
+
+  function initSerajChat() {
+    if (scInited) return;
+    scInited = true;
+
+    var btn = document.getElementById('serajChatBtn');
+    var win = document.getElementById('serajChatWindow');
+    var closeBtn = document.getElementById('serajChatClose');
+    var input = document.getElementById('serajChatInput');
+    var sendBtn = document.getElementById('serajChatSend');
+    var msgs = document.getElementById('serajChatMessages');
+    var WHATSAPP = '201152806034';
+
+    btn.addEventListener('click', function () {
+      scChatOpen = !scChatOpen;
+      win.hidden = !scChatOpen;
+      if (scChatOpen) {
+        btn.style.display = 'none';
+        if (msgs.children.length === 0) {
+          appendScBot('أهلاً بكِ! أنا سِراج — مساعدك الذكي. تقدري تسأليني عن المنتجات والأسعار أو تطلبي مباشرة. إيه اللي تحتاجيه؟');
+        }
+        setTimeout(function () { input.focus(); }, 100);
+      }
+    });
+
+    closeBtn.addEventListener('click', function () {
+      scChatOpen = false;
+      win.hidden = true;
+      btn.style.display = '';
+    });
+
+    sendBtn.addEventListener('click', function () { if (!scSending) scSend(); });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !scSending) { e.preventDefault(); scSend(); }
+    });
+
+    document.querySelectorAll('#serajChatChips button[data-q]').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        if (scSending) return;
+        input.value = chip.getAttribute('data-q');
+        scSend();
+      });
+    });
+
+    function scSend() {
+      var msg = input.value.trim();
+      if (!msg || scSending) return;
+      input.value = '';
+      scSending = true;
+      sendBtn.disabled = true;
+
+      appendScUser(msg);
+      scHistory.push({ role: 'user', content: msg });
+
+      var typingEl = document.createElement('div');
+      typingEl.className = 'sc-msg sc-msg-typing';
+      typingEl.innerHTML = '<span></span><span></span><span></span>';
+      msgs.appendChild(typingEl);
+      scScroll();
+
+      fetch('/api/chat-seraj', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg, history: scHistory.slice(-10) })
+      })
+      .then(function (res) {
+        if (!res.ok) return res.json().then(function (e) { throw new Error(e.error || 'حصلت مشكلة'); });
+        return scReadStream(res, typingEl);
+      })
+      .then(function (text) {
+        if (typingEl.parentNode) typingEl.remove();
+        var full = text || 'جربي تاني';
+        appendScBot(full);
+        scHistory.push({ role: 'assistant', content: full });
+      })
+      .catch(function (err) {
+        if (typingEl.parentNode) typingEl.remove();
+        var errEl = document.createElement('div');
+        errEl.className = 'sc-msg sc-msg-error';
+        errEl.textContent = err.message || 'حصلت مشكلة — جربي تاني';
+        msgs.appendChild(errEl);
+        scScroll();
+      })
+      .finally(function () {
+        scSending = false;
+        sendBtn.disabled = false;
+        input.focus();
+      });
+    }
+
+    function scReadStream(res, typingEl) {
+      return new Promise(function (resolve, reject) {
+        var reader = res.body.getReader();
+        var decoder = new TextDecoder();
+        var fullText = '';
+        var botEl = null;
+        var botText = null;
+        var buffer = '';
+
+        function ensureBotEl() {
+          if (botEl) return;
+          if (typingEl.parentNode) typingEl.remove();
+          botEl = document.createElement('div');
+          botEl.className = 'sc-msg sc-msg-bot';
+          botText = document.createElement('div');
+          botEl.appendChild(botText);
+          msgs.appendChild(botEl);
+        }
+
+        function pump() {
+          reader.read().then(function (r) {
+            if (r.done) { resolve(fullText); return; }
+            buffer += decoder.decode(r.value, { stream: true });
+            var lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+            for (var i = 0; i < lines.length; i++) {
+              var line = lines[i].trim();
+              if (!line || !line.startsWith('data: ')) continue;
+              var data = line.slice(6);
+              if (data === '[DONE]') { resolve(fullText); return; }
+              try {
+                var parsed = JSON.parse(data);
+                if (parsed.content) {
+                  ensureBotEl();
+                  fullText += parsed.content;
+                  botText.textContent = fullText;
+                  scScroll();
+                }
+              } catch (e) {}
+            }
+            pump();
+          }).catch(reject);
+        }
+        pump();
+      });
+    }
+
+    function appendScUser(text) {
+      var el = document.createElement('div');
+      el.className = 'sc-msg sc-msg-user';
+      el.textContent = text;
+      msgs.appendChild(el);
+      scScroll();
+    }
+
+    function appendScBot(text) {
+      var el = document.createElement('div');
+      el.className = 'sc-msg sc-msg-bot';
+      el.textContent = text;
+      var waLink = document.createElement('a');
+      waLink.className = 'sc-wa-link';
+      waLink.href = 'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent('مرحباً، كنت بتكلم سِراج وأحتاج مساعدة');
+      waLink.target = '_blank';
+      waLink.rel = 'noopener';
+      waLink.textContent = 'تواصل معانا واتساب';
+      el.appendChild(document.createElement('br'));
+      el.appendChild(waLink);
+      msgs.appendChild(el);
+      scScroll();
+    }
+
+    function scScroll() { msgs.scrollTop = msgs.scrollHeight; }
+  }
+
+  if (document.readyState !== 'loading') {
+    initSerajChat();
+  } else {
+    document.addEventListener('DOMContentLoaded', initSerajChat);
+  }
+
+  // ═══════════════════════════════════════════════════════════
   // PWA INSTALL BANNER
   //   Android / Desktop Chrome / Edge → beforeinstallprompt button
   //   iOS Safari                     → manual Share → Add to Home instructions

@@ -6,6 +6,20 @@
 
 ---
 
+## [v2.8.0] — 2026-04-30
+
+### Added
+- شات سِراج المخصص — ودجت شات flotation مبني على Gemini API بدل Mojeeb
+- `POST /api/chat-seraj` route بشخصية سِراج + streaming + rate limiting
+- أزرار سريعة: المنتجات والأسعار / القصة المخصصة / قصة خالد / الشحن / تواصل واتساب
+- زر واتساب في كل رد بوت للتحويل لدعم بشري
+- واجهة شات كاملة: message bubbles، typing indicator، responsive design
+
+### Removed
+- Mojeeb third-party widget — استبدليناه بحل مخصص بالكامل
+
+---
+
 ## [v2.7.0] — 2026-04-23
 
 ### Added
