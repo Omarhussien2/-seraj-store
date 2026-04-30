@@ -2666,7 +2666,6 @@ input, textarea { font-family: inherit; }
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
   box-shadow: 0 6px 18px rgba(35,26,20,.18), 0 2px 6px rgba(35,26,20,.08);
   transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
   animation: scFabPop .45s cubic-bezier(.2,.9,.3,1.5);
@@ -2694,9 +2693,9 @@ input, textarea { font-family: inherit; }
 }
 
 .sc-fab-icon { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; transition: opacity .18s ease, transform .18s ease; }
-.sc-fab-icon-avatar { background: #fff; }
+.sc-fab-icon-avatar { background: #fff; border-radius: 50%; overflow: hidden; }
 .sc-fab-icon-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; display: block; }
-.sc-fab-icon-close { position: absolute; inset: 0; opacity: 0; transform: rotate(-90deg); color: #fff; background: var(--seraj-dark); }
+.sc-fab-icon-close { position: absolute; inset: 0; opacity: 0; transform: rotate(-90deg); color: #fff; background: var(--seraj-dark); border-radius: 50%; }
 .sc-fab.is-open .sc-fab-icon-avatar { opacity: 0; transform: rotate(90deg); }
 .sc-fab.is-open .sc-fab-icon-close { opacity: 1; transform: rotate(0); }
 
