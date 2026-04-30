@@ -2655,25 +2655,25 @@ input, textarea { font-family: inherit; }
   position: fixed;
   bottom: calc(var(--bottomnav-h) + 14px);
   left: 16px;
-  width: 58px;
-  height: 58px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   border: none;
-  background: var(--seraj);
-  color: #fff;
+  background: #fff;
+  color: var(--ink);
   cursor: pointer;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 18px rgba(107,191,63,.4), 0 2px 6px rgba(0,0,0,.1);
+  box-shadow: 0 6px 18px rgba(35,26,20,.18), 0 2px 6px rgba(35,26,20,.08);
   transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
   animation: scFabPop .45s cubic-bezier(.2,.9,.3,1.5);
   z-index: 110;
 }
-.sc-fab:hover { transform: scale(1.08); box-shadow: 0 8px 22px rgba(107,191,63,.5); }
+.sc-fab:hover { transform: scale(1.08); box-shadow: 0 8px 22px rgba(35,26,20,.22); }
 .sc-fab:active { transform: scale(.94); }
-.sc-fab:focus-visible { outline: 3px solid #fff; outline-offset: 3px; box-shadow: 0 0 0 5px rgba(107,191,63,.5); }
+.sc-fab:focus-visible { outline: 3px solid var(--seraj); outline-offset: 3px; }
 @keyframes scFabPop { from { opacity: 0; transform: scale(.5) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
 /* Pulse ring (only before first open) */
@@ -2692,12 +2692,12 @@ input, textarea { font-family: inherit; }
   100% { transform: scale(1.6);  opacity: 0;  }
 }
 
-.sc-fab-icon { display: flex; align-items: center; justify-content: center; transition: opacity .18s ease, transform .18s ease; }
-.sc-fab-icon-avatar img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
-.sc-fab-icon-close { position: absolute; opacity: 0; transform: rotate(-90deg); }
+.sc-fab-icon { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; transition: opacity .18s ease, transform .18s ease; }
+.sc-fab-icon-avatar { background: #fff; border-radius: 50%; overflow: hidden; }
+.sc-fab-icon-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; display: block; }
+.sc-fab-icon-close { position: absolute; inset: 0; opacity: 0; transform: rotate(-90deg); color: #fff; background: var(--seraj-dark); border-radius: 50%; }
 .sc-fab.is-open .sc-fab-icon-avatar { opacity: 0; transform: rotate(90deg); }
 .sc-fab.is-open .sc-fab-icon-close { opacity: 1; transform: rotate(0); }
-.sc-fab.is-open { background: var(--seraj-dark); }
 
 /* FAB tooltip — desktop only, hover/focus */
 .sc-fab-tooltip {
