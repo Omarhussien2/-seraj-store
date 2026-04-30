@@ -1272,14 +1272,19 @@
   </button>
   <script id="mojeeb-chat-widget"
     src="https://mojeebcdn.z7.web.core.windows.net/mojeeb-widget.js"
-    data-widget-id="14f5f2de-b4c6-4a54-8284-358ad3386db0"
+    data-widget-id="04d82ac4-c2b1-49fb-b349-dd7c55b96f6b"
     data-mode="headless"
     data-config="{}">
   </script>
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      MojeebWidget.attach('#waChatBtn');
-    });
+    function attachMojeeb() {
+      if (typeof MojeebWidget !== 'undefined' && MojeebWidget.attach) {
+        MojeebWidget.attach('#waChatBtn');
+      } else {
+        setTimeout(attachMojeeb, 200);
+      }
+    }
+    document.addEventListener('DOMContentLoaded', attachMojeeb);
   </script>
 
   <script>
