@@ -23,8 +23,8 @@ const CONTENT_UPDATES = [
   { key: 'hero.kicker', val: 'قصص وكتب وأكتر — مصنوعة بحب في مصر' },
   { key: 'hero.title', val: 'متعة القراءة واللعب..' },
   { key: 'hero.subtitle', val: 'في <strong class="highlight">حكايات</strong> بتصنع <strong class="highlight">أبطال بجد!</strong>' },
-  { key: 'hero.cta_primary', val: 'يلا يا سراج.. ألف قصة لبطلنا' },
-  { key: 'hero.cta_secondary', val: 'شوف المنتجات' },
+  { key: 'hero.cta_primary', val: 'استكشف عالم سراج' },
+  { key: 'hero.cta_secondary', val: 'اصنع قصة لابنك' },
 
   // Products
   { key: 'products.kicker', val: 'أبطالنا الصغار بيحبوهم' },
@@ -57,8 +57,8 @@ const CONTENT_UPDATES = [
   { key: 'ribbon.subtext', val: 'بس ٣ خطوات صغيرة.. والقصة هتكون بين إيديه.' },
   { key: 'ribbon.cta', val: 'اصنع قصة لابنك' },
 
-  // Mama section (still called "عالم ماما" until PR B renames it)
-  { key: 'mama.hero_title', val: 'أهلاً بيك في عالم ماما' },
+  // Mama section (renamed in PR B to "عالم ماما وبابا")
+  { key: 'mama.hero_title', val: 'أهلاً بيك في عالم ماما وبابا' },
   { key: 'mama.hero_desc', val: 'مساحة من القلب للأهل.. مقالات، نصايح، وأماكن هتحبها لبطلنا الصغير ✦' },
 
   // Wizard speech bubbles
