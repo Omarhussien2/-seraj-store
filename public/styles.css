@@ -3079,11 +3079,10 @@ body.sc-modal-open { overflow: hidden; touch-action: none; }
   .sc-chips { animation: none !important; transition: none !important; }
   .sc-fab.sc-pulse::before { animation: none !important; display: none; }
 }
-.seraj-chat-footer button:disabled { opacity: .5; cursor: default; transform: none; }
-
+/* Desktop: bottom-nav is hidden, so reposition FAB + window away from the bottom edge */
 @media (min-width: 900px) {
-  .seraj-chat-fab { bottom: 24px; left: auto; right: 24px; }
-  .seraj-chat-window { left: auto; right: 16px; }
+  .sc-fab    { bottom: 24px; left: auto; right: 24px; }
+  .sc-window { bottom: 24px; left: auto; right: 24px; transform-origin: bottom right; }
 }
 
 /* ========== REVEAL ANIMATIONS ========== */
