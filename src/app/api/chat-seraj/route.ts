@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { getOrCreateChatSettings } from "@/lib/chatSettings";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -26,7 +27,7 @@ setInterval(() => {
   }
 }, 10 * 60 * 1000);
 
-const SYSTEM_PROMPT = `أنت سِراج — الأرنب الأخضر صاحب ورشة الحكايات. أنت المساعد الذكي لمتجر سِراج الإلكتروني.
+const FALLBACK_SYSTEM_PROMPT = `أنت سِراج — الأرنب الأخضر صاحب ورشة الحكايات. أنت المساعد الذكي لمتجر سِراج الإلكتروني.
 
 ## شخصيتك:
 - تتكلم بالعامية المصرية بأسلوب مهذب ولطيف ومحترم
@@ -117,8 +118,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    let systemPrompt = FALLBACK_SYSTEM_PROMPT;
+    let chatEnabled = true;
+    try {
+      const settings = await getOrCreateChatSettings();
+      chatEnabled = settings.enabled !== false;
+      if (settings.systemPrompt && settings.systemPrompt.trim().length > 0) {
+        systemPrompt = settings.systemPrompt;
+      }
+    } catch (e) {
+      console.error("chat-seraj: failed to load settings, using fallback prompt", e);
+    }
+
+    if (!chatEnabled) {
+      return new Response(
+        JSON.stringify({ error: "الشات معطّل حالياً" }),
+        { status: 403, headers: { "Content-Type": "application/json; charset=utf-8" } }
+      );
+    }
+
     const messages: Array<{ role: string; content: string }> = [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: systemPrompt },
     ];
 
     const recentHistory = history.slice(-10);

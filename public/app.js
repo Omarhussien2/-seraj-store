@@ -3563,13 +3563,27 @@
   // ═══════════════════════════════════════════════════════════
   // SERAJ CHAT WIDGET (floating)
   // ═══════════════════════════════════════════════════════════
-  var SC_WHATSAPP = '201152806034';
+  var SC_DEFAULT_WHATSAPP = '201152806034';
   var SC_AVATAR_SRC = 'assets/seraj.png';
   var SC_LS_KEY = 'seraj-chat-history-v1';
   var SC_LS_FIRSTOPEN_KEY = 'seraj-chat-opened-once';
+  var SC_LS_CONFIG_KEY = 'seraj-chat-config-v1';
   var SC_MAX_HISTORY = 50;
   var SC_SLOW_TIMEOUT_MS = 5000;
   var SC_PULSE_INTERVAL_MS = 30000;
+  var SC_DEFAULT_CONFIG = {
+    enabled: true,
+    whatsappNumber: SC_DEFAULT_WHATSAPP,
+    welcomeTitle: 'أهلاً بيك في سِراج! 👋',
+    welcomeSubtitle: 'أنا مساعدك الذكي. اسألني عن المنتجات والأسعار أو اطلب مباشرة. إيه اللي محتاجه؟',
+    chips: [
+      { label: 'المنتجات والأسعار', question: 'إيه المنتجات والأسعار؟' },
+      { label: 'القصة المخصصة',   question: 'عايز أطلب القصة المخصصة' },
+      { label: 'قصة خالد',         question: 'عايز أطلب قصة خالد بن الوليد' },
+      { label: 'الشحن والتوصيل',  question: 'الشحن بكام وبيوصل إمتى؟' }
+    ]
+  };
+  var scConfig = SC_DEFAULT_CONFIG;
 
   var scState = {
     open: false,
@@ -3611,12 +3625,87 @@
 
   function scWaText(prefix) {
     var msg = prefix || 'مرحباً، كنت بتكلم سِراج وأحتاج مساعدة';
-    return 'https://wa.me/' + SC_WHATSAPP + '?text=' + encodeURIComponent(msg);
+    var num = (scConfig && scConfig.whatsappNumber) || SC_DEFAULT_WHATSAPP;
+    return 'https://wa.me/' + num + '?text=' + encodeURIComponent(msg);
+  }
+
+  function scLoadCachedConfig() {
+    try {
+      var raw = localStorage.getItem(SC_LS_CONFIG_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') return parsed;
+    } catch (e) {}
+    return null;
+  }
+  function scSaveCachedConfig(cfg) {
+    try { localStorage.setItem(SC_LS_CONFIG_KEY, JSON.stringify(cfg)); } catch (e) {}
+  }
+  function scNormalizeConfig(raw) {
+    if (!raw || typeof raw !== 'object') return SC_DEFAULT_CONFIG;
+    var chips = Array.isArray(raw.chips) ? raw.chips.filter(function (c) {
+      return c && typeof c.label === 'string' && typeof c.question === 'string'
+        && c.label.trim() && c.question.trim();
+    }) : [];
+    return {
+      enabled: raw.enabled !== false,
+      whatsappNumber: (raw.whatsappNumber || SC_DEFAULT_WHATSAPP).toString(),
+      welcomeTitle: raw.welcomeTitle || SC_DEFAULT_CONFIG.welcomeTitle,
+      welcomeSubtitle: raw.welcomeSubtitle || SC_DEFAULT_CONFIG.welcomeSubtitle,
+      chips: chips.length ? chips : SC_DEFAULT_CONFIG.chips
+    };
+  }
+  function scFetchConfig() {
+    return fetch('/api/chat-config', { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (body) {
+        if (body && body.success && body.data) return scNormalizeConfig(body.data);
+        return null;
+      })
+      .catch(function () { return null; });
   }
 
   function scUpdateVh() {
     var h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
     document.documentElement.style.setProperty('--sc-vh', h + 'px');
+  }
+
+  function applyChatConfigVisibility(fab, win) {
+    if (!scConfig.enabled) {
+      if (fab) fab.style.display = 'none';
+      if (win) win.hidden = true;
+    } else if (fab) {
+      fab.style.display = '';
+    }
+  }
+
+  function renderChips(chipsBar, input, isSendingRef) {
+    if (!chipsBar) return;
+    // Remove all existing dynamic chips except the WhatsApp anchor (sc-wa-chip)
+    var waChip = chipsBar.querySelector('.sc-wa-chip');
+    chipsBar.querySelectorAll('button[data-q]').forEach(function (b) { b.remove(); });
+    var chips = (scConfig && scConfig.chips) || [];
+    chips.forEach(function (c) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.setAttribute('data-q', c.question);
+      btn.textContent = c.label;
+      btn.addEventListener('click', function () {
+        if (isSendingRef.value) return;
+        input.value = c.question;
+        // scSend is closed-over in init scope; dispatch via a custom event
+        chipsBar.dispatchEvent(new CustomEvent('sc:chip-send'));
+      });
+      // Insert before the WA anchor so it remains last
+      if (waChip) chipsBar.insertBefore(btn, waChip);
+      else chipsBar.appendChild(btn);
+    });
+    // Update WA chip href with configured number
+    if (waChip) {
+      var num = (scConfig && scConfig.whatsappNumber) || SC_DEFAULT_WHATSAPP;
+      var preset = encodeURIComponent('مرحباً، عايز أسأل عن سِراج');
+      waChip.setAttribute('href', 'https://wa.me/' + num + '?text=' + preset);
+    }
   }
 
   function initSerajChat() {
@@ -3633,6 +3722,29 @@
     var chipsBar = document.getElementById('serajChatChips');
     var scrollDownBtn = document.getElementById('serajChatScrollDown');
     if (!fab || !win || !closeBtn || !input || !sendBtn || !msgs) return;
+
+    // Hydrate config from cache immediately, then refresh from API in the background.
+    var cached = scLoadCachedConfig();
+    if (cached) scConfig = scNormalizeConfig(cached);
+    applyChatConfigVisibility(fab, win);
+
+    var sendingRef = { value: false };
+    Object.defineProperty(sendingRef, 'value', {
+      get: function () { return scState.sending; }
+    });
+    scFetchConfig().then(function (cfg) {
+      if (!cfg) return;
+      scConfig = cfg;
+      scSaveCachedConfig(cfg);
+      applyChatConfigVisibility(fab, win);
+      renderChips(chipsBar, input, sendingRef);
+      // If welcome is currently shown, re-render to reflect new copy.
+      var welcome = msgs.querySelector('.sc-welcome');
+      if (welcome) {
+        welcome.remove();
+        renderWelcome();
+      }
+    });
 
     scState.everOpened = scWasOpenedBefore();
     scState.history = scLoadHistory();
@@ -3752,6 +3864,10 @@
     // ---------- Send button + chips ----------
     sendBtn.addEventListener('click', function () { if (!scState.sending) scSend(); });
     if (chipsBar) {
+      chipsBar.addEventListener('sc:chip-send', function () {
+        if (!scState.sending) scSend();
+      });
+      // Static chips that ship with the HTML still work (data-q attribute)
       chipsBar.querySelectorAll('button[data-q]').forEach(function (chip) {
         chip.addEventListener('click', function () {
           if (scState.sending) return;
@@ -3787,10 +3903,16 @@
     function renderWelcome() {
       var card = document.createElement('div');
       card.className = 'sc-welcome';
-      card.innerHTML =
-        '<div class="sc-welcome-avatar"><img src="' + SC_AVATAR_SRC + '" alt=""></div>' +
-        '<h4>أهلاً بيك في سِراج! 👋</h4>' +
-        '<p>أنا مساعدك الذكي. اسألني عن المنتجات والأسعار أو اطلب مباشرة. إيه اللي محتاجه؟</p>';
+      var titleEl = document.createElement('h4');
+      titleEl.textContent = (scConfig && scConfig.welcomeTitle) || SC_DEFAULT_CONFIG.welcomeTitle;
+      var subEl = document.createElement('p');
+      subEl.textContent = (scConfig && scConfig.welcomeSubtitle) || SC_DEFAULT_CONFIG.welcomeSubtitle;
+      var avatarWrap = document.createElement('div');
+      avatarWrap.className = 'sc-welcome-avatar';
+      avatarWrap.innerHTML = '<img src="' + SC_AVATAR_SRC + '" alt="">';
+      card.appendChild(avatarWrap);
+      card.appendChild(titleEl);
+      card.appendChild(subEl);
       msgs.appendChild(card);
     }
 
