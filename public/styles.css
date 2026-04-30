@@ -2638,6 +2638,34 @@ input, textarea { font-family: inherit; }
   .pages { padding-bottom: 40px; }
 }
 
+/* ========== WHATSCHAT FAB ========== */
+.wa-chat-fab {
+  position: fixed;
+  bottom: calc(var(--bottomnav-h) + 14px);
+  left: 16px;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: none;
+  background: #25D366;
+  color: #fff;
+  cursor: pointer;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(37,211,102,.35);
+  transition: transform .2s, box-shadow .2s;
+  animation: fabPop .4s cubic-bezier(.2,.9,.3,1.5);
+}
+.wa-chat-fab:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(37,211,102,.45); }
+.wa-chat-fab:active { transform: scale(.95); }
+@keyframes fabPop { from { transform: scale(0); } to { transform: scale(1); } }
+
+@media (min-width: 900px) {
+  .wa-chat-fab { bottom: 24px; left: auto; right: 24px; }
+}
+
 /* ========== REVEAL ANIMATIONS ========== */
 
 /* ========== MAMA WORLD PAGE ========== */
