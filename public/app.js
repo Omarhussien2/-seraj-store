@@ -3570,7 +3570,9 @@
   var SC_LS_CONFIG_KEY = 'seraj-chat-config-v1';
   var SC_MAX_HISTORY = 50;
   var SC_SLOW_TIMEOUT_MS = 5000;
-  var SC_PULSE_INTERVAL_MS = 30000;
+  var SC_DEFAULT_PULSE_FIRST_DELAY_MS = 5000;
+  var SC_DEFAULT_PULSE_INTERVAL_MS = 30000;
+  var SC_DEFAULT_THEME = '#6bbf3f';
   var SC_DEFAULT_CONFIG = {
     enabled: true,
     whatsappNumber: SC_DEFAULT_WHATSAPP,
@@ -3581,7 +3583,13 @@
       { label: 'القصة المخصصة',   question: 'عايز أطلب القصة المخصصة' },
       { label: 'قصة خالد',         question: 'عايز أطلب قصة خالد بن الوليد' },
       { label: 'الشحن والتوصيل',  question: 'الشحن بكام وبيوصل إمتى؟' }
-    ]
+    ],
+    routesMode: 'all',
+    routesList: [],
+    pulseEnabled: true,
+    pulseFirstDelayMs: SC_DEFAULT_PULSE_FIRST_DELAY_MS,
+    pulseIntervalMs: SC_DEFAULT_PULSE_INTERVAL_MS,
+    themeColor: SC_DEFAULT_THEME
   };
   var scConfig = SC_DEFAULT_CONFIG;
 
@@ -3647,13 +3655,46 @@
       return c && typeof c.label === 'string' && typeof c.question === 'string'
         && c.label.trim() && c.question.trim();
     }) : [];
+    var routesMode = raw.routesMode === 'whitelist' || raw.routesMode === 'blacklist' ? raw.routesMode : 'all';
+    var routesList = Array.isArray(raw.routesList)
+      ? raw.routesList.filter(function (p) { return typeof p === 'string' && p.trim(); }).map(function (p) { return p.trim(); })
+      : [];
+    var theme = (typeof raw.themeColor === 'string' && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(raw.themeColor))
+      ? raw.themeColor : SC_DEFAULT_THEME;
     return {
       enabled: raw.enabled !== false,
       whatsappNumber: (raw.whatsappNumber || SC_DEFAULT_WHATSAPP).toString(),
       welcomeTitle: raw.welcomeTitle || SC_DEFAULT_CONFIG.welcomeTitle,
       welcomeSubtitle: raw.welcomeSubtitle || SC_DEFAULT_CONFIG.welcomeSubtitle,
-      chips: chips.length ? chips : SC_DEFAULT_CONFIG.chips
+      chips: chips.length ? chips : SC_DEFAULT_CONFIG.chips,
+      routesMode: routesMode,
+      routesList: routesList,
+      pulseEnabled: raw.pulseEnabled !== false,
+      pulseFirstDelayMs: typeof raw.pulseFirstDelayMs === 'number' ? raw.pulseFirstDelayMs : SC_DEFAULT_PULSE_FIRST_DELAY_MS,
+      pulseIntervalMs: typeof raw.pulseIntervalMs === 'number' ? raw.pulseIntervalMs : SC_DEFAULT_PULSE_INTERVAL_MS,
+      themeColor: theme
     };
+  }
+
+  function scPathAllowedByRoutes() {
+    var mode = (scConfig && scConfig.routesMode) || 'all';
+    var list = (scConfig && scConfig.routesList) || [];
+    if (mode === 'all' || !list.length) return true;
+    var path = (location.pathname || '/').toLowerCase();
+    var hit = list.some(function (p) {
+      var pat = p.toLowerCase();
+      if (!pat) return false;
+      if (pat === '/' && path === '/') return true;
+      return path === pat || path.indexOf(pat.replace(/\/$/, '') + '/') === 0 || path === pat.replace(/\/$/, '');
+    });
+    return mode === 'whitelist' ? hit : !hit;
+  }
+
+  function applyChatTheme() {
+    try {
+      var c = (scConfig && scConfig.themeColor) || SC_DEFAULT_THEME;
+      document.documentElement.style.setProperty('--sc-theme', c);
+    } catch (e) {}
   }
   function scFetchConfig() {
     return fetch('/api/chat-config', { credentials: 'same-origin' })
@@ -3671,9 +3712,21 @@
   }
 
   function applyChatConfigVisibility(fab, win) {
-    if (!scConfig.enabled) {
+    var visible = !!scConfig.enabled && scPathAllowedByRoutes();
+    if (!visible) {
       if (fab) fab.style.display = 'none';
       if (win) win.hidden = true;
+      // If the chat was already open when we got told to hide it (e.g. config
+      // refresh disables the widget mid-session, or the user navigates to a
+      // route excluded by routesList), make sure we don't leave the body
+      // scroll-locked. On mobile body.sc-modal-open sets overflow:hidden +
+      // touch-action:none, which would trap the user with no visible way to
+      // close the chat.
+      if (scState.open) {
+        try { document.body.classList.remove('sc-modal-open'); } catch (e) {}
+        scState.open = false;
+        if (fab) fab.classList.remove('is-open');
+      }
     } else if (fab) {
       fab.style.display = '';
     }
@@ -3726,7 +3779,26 @@
     // Hydrate config from cache immediately, then refresh from API in the background.
     var cached = scLoadCachedConfig();
     if (cached) scConfig = scNormalizeConfig(cached);
+    applyChatTheme();
     applyChatConfigVisibility(fab, win);
+
+    // Re-evaluate route visibility on SPA navigation (popstate, pushState wraps below).
+    window.addEventListener('popstate', function () { applyChatConfigVisibility(fab, win); });
+    window.addEventListener('hashchange', function () { applyChatConfigVisibility(fab, win); });
+    try {
+      var origPushState = history.pushState;
+      history.pushState = function () {
+        var ret = origPushState.apply(this, arguments);
+        try { applyChatConfigVisibility(fab, win); } catch (e) {}
+        return ret;
+      };
+      var origReplaceState = history.replaceState;
+      history.replaceState = function () {
+        var ret = origReplaceState.apply(this, arguments);
+        try { applyChatConfigVisibility(fab, win); } catch (e) {}
+        return ret;
+      };
+    } catch (e) {}
 
     var sendingRef = { value: false };
     Object.defineProperty(sendingRef, 'value', {
@@ -3736,6 +3808,7 @@
       if (!cfg) return;
       scConfig = cfg;
       scSaveCachedConfig(cfg);
+      applyChatTheme();
       applyChatConfigVisibility(fab, win);
       renderChips(chipsBar, input, sendingRef);
       // If welcome is currently shown, re-render to reflect new copy.
@@ -3758,10 +3831,13 @@
     // ---------- Pulse FAB until first open ----------
     function startPulseLoop() {
       if (scState.everOpened) return;
-      // Initial pulse after 5s
-      setTimeout(function () { triggerPulse(); }, 5000);
-      // Then every 30s
-      scState.pulseTimer = setInterval(triggerPulse, SC_PULSE_INTERVAL_MS);
+      if (!scConfig.pulseEnabled) return;
+      var firstDelay = typeof scConfig.pulseFirstDelayMs === 'number'
+        ? scConfig.pulseFirstDelayMs : SC_DEFAULT_PULSE_FIRST_DELAY_MS;
+      var interval = typeof scConfig.pulseIntervalMs === 'number'
+        ? scConfig.pulseIntervalMs : SC_DEFAULT_PULSE_INTERVAL_MS;
+      setTimeout(function () { triggerPulse(); }, firstDelay);
+      scState.pulseTimer = setInterval(triggerPulse, interval);
     }
     function stopPulseLoop() {
       if (scState.pulseTimer) { clearInterval(scState.pulseTimer); scState.pulseTimer = null; }

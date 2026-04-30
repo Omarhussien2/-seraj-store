@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
 type Chip = { label: string; question: string };
+type RoutesMode = "all" | "whitelist" | "blacklist";
+type AiProvider = "auto" | "gemini" | "deepseek";
 type Settings = {
   enabled: boolean;
   whatsappNumber: string;
@@ -14,6 +16,16 @@ type Settings = {
   welcomeSubtitle: string;
   chips: Chip[];
   systemPrompt: string;
+  routesMode: RoutesMode;
+  routesList: string[];
+  pulseEnabled: boolean;
+  pulseFirstDelayMs: number;
+  pulseIntervalMs: number;
+  themeColor: string;
+  aiProvider: AiProvider;
+  aiModel: string;
+  aiTemperature: number;
+  aiMaxTokens: number;
 };
 
 export default function ChatSettingsEditor({ initial }: { initial: Settings }) {
@@ -223,6 +235,217 @@ export default function ChatSettingsEditor({ initial }: { initial: Settings }) {
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Routes whitelist / blacklist */}
+      <section className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 space-y-3">
+        <h2 className="text-lg font-semibold">صفحات ظهور الشات</h2>
+        <p className="text-sm text-muted-foreground">
+          تحكم في أي صفحات يظهر فيها زر سِراج العائم. الـ paths تتطابق ببداية الـ URL (مثلاً <code className="bg-gray-100 px-1 rounded">/checkout</code> يطابق أي صفحة تبدأ بكده).
+        </p>
+        <div className="space-y-2">
+          {(["all", "whitelist", "blacklist"] as const).map((mode) => (
+            <label key={mode} className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="routesMode"
+                checked={data.routesMode === mode}
+                onChange={() => update("routesMode", mode)}
+                className="mt-1"
+              />
+              <span className="text-sm">
+                {mode === "all" && <strong>كل الصفحات</strong>}
+                {mode === "whitelist" && <strong>إظهار على الصفحات دي بس</strong>}
+                {mode === "blacklist" && <strong>إخفاء على الصفحات دي</strong>}
+              </span>
+            </label>
+          ))}
+        </div>
+        {data.routesMode !== "all" && (
+          <div>
+            <Label htmlFor="routesList">قائمة الـ paths (سطر لكل path)</Label>
+            <Textarea
+              id="routesList"
+              value={data.routesList.join("\n")}
+              onChange={(e) =>
+                update(
+                  "routesList",
+                  e.target.value.split("\n").map((s) => s.trim()).filter(Boolean)
+                )
+              }
+              rows={6}
+              dir="ltr"
+              placeholder={"/checkout\n/admin\n/order"}
+              className="font-mono text-sm"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              مثال: <code className="bg-gray-100 px-1 rounded">/checkout</code> يخفي الزر على /checkout، /checkout/success، إلخ.
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* Pulse animation */}
+      <section className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 space-y-3">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold">نبضة الزر العائم</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              حلقة نبض حوالين الزر تلفت انتباه الزائر قبل أول فتح للشات.
+            </p>
+          </div>
+          <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+            <span className="text-sm font-medium">
+              {data.pulseEnabled ? "مُفعّل" : "معطّل"}
+            </span>
+            <input
+              type="checkbox"
+              className="h-5 w-5 accent-green-600"
+              checked={data.pulseEnabled}
+              onChange={(e) => update("pulseEnabled", e.target.checked)}
+            />
+          </label>
+        </div>
+        {data.pulseEnabled && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="pulseFirstDelay">أول نبضة بعد (ثانية)</Label>
+              <Input
+                id="pulseFirstDelay"
+                type="number"
+                min={0}
+                max={600}
+                value={Math.round(data.pulseFirstDelayMs / 1000)}
+                onChange={(e) =>
+                  update("pulseFirstDelayMs", Math.max(0, Number(e.target.value || 0)) * 1000)
+                }
+              />
+            </div>
+            <div>
+              <Label htmlFor="pulseInterval">تكرار كل (ثانية)</Label>
+              <Input
+                id="pulseInterval"
+                type="number"
+                min={5}
+                max={600}
+                value={Math.round(data.pulseIntervalMs / 1000)}
+                onChange={(e) =>
+                  update("pulseIntervalMs", Math.max(0, Number(e.target.value || 0)) * 1000)
+                }
+              />
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* Theme color */}
+      <section className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 space-y-3">
+        <h2 className="text-lg font-semibold">لون الشات</h2>
+        <p className="text-sm text-muted-foreground">
+          يطبّق على هيدر الشات + الـ chips + رسائل المستخدم + زر الإرسال. الافتراضي أخضر سِراج (<code className="bg-gray-100 px-1 rounded">#6bbf3f</code>).
+        </p>
+        <div className="flex items-center gap-3">
+          <input
+            type="color"
+            value={data.themeColor}
+            onChange={(e) => update("themeColor", e.target.value)}
+            className="h-10 w-16 rounded border border-gray-300 cursor-pointer"
+          />
+          <Input
+            value={data.themeColor}
+            onChange={(e) => update("themeColor", e.target.value)}
+            className="font-mono"
+            dir="ltr"
+            maxLength={7}
+            placeholder="#6bbf3f"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => update("themeColor", "#6bbf3f")}
+          >
+            استرجاع الأصلي
+          </Button>
+        </div>
+      </section>
+
+      {/* AI provider / model */}
+      <section className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 space-y-3">
+        <h2 className="text-lg font-semibold">الذكاء الاصطناعي (Provider & Model)</h2>
+        <p className="text-sm text-muted-foreground">
+          المفاتيح (Gemini, DeepSeek) لسه في الـ environment variables ولا تُكتب هنا. الإعدادات دي بتتحكم في إيه اللي يُستخدم وإزاي.
+        </p>
+        <div>
+          <Label>Provider</Label>
+          <div className="space-y-1 mt-1">
+            {(["auto", "gemini", "deepseek"] as const).map((p) => (
+              <label key={p} className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="aiProvider"
+                  checked={data.aiProvider === p}
+                  onChange={() => update("aiProvider", p)}
+                  className="mt-1"
+                />
+                <span className="text-sm">
+                  {p === "auto" && <><strong>تلقائي (Gemini ثم DeepSeek كاحتياطي)</strong> — السلوك الافتراضي</>}
+                  {p === "gemini" && <strong>Gemini فقط</strong>}
+                  {p === "deepseek" && <strong>DeepSeek فقط</strong>}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+        <div>
+          <Label htmlFor="aiModel">اسم الـ Model (اختياري)</Label>
+          <Input
+            id="aiModel"
+            value={data.aiModel}
+            onChange={(e) => update("aiModel", e.target.value)}
+            placeholder={
+              data.aiProvider === "deepseek"
+                ? "deepseek-chat"
+                : data.aiProvider === "gemini"
+                ? "gemini-2.5-flash"
+                : "اتركه فاضي للقيمة الافتراضية"
+            }
+            dir="ltr"
+            className="font-mono text-sm"
+            maxLength={80}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            لو فاضي، يستخدم القيمة من الـ env var (<code>GEMINI_MODEL</code> / <code>DEEPSEEK_MODEL</code>) أو الافتراضي.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor="aiTemp">Temperature ({data.aiTemperature.toFixed(2)})</Label>
+            <Input
+              id="aiTemp"
+              type="range"
+              min={0}
+              max={2}
+              step={0.05}
+              value={data.aiTemperature}
+              onChange={(e) => update("aiTemperature", Number(e.target.value))}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              0 = ردود ثابتة جداً، 2 = ردود إبداعية متغيرة. الموصى به: 0.5–0.9
+            </p>
+          </div>
+          <div>
+            <Label htmlFor="aiMaxTokens">Max tokens (طول الرد الأقصى)</Label>
+            <Input
+              id="aiMaxTokens"
+              type="number"
+              min={64}
+              max={4096}
+              value={data.aiMaxTokens}
+              onChange={(e) => update("aiMaxTokens", Math.max(64, Number(e.target.value || 0)))}
+            />
+          </div>
         </div>
       </section>
 

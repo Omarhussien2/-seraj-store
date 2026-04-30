@@ -3071,6 +3071,24 @@ input, textarea { font-family: inherit; }
 .sc-footer button:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 .sc-footer button:focus-visible { outline: 2px solid var(--seraj-dark); outline-offset: 2px; }
 
+/* ---------- Theme override (--sc-theme set by JS from admin config) ---------- */
+:root { --sc-theme: var(--seraj); --sc-theme-dark: var(--seraj-dark); }
+html[style*="--sc-theme"] {
+  /* Derive a darker shade automatically when admin overrides the theme color */
+  --sc-theme-dark: color-mix(in srgb, var(--sc-theme) 78%, #000);
+}
+.sc-fab:focus-visible { outline-color: var(--sc-theme); }
+.sc-fab.sc-pulse::before { background: var(--sc-theme); }
+.sc-fab-icon-close { background: var(--sc-theme-dark); }
+.sc-header { background: linear-gradient(135deg, var(--sc-theme) 0%, var(--sc-theme-dark) 100%); }
+.sc-msg-user { background: linear-gradient(135deg, var(--sc-theme) 0%, var(--sc-theme-dark) 100%); }
+.sc-chips button:hover, .sc-chips a:not(.sc-wa-chip):hover { background: var(--sc-theme); color: #fff; }
+.sc-chips button:focus-visible, .sc-chips a:not(.sc-wa-chip):focus-visible { outline-color: var(--sc-theme-dark); }
+.sc-footer input:focus { border-color: var(--sc-theme); }
+.sc-footer button { background: var(--sc-theme); }
+.sc-footer button:hover { background: var(--sc-theme-dark); }
+.sc-footer button:focus-visible { outline-color: var(--sc-theme-dark); }
+
 /* Body lock when chat open on mobile */
 body.sc-modal-open { overflow: hidden; touch-action: none; }
 @media (min-width: 768px) {
