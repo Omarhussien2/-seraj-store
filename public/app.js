@@ -3647,6 +3647,14 @@
         var errEl = document.createElement('div');
         errEl.className = 'sc-msg sc-msg-error';
         errEl.textContent = err.message || 'حصلت مشكلة — جربي تاني';
+        var waLink = document.createElement('a');
+        waLink.className = 'sc-wa-link';
+        waLink.href = 'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent('مرحباً، كنت بتكلم سِراج وحصلت مشكلة وأحتاج مساعدة');
+        waLink.target = '_blank';
+        waLink.rel = 'noopener';
+        waLink.textContent = 'تواصل واتساب';
+        errEl.appendChild(document.createElement('br'));
+        errEl.appendChild(waLink);
         msgs.appendChild(errEl);
         scScroll();
       })
