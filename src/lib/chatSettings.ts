@@ -34,17 +34,17 @@ const HEX_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 /**
  * Returns the chat settings document, creating it with defaults if missing.
+ * Uses an atomic upsert so concurrent first-time callers don't race into
+ * an E11000 duplicate-key error.
  */
 export async function getOrCreateChatSettings(): Promise<IChatSettings> {
   await connectDB();
-  let doc = await ChatSettingsModel.findById(SINGLETON_ID).lean<IChatSettings>();
-  if (!doc) {
-    const created = await ChatSettingsModel.create({
-      _id: SINGLETON_ID,
-      chips: DEFAULT_CHIPS,
-    });
-    doc = created.toObject() as IChatSettings;
-  }
+  const doc = await ChatSettingsModel.findByIdAndUpdate(
+    SINGLETON_ID,
+    { $setOnInsert: { _id: SINGLETON_ID, chips: DEFAULT_CHIPS } },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  ).lean<IChatSettings>();
+  if (!doc) throw new Error("ChatSettings upsert returned null");
   return doc;
 }
 

@@ -3716,6 +3716,17 @@
     if (!visible) {
       if (fab) fab.style.display = 'none';
       if (win) win.hidden = true;
+      // If the chat was already open when we got told to hide it (e.g. config
+      // refresh disables the widget mid-session, or the user navigates to a
+      // route excluded by routesList), make sure we don't leave the body
+      // scroll-locked. On mobile body.sc-modal-open sets overflow:hidden +
+      // touch-action:none, which would trap the user with no visible way to
+      // close the chat.
+      if (scState.open) {
+        try { document.body.classList.remove('sc-modal-open'); } catch (e) {}
+        scState.open = false;
+        if (fab) fab.classList.remove('is-open');
+      }
     } else if (fab) {
       fab.style.display = '';
     }
