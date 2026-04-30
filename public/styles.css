@@ -2780,39 +2780,31 @@ input, textarea { font-family: inherit; }
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 14px;
+  padding: 10px 14px;
   background: linear-gradient(135deg, var(--seraj) 0%, var(--seraj-dark) 100%);
   color: #fff;
   flex-shrink: 0;
 }
 .sc-header-avatar {
   position: relative;
-  width: 40px; height: 40px;
+  width: 36px; height: 36px;
   flex-shrink: 0;
 }
 .sc-header-avatar img {
-  width: 40px; height: 40px;
+  width: 36px; height: 36px;
   border-radius: 50%;
   border: 2px solid rgba(255,255,255,.6);
   background: #fff;
   object-fit: cover;
 }
-.sc-status-dot {
-  position: absolute;
-  bottom: 1px; right: 1px;
-  width: 11px; height: 11px;
-  border-radius: 50%;
-  background: #4ade80;
-  border: 2px solid var(--seraj);
-}
 .sc-header-text { flex: 1; min-width: 0; }
-.sc-header-text strong { display: block; font-size: 15px; font-weight: 800; line-height: 1.2; }
-.sc-header-text small { display: block; font-size: 11px; opacity: .85; line-height: 1.4; }
+.sc-header-text strong { display: block; font-size: 15px; font-weight: 800; line-height: 1.15; }
+.sc-header-text small { display: block; font-size: 11px; opacity: .8; line-height: 1.3; }
 .sc-header-btn {
   background: rgba(255,255,255,.12);
   border: none;
   color: #fff;
-  width: 34px; height: 34px;
+  width: 32px; height: 32px;
   border-radius: 10px;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
@@ -2952,24 +2944,25 @@ input, textarea { font-family: inherit; }
 .sc-msg-error-head { display: flex; align-items: flex-start; gap: 8px; }
 .sc-msg-error-head svg { flex-shrink: 0; color: var(--ember); margin-top: 2px; }
 
-/* WhatsApp link inside messages / errors */
+/* Compact WhatsApp pill — only used inside error cards now */
 .sc-wa-link {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   background: #25D366;
   color: #fff;
-  padding: 8px 14px;
-  border-radius: 10px;
+  padding: 5px 11px;
+  border-radius: 999px;
   text-decoration: none;
-  font-size: 12.5px;
-  font-weight: 800;
+  font-size: 11.5px;
+  font-weight: 700;
   align-self: flex-start;
-  transition: transform .15s ease, box-shadow .15s ease;
-  box-shadow: 0 2px 6px rgba(37,211,102,.3);
+  line-height: 1.4;
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+  box-shadow: 0 1px 3px rgba(37,211,102,.3);
 }
-.sc-wa-link:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(37,211,102,.4); }
-.sc-msg-bot .sc-wa-link { margin-top: 8px; }
+.sc-wa-link:hover { transform: translateY(-1px); background: #1ebd5a; box-shadow: 0 3px 8px rgba(37,211,102,.4); }
+.sc-wa-link svg { flex-shrink: 0; }
 
 /* Scroll-to-bottom button */
 .sc-scroll-down {
@@ -2985,8 +2978,12 @@ input, textarea { font-family: inherit; }
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0,0,0,.15);
   z-index: 2;
-  animation: scMsgIn .2s ease both;
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  transition: opacity .22s ease, transform .22s ease, background .15s ease, color .15s ease;
 }
+.sc-scroll-down.is-visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
 .sc-scroll-down:hover { transform: scale(1.08); background: var(--seraj); color: #fff; }
 .sc-scroll-down:focus-visible { outline: 2px solid var(--seraj); outline-offset: 2px; }
 
@@ -2995,11 +2992,11 @@ input, textarea { font-family: inherit; }
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  padding: 10px 14px;
+  padding: 8px 14px;
   border-top: 1px solid rgba(0,0,0,.06);
   background: #fff;
   flex-shrink: 0;
-  transition: padding .25s ease, max-height .25s ease;
+  transition: padding .25s ease, max-height .25s ease, opacity .2s ease;
   max-height: 200px;
   overflow: hidden;
 }
@@ -3020,7 +3017,14 @@ input, textarea { font-family: inherit; }
 }
 .sc-chips button:hover, .sc-chips a:hover { background: var(--seraj); color: #fff; transform: translateY(-1px); }
 .sc-chips button:focus-visible, .sc-chips a:focus-visible { outline: 2px solid var(--seraj-dark); outline-offset: 2px; }
-.sc-wa-chip { border-color: #25D366 !important; color: #128C7E !important; }
+.sc-wa-chip {
+  border-color: #25D366 !important;
+  color: #128C7E !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.sc-wa-chip svg { flex-shrink: 0; }
 .sc-wa-chip:hover { background: #25D366 !important; color: #fff !important; }
 
 /* ---------- Footer ---------- */

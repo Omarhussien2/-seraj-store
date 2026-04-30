@@ -3762,23 +3762,25 @@
     }
 
     // ---------- Scroll-to-bottom ----------
-    msgs.addEventListener('scroll', function () {
-      if (!scrollDownBtn) return;
-      var distFromBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight;
-      scrollDownBtn.hidden = distFromBottom < 100;
-    });
+    if (scrollDownBtn) scrollDownBtn.hidden = false;  // controlled by .is-visible class now
+    msgs.addEventListener('scroll', updateScrollDown);
     if (scrollDownBtn) {
       scrollDownBtn.addEventListener('click', function () { scScroll(true); });
     }
 
+    function updateScrollDown() {
+      if (!scrollDownBtn) return;
+      var distFromBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight;
+      scrollDownBtn.classList.toggle('is-visible', distFromBottom > 100);
+    }
+
     function scScroll(force) {
       if (!force) {
-        // Only auto-scroll if the user is already near the bottom
         var distFromBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight;
         if (distFromBottom > 200) return;
       }
       msgs.scrollTop = msgs.scrollHeight;
-      if (scrollDownBtn) scrollDownBtn.hidden = true;
+      if (scrollDownBtn) scrollDownBtn.classList.remove('is-visible');
     }
 
     // ---------- Renderers ----------
@@ -3795,7 +3797,7 @@
     function replayHistory() {
       scState.history.forEach(function (m) {
         if (m.role === 'user') appendScUser(m.content, true);
-        else if (m.role === 'assistant') appendScBot(m.content, true, false);
+        else if (m.role === 'assistant') appendScBot(m.content, true);
       });
       // After first user message, hide chips
       var hasUserMsg = scState.history.some(function (m) { return m.role === 'user'; });
@@ -3818,22 +3820,13 @@
       if (!skipScroll) scScroll(true);
     }
 
-    function appendScBot(text, skipScroll, includeWa) {
+    function appendScBot(text, skipScroll) {
       var row = document.createElement('div');
       row.className = 'sc-msg-row sc-row-bot';
       row.innerHTML = avatarHTML();
       var bubble = document.createElement('div');
       bubble.className = 'sc-msg sc-msg-bot';
       bubble.textContent = text;
-      if (includeWa) {
-        var waLink = document.createElement('a');
-        waLink.className = 'sc-wa-link';
-        waLink.href = scWaText('مرحباً، كنت بتكلم سِراج وأحتاج مساعدة من شخص حقيقي');
-        waLink.target = '_blank';
-        waLink.rel = 'noopener';
-        waLink.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17.5 14.3c-.3-.15-1.8-.9-2.1-1-.28-.1-.48-.15-.68.15-.2.3-.78 1-.95 1.2-.18.2-.35.22-.65.08-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.65-2.05-.18-.3-.02-.46.13-.6.13-.14.3-.35.44-.52.15-.18.2-.3.3-.5.1-.2.05-.38-.03-.53-.08-.15-.68-1.63-.93-2.23-.24-.58-.5-.5-.68-.5h-.58c-.2 0-.53.08-.8.38s-1.05 1.03-1.05 2.5c0 1.47 1.07 2.9 1.22 3.1.15.2 2.13 3.25 5.15 4.55.72.3 1.28.48 1.72.62.72.23 1.38.2 1.9.12.58-.08 1.8-.73 2.05-1.43.25-.7.25-1.3.18-1.43-.08-.13-.28-.2-.58-.35z"/></svg> تواصل واتساب';
-        bubble.appendChild(waLink);
-      }
       row.appendChild(bubble);
       msgs.appendChild(row);
       if (!skipScroll) scScroll();
@@ -3919,19 +3912,7 @@
         // The streamed bot row might already be appended; if not, render now.
         var lastRow = msgs.lastElementChild;
         if (!lastRow || !lastRow.classList.contains('sc-row-bot')) {
-          appendScBot(full, false, true);
-        } else {
-          // Append WA link to existing streamed bot bubble
-          var bubble = lastRow.querySelector('.sc-msg-bot');
-          if (bubble && !bubble.querySelector('.sc-wa-link')) {
-            var waLink = document.createElement('a');
-            waLink.className = 'sc-wa-link';
-            waLink.href = scWaText('مرحباً، كنت بتكلم سِراج وأحتاج مساعدة من شخص حقيقي');
-            waLink.target = '_blank';
-            waLink.rel = 'noopener';
-            waLink.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17.5 14.3c-.3-.15-1.8-.9-2.1-1-.28-.1-.48-.15-.68.15-.2.3-.78 1-.95 1.2-.18.2-.35.22-.65.08-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.65-2.05-.18-.3-.02-.46.13-.6.13-.14.3-.35.44-.52.15-.18.2-.3.3-.5.1-.2.05-.38-.03-.53-.08-.15-.68-1.63-.93-2.23-.24-.58-.5-.5-.68-.5h-.58c-.2 0-.53.08-.8.38s-1.05 1.03-1.05 2.5c0 1.47 1.07 2.9 1.22 3.1.15.2 2.13 3.25 5.15 4.55.72.3 1.28.48 1.72.62.72.23 1.38.2 1.9.12.58-.08 1.8-.73 2.05-1.43.25-.7.25-1.3.18-1.43-.08-.13-.28-.2-.58-.35z"/></svg> تواصل واتساب';
-            bubble.appendChild(waLink);
-          }
+          appendScBot(full);
         }
         scState.history.push({ role: 'assistant', content: full });
         scSaveHistory();
