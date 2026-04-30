@@ -5,6 +5,9 @@ export interface IChatChip {
   question: string;
 }
 
+export type RoutesMode = "all" | "whitelist" | "blacklist";
+export type AiProvider = "auto" | "gemini" | "deepseek";
+
 export interface IChatSettings {
   _id: string;
   enabled: boolean;
@@ -13,6 +16,25 @@ export interface IChatSettings {
   welcomeSubtitle: string;
   chips: IChatChip[];
   systemPrompt: string;
+
+  // Visibility
+  routesMode: RoutesMode;
+  routesList: string[];
+
+  // Pulse animation (FAB attention loop)
+  pulseEnabled: boolean;
+  pulseFirstDelayMs: number;
+  pulseIntervalMs: number;
+
+  // Theme
+  themeColor: string;
+
+  // AI
+  aiProvider: AiProvider;
+  aiModel: string;
+  aiTemperature: number;
+  aiMaxTokens: number;
+
   createdAt?: string;
   updatedAt?: string;
 }
@@ -39,6 +61,20 @@ const ChatSettingsSchema = new mongoose.Schema(
     },
     chips: { type: [ChipSchema], default: [] },
     systemPrompt: { type: String, default: "" },
+
+    routesMode: { type: String, enum: ["all", "whitelist", "blacklist"], default: "all" },
+    routesList: { type: [String], default: [] },
+
+    pulseEnabled: { type: Boolean, default: true },
+    pulseFirstDelayMs: { type: Number, default: 5000, min: 0, max: 600000 },
+    pulseIntervalMs: { type: Number, default: 30000, min: 0, max: 600000 },
+
+    themeColor: { type: String, default: "#6bbf3f", trim: true },
+
+    aiProvider: { type: String, enum: ["auto", "gemini", "deepseek"], default: "auto" },
+    aiModel: { type: String, default: "", trim: true },
+    aiTemperature: { type: Number, default: 0.7, min: 0, max: 2 },
+    aiMaxTokens: { type: Number, default: 400, min: 64, max: 4096 },
   },
   { timestamps: true }
 );
