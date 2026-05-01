@@ -49,6 +49,7 @@ interface CustomStory {
   challenge: string;
   customChallenge?: string;
   photoUrl?: string;
+  photoUrls?: string[];
 }
 
 interface Order {
@@ -116,6 +117,13 @@ function getWhatsAppLink(order: Order): string {
     `السلام عليكم، بخصوص طلبكم رقم ${order.orderNumber} على متجر سِراج. المبلغ: ${order.total} ج.م`
   );
   return `https://wa.me/2${order.customerPhone}?text=${msg}`;
+}
+
+function getDownloadableCloudinaryUrl(url: string): string {
+  if (url.includes("/upload/")) {
+    return url.replace("/upload/", "/upload/fl_attachment/");
+  }
+  return url;
 }
 
 const PAGE_SIZE = 20;
@@ -553,14 +561,30 @@ export default function AdminOrdersPage() {
                     {selectedOrder.customStory.customChallenge && (
                       <p><strong>تفاصيل خاصة:</strong> {selectedOrder.customStory.customChallenge}</p>
                     )}
-                    {selectedOrder.customStory.photoUrl && (
+                    {(selectedOrder.customStory.photoUrls?.length || selectedOrder.customStory.photoUrl) && (
                       <div>
                         <p className="mb-1"><strong>صورة الطفل:</strong></p>
                         <img
-                          src={selectedOrder.customStory.photoUrl}
+                          src={selectedOrder.customStory.photoUrls?.[0] || selectedOrder.customStory.photoUrl}
                           alt="صورة الطفل"
                           className="w-32 h-32 object-cover rounded-lg border"
                         />
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {(selectedOrder.customStory.photoUrls?.length
+                            ? selectedOrder.customStory.photoUrls
+                            : [selectedOrder.customStory.photoUrl]
+                          ).filter(Boolean).map((url, index) => (
+                            <a
+                              key={url}
+                              href={getDownloadableCloudinaryUrl(url!)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="rounded-md border px-2 py-1 text-xs font-semibold text-green-700 hover:bg-green-50"
+                            >
+                              تحميل صورة {index + 1}
+                            </a>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </CardContent>

@@ -50,6 +50,10 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [shippingFee, setShippingFee] = useState(35);
   const [freeShippingAbove, setFreeShippingAbove] = useState(0);
+  const [checkoutContinueShoppingText, setCheckoutContinueShoppingText] = useState("كمل تسوق");
+  const [checkoutDeliveryEstimateText, setCheckoutDeliveryEstimateText] = useState("عادةً الطلب بيوصل خلال 5 إلى 7 أيام عمل.");
+  const [chatWidgetEnabled, setChatWidgetEnabled] = useState(true);
+  const [chatWidgetHiddenPages, setChatWidgetHiddenPages] = useState("checkout,success,wizard,preview");
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [settingsSaved, setSettingsSaved] = useState(false);
 
@@ -67,6 +71,10 @@ export default function AdminDashboard() {
         if (json.success && json.data) {
           setShippingFee(json.data.shippingFee);
           setFreeShippingAbove(json.data.freeShippingAbove);
+          setCheckoutContinueShoppingText(json.data.checkoutContinueShoppingText || "كمل تسوق");
+          setCheckoutDeliveryEstimateText(json.data.checkoutDeliveryEstimateText || "عادةً الطلب بيوصل خلال 5 إلى 7 أيام عمل.");
+          setChatWidgetEnabled(json.data.chatWidgetEnabled !== false);
+          setChatWidgetHiddenPages(json.data.chatWidgetHiddenPages || "checkout,success,wizard,preview");
         }
       })
       .catch(() => {});
@@ -78,7 +86,14 @@ export default function AdminDashboard() {
     fetch("/api/admin/settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ shippingFee, freeShippingAbove }),
+      body: JSON.stringify({
+        shippingFee,
+        freeShippingAbove,
+        checkoutContinueShoppingText,
+        checkoutDeliveryEstimateText,
+        chatWidgetEnabled,
+        chatWidgetHiddenPages,
+      }),
     })
       .then((res) => res.json())
       .then((json) => {
@@ -195,6 +210,43 @@ export default function AdminDashboard() {
                 onChange={(e) => setFreeShippingAbove(parseInt(e.target.value, 10) || 0)}
               />
               <p className="text-xs text-muted-foreground">لو الطلب فوق هذا المبلغ الشحن يكون مجاني. ضع 0 عشان مفيش شحن مجاني أبداً.</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t">
+            <div className="space-y-2">
+              <Label>نص زر كمل التسوق</Label>
+              <Input
+                value={checkoutContinueShoppingText}
+                onChange={(e) => setCheckoutContinueShoppingText(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>جملة موعد وصول الطلب</Label>
+              <Input
+                value={checkoutDeliveryEstimateText}
+                onChange={(e) => setCheckoutDeliveryEstimateText(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>ظهور بوت سراج</Label>
+              <select
+                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={chatWidgetEnabled ? "true" : "false"}
+                onChange={(e) => setChatWidgetEnabled(e.target.value === "true")}
+              >
+                <option value="true">ظاهر</option>
+                <option value="false">مخفي بالكامل</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label>صفحات إخفاء البوت</Label>
+              <Input
+                dir="ltr"
+                value={chatWidgetHiddenPages}
+                onChange={(e) => setChatWidgetHiddenPages(e.target.value)}
+                placeholder="checkout,success,wizard,preview"
+              />
+              <p className="text-xs text-muted-foreground">اكتب أسماء الصفحات مفصولة بفواصل.</p>
             </div>
           </div>
           <div className="flex items-center gap-3">

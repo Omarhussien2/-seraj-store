@@ -42,6 +42,7 @@ const CustomStorySchema = new mongoose.Schema(
     challenge: { type: String, required: true },
     customChallenge: { type: String },
     photoUrl: { type: String },
+    photoUrls: [{ type: String }],
     storyStatus: {
       type: String,
       default: "pending",
@@ -94,6 +95,7 @@ export interface IOrder extends Document {
     challenge: string;
     customChallenge?: string;
     photoUrl?: string;
+    photoUrls?: string[];
     storyStatus: "pending" | "reviewed" | "sent_to_print" | "delivered";
   };
   customerName: string;

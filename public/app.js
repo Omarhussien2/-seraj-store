@@ -18,6 +18,10 @@
   var SHIPPING_FEE = 35; // fallback — overridden by /api/config
   var FREE_SHIPPING_ABOVE = 500; // fallback — overridden by /api/config
   var appliedCoupon = null;
+  var CHECKOUT_CONTINUE_TEXT = 'كمل تسوق';
+  var CHECKOUT_DELIVERY_TEXT = 'عادةً الطلب بيوصل خلال 5 إلى 7 أيام عمل.';
+  var CHAT_WIDGET_ENABLED = true;
+  var CHAT_HIDDEN_PAGES = ['checkout', 'success', 'wizard', 'preview'];
 
   // ----- Cloudinary Config -----
   var CLOUD_NAME = 'dkhndsrhr';
@@ -30,7 +34,9 @@
     challenge: null,
     customChallenge: '',
     photoUrl: null,
+    photoUrls: [],
     photoFile: null,
+    photoFiles: [],
     photoUploading: false,
     wizardStep: 1,
   };
@@ -291,7 +297,14 @@
           if (data.data.instaPayLink) INSTAPAY_LINK = data.data.instaPayLink;
           if (typeof data.data.shippingFee === 'number') SHIPPING_FEE = data.data.shippingFee;
           if (typeof data.data.freeShippingAbove === 'number') FREE_SHIPPING_ABOVE = data.data.freeShippingAbove;
+          if (data.data.checkoutContinueShoppingText) CHECKOUT_CONTINUE_TEXT = data.data.checkoutContinueShoppingText;
+          if (data.data.checkoutDeliveryEstimateText) CHECKOUT_DELIVERY_TEXT = data.data.checkoutDeliveryEstimateText;
+          if (typeof data.data.chatWidgetEnabled === 'boolean') CHAT_WIDGET_ENABLED = data.data.chatWidgetEnabled;
+          if (typeof data.data.chatWidgetHiddenPages === 'string') {
+            CHAT_HIDDEN_PAGES = data.data.chatWidgetHiddenPages.split(',').map(function (p) { return p.trim(); }).filter(Boolean);
+          }
           showFreeShipBanner();
+          updateSerajChatVisibility();
           console.log('✅ Config loaded from API');
         }
       })
@@ -362,7 +375,8 @@
         age: ageNum,
         challenge: state.challenge || '',
         customChallenge: state.customChallenge || '',
-        photoUrl: state.photoUrl || null
+        photoUrl: state.photoUrl || null,
+        photoUrls: state.photoUrls || []
       }));
     } catch (e) { /* silent */ }
   }
@@ -1140,7 +1154,7 @@
     h += '</div>';
 
     h += '<a href="#/checkout" data-link class="btn btn-primary btn-xl btn-fullrow" style="margin-top:24px">إتمام الطلب</a>';
-    h += '<a href="#/products" data-link class="btn btn-ghost btn-fullrow" style="margin-top:8px">كملي التسوق</a>';
+    h += '<a href="#/products" data-link class="btn btn-ghost btn-fullrow" style="margin-top:8px">' + CHECKOUT_CONTINUE_TEXT + '</a>';
 
     container.innerHTML = h;
   }
@@ -1196,6 +1210,9 @@
     }
     h += '<div class="cart-summary-row total"><span>الإجمالي</span><span>' + toArabicNum(grandTotal) + ' ج.م</span></div>';
     h += '</div>';
+    if (CHECKOUT_DELIVERY_TEXT) {
+      h += '<p class="checkout-delivery-note">' + escapeHtml(CHECKOUT_DELIVERY_TEXT) + '</p>';
+    }
     h += '<div class="coupon-box">';
     h += '<label class="field"><span>كود الخصم</span>';
     h += '<div class="coupon-inline">';
@@ -1374,7 +1391,8 @@
         age: wizardAge,
         challenge: wizardData.challenge || 'شجاعة',
         customChallenge: wizardData.customChallenge || undefined,
-        photoUrl: wizardData.photoUrl || undefined
+        photoUrl: wizardData.photoUrl || undefined,
+        photoUrls: wizardData.photoUrls || (wizardData.photoUrl ? [wizardData.photoUrl] : undefined)
       };
     }
 
@@ -1516,6 +1534,25 @@
     return { page: page, sub: sub, anchor: anchor };
   }
 
+  function updateSerajChatVisibility(pageName) {
+    var btn = document.getElementById('serajChatBtn');
+    var win = document.getElementById('serajChatWindow');
+    if (!btn || !win) return;
+
+    var currentPage = pageName || parseRoute().page;
+    var shouldHide = !CHAT_WIDGET_ENABLED || CHAT_HIDDEN_PAGES.indexOf(currentPage) !== -1;
+    if (shouldHide) {
+      scChatOpen = false;
+      win.hidden = true;
+      btn.hidden = true;
+      btn.style.display = 'none';
+      return;
+    }
+
+    btn.hidden = false;
+    btn.style.display = scChatOpen ? 'none' : '';
+  }
+
   // Valid page names for the SPA router
   var validPages = ['home', 'products', 'about', 'wizard', 'preview', 'checkout', 'success', 'cart', 'product', 'mama-world', 'article', 'faq', 'shipping', 'returns', 'mama-coloring', 'coloring-book'];
 
@@ -1592,6 +1629,7 @@
       var el = document.getElementById('previewName');
       if (el) el.textContent = heroName;
     }
+    updateSerajChatVisibility(name);
   }
 
   function handleRoute() {
@@ -1706,8 +1744,45 @@
 
     if (photoInput) {
       photoInput.addEventListener('change', function (e) {
-        var file = e.target.files && e.target.files[0];
-        if (!file) return;
+        var files = Array.prototype.slice.call(e.target.files || []).slice(0, 5);
+        if (files.length === 0) return;
+        var validFiles = [];
+        for (var i = 0; i < files.length; i++) {
+          var file = files[i];
+          if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            showToast('الصورة لازم تكون JPEG أو PNG أو WebP ✦');
+            continue;
+          }
+          if (file.size > 5 * 1024 * 1024) {
+            showToast('حجم كل صورة لازم يكون أقل من 5 ميجا ✦');
+            continue;
+          }
+          validFiles.push(file);
+        }
+        if (validFiles.length === 0) return;
+        state.photoFiles = validFiles;
+        state.photoFile = validFiles[0];
+        state.photoUrl = null;
+        state.photoUrls = [];
+        if (dropzone) {
+          dropzone.classList.add('has-photo');
+          var existing = dropzone.querySelector('.dz-preview');
+          if (existing) existing.remove();
+          var preview = document.createElement('div');
+          preview.className = 'dz-preview dz-preview-grid';
+          dropzone.appendChild(preview);
+          validFiles.forEach(function (previewFile) {
+            var previewReader = new FileReader();
+            previewReader.onload = function (ev) {
+              var img = document.createElement('img');
+              img.src = ev.target.result;
+              img.alt = 'صورة الطفل';
+              preview.appendChild(img);
+            };
+            previewReader.readAsDataURL(previewFile);
+          });
+        }
+        return;
 
         // Validate type
         if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
@@ -1753,11 +1828,13 @@
       dropzone.addEventListener('drop', function (e) {
         e.preventDefault();
         dropzone.classList.remove('drag-over');
-        var file = e.dataTransfer.files && e.dataTransfer.files[0];
-        if (file && photoInput) {
+        var droppedFiles = e.dataTransfer.files;
+        if (droppedFiles && droppedFiles.length && photoInput) {
           // Set the file on the input for consistency
           var dt = new DataTransfer();
-          dt.items.add(file);
+          Array.prototype.slice.call(droppedFiles).slice(0, 5).forEach(function (droppedFile) {
+            dt.items.add(droppedFile);
+          });
           photoInput.files = dt.files;
           photoInput.dispatchEvent(new Event('change'));
         }
@@ -1848,29 +1925,32 @@
   }
 
   function uploadPhotoAndGenerate() {
-    if (state.photoFile && !state.photoUrl) {
+    var filesToUpload = state.photoFiles && state.photoFiles.length ? state.photoFiles : (state.photoFile ? [state.photoFile] : []);
+    if (filesToUpload.length && !(state.photoUrls && state.photoUrls.length)) {
       state.photoUploading = true;
-      var formData = new FormData();
-      formData.append('file', state.photoFile);
-
-      fetch('/api/upload-child-photo', {
-        method: 'POST',
-        body: formData
-      })
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-          if (data.success && data.data) {
-            state.photoUrl = data.data.url;
-          }
-          state.photoUploading = false;
-          saveWizardData();
-          runGenerator();
+      Promise.all(filesToUpload.map(function (file) {
+        var formData = new FormData();
+        formData.append('file', file);
+        return fetch('/api/upload-child-photo', {
+          method: 'POST',
+          body: formData
         })
-        .catch(function () {
-          state.photoUploading = false;
-          saveWizardData();
-          runGenerator();
-        });
+          .then(function (res) { return res.json(); })
+          .then(function (data) { return data.success && data.data ? data.data : null; });
+      }))
+      .then(function (uploads) {
+        var urls = uploads.filter(Boolean).map(function (item) { return item.url; });
+        state.photoUrls = urls;
+        state.photoUrl = urls[0] || null;
+        state.photoUploading = false;
+        saveWizardData();
+        runGenerator();
+      })
+      .catch(function () {
+        state.photoUploading = false;
+        saveWizardData();
+        runGenerator();
+      });
     } else {
       saveWizardData();
       runGenerator();
@@ -3702,6 +3782,8 @@
     var sendBtn = document.getElementById('serajChatSend');
     var msgs = document.getElementById('serajChatMessages');
     var WHATSAPP = '201152806034';
+    if (!btn || !win || !closeBtn || !input || !sendBtn || !msgs) return;
+    updateSerajChatVisibility();
 
     btn.addEventListener('click', function () {
       scChatOpen = !scChatOpen;

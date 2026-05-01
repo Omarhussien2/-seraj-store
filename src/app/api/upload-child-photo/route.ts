@@ -76,6 +76,7 @@ export async function POST(request: Request) {
         success: true,
         data: {
           url: result.secure_url,
+          downloadUrl: result.secure_url.replace("/upload/", "/upload/fl_attachment/"),
           publicId: result.public_id,
           width: result.width,
           height: result.height,
