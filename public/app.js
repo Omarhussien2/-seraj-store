@@ -1154,7 +1154,7 @@
     h += '</div>';
 
     h += '<a href="#/checkout" data-link class="btn btn-primary btn-xl btn-fullrow" style="margin-top:24px">إتمام الطلب</a>';
-    h += '<a href="#/products" data-link class="btn btn-ghost btn-fullrow" style="margin-top:8px">' + CHECKOUT_CONTINUE_TEXT + '</a>';
+    h += '<a href="#/products" data-link class="btn btn-ghost btn-fullrow" style="margin-top:8px">' + escapeHtml(CHECKOUT_CONTINUE_TEXT) + '</a>';
 
     container.innerHTML = h;
   }
