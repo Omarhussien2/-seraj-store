@@ -46,6 +46,7 @@ const CustomStorySchema = z.object({
   ),
   customChallenge: z.string().max(500).optional(),
   photoUrl: z.string().url().optional().nullable(),
+  photoUrls: z.array(z.string().url()).max(5).optional().nullable(),
 });
 
 const CreateOrderSchema = z.object({
@@ -245,6 +246,9 @@ export async function POST(request: Request) {
                 : {}),
               ...(validated.customStory.photoUrl
                 ? { photoUrl: validated.customStory.photoUrl }
+                : {}),
+              ...(validated.customStory.photoUrls?.length
+                ? { photoUrls: validated.customStory.photoUrls }
                 : {}),
             }
           : undefined,
