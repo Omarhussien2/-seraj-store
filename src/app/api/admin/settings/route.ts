@@ -112,15 +112,25 @@ export async function PUT(request: Request) {
       );
     }
 
+    // Re-read stored values so the response reflects what was actually persisted
+    // (e.g. empty strings are rejected by .trim() checks above)
+    const saved = await SiteContent.find({ key: { $in: SETTINGS_KEYS } }).lean();
+    const savedMap: Record<string, string> = {};
+    for (const s of saved) savedMap[s.key] = s.value;
+
     return NextResponse.json({
       success: true,
       data: {
-        shippingFee,
-        freeShippingAbove,
-        checkoutContinueShoppingText,
-        checkoutDeliveryEstimateText,
-        chatWidgetEnabled,
-        chatWidgetHiddenPages,
+        shippingFee: parseInt(savedMap.shipping_fee || "35", 10),
+        freeShippingAbove: parseInt(savedMap.free_shipping_above || "0", 10),
+        checkoutContinueShoppingText:
+          savedMap.checkout_continue_shopping_text || "كمل تسوق",
+        checkoutDeliveryEstimateText:
+          savedMap.checkout_delivery_estimate_text ||
+          "عادةً الطلب بيوصل خلال 5 إلى 7 أيام عمل.",
+        chatWidgetEnabled: savedMap.chat_widget_enabled !== "false",
+        chatWidgetHiddenPages:
+          savedMap.chat_widget_hidden_pages || "checkout,success,wizard,preview",
       },
     });
   } catch (error) {

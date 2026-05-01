@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { getOrCreateChatSettings } from "@/lib/chatSettings";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -26,7 +27,7 @@ setInterval(() => {
   }
 }, 10 * 60 * 1000);
 
-const SYSTEM_PROMPT = `أنت سِراج — الأرنب الأخضر صاحب ورشة الحكايات. أنت المساعد الذكي لمتجر سِراج الإلكتروني.
+const FALLBACK_SYSTEM_PROMPT = `أنت سِراج — الأرنب الأخضر صاحب ورشة الحكايات. أنت المساعد الذكي لمتجر سِراج الإلكتروني.
 
 ## شخصيتك:
 - تتكلم بالعامية المصرية بأسلوب مهذب ولطيف ومحترم
@@ -117,8 +118,39 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    let systemPrompt = FALLBACK_SYSTEM_PROMPT;
+    let chatEnabled = true;
+    let aiProvider: "auto" | "gemini" | "deepseek" = "auto";
+    let aiModelOverride = "";
+    let aiTemperature = 0.7;
+    let aiMaxTokens = 400;
+    try {
+      const settings = await getOrCreateChatSettings();
+      chatEnabled = settings.enabled !== false;
+      if (settings.systemPrompt && settings.systemPrompt.trim().length > 0) {
+        systemPrompt = settings.systemPrompt;
+      }
+      if (settings.aiProvider === "gemini" || settings.aiProvider === "deepseek") {
+        aiProvider = settings.aiProvider;
+      }
+      if (typeof settings.aiModel === "string" && settings.aiModel.trim()) {
+        aiModelOverride = settings.aiModel.trim();
+      }
+      if (typeof settings.aiTemperature === "number") aiTemperature = settings.aiTemperature;
+      if (typeof settings.aiMaxTokens === "number") aiMaxTokens = settings.aiMaxTokens;
+    } catch (e) {
+      console.error("chat-seraj: failed to load settings, using fallback prompt", e);
+    }
+
+    if (!chatEnabled) {
+      return new Response(
+        JSON.stringify({ error: "الشات معطّل حالياً" }),
+        { status: 403, headers: { "Content-Type": "application/json; charset=utf-8" } }
+      );
+    }
+
     const messages: Array<{ role: string; content: string }> = [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: systemPrompt },
     ];
 
     const recentHistory = history.slice(-10);
@@ -132,54 +164,65 @@ export async function POST(req: NextRequest) {
     type Provider = { name: string; call: () => Promise<Response> };
     const providers: Provider[] = [];
 
+    const wantGemini = aiProvider === "auto" || aiProvider === "gemini";
+    const wantDeepseek = aiProvider === "auto" || aiProvider === "deepseek";
+
     const geminiKeys = [
       process.env.GEMINI_API_KEY_1,
       process.env.GEMINI_API_KEY_2,
       process.env.GEMINI_API_KEY_3,
       process.env.GEMINI_API_KEY_4,
     ].filter(Boolean);
-    const geminiModel = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+    const geminiModel =
+      (aiProvider === "gemini" && aiModelOverride) ||
+      process.env.GEMINI_MODEL ||
+      "gemini-2.5-flash";
 
-    for (const gKey of geminiKeys) {
-      providers.push({
-        name: "gemini",
-        call: () => {
-          const contents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
-          for (const m of messages) {
-            const role = m.role === "assistant" ? "model" : "user";
-            contents.push({ role, parts: [{ text: m.content }] });
-          }
-          if (messages[0]?.role === "system" && contents.length > 1) {
-            contents[1].parts[0].text = contents[0].parts[0].text + "\n\n" + contents[1].parts[0].text;
-            contents.shift();
-          }
-
-          return fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${gKey}`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                contents,
-                generationConfig: { temperature: 0.7, maxOutputTokens: 400, topP: 0.9 },
-              }),
+    if (wantGemini) {
+      for (const gKey of geminiKeys) {
+        providers.push({
+          name: "gemini",
+          call: () => {
+            const contents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
+            for (const m of messages) {
+              const role = m.role === "assistant" ? "model" : "user";
+              contents.push({ role, parts: [{ text: m.content }] });
             }
-          );
-        },
-      });
+            if (messages[0]?.role === "system" && contents.length > 1) {
+              contents[1].parts[0].text = contents[0].parts[0].text + "\n\n" + contents[1].parts[0].text;
+              contents.shift();
+            }
+
+            return fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${gKey}`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  contents,
+                  generationConfig: { temperature: aiTemperature, maxOutputTokens: aiMaxTokens, topP: 0.9 },
+                }),
+              }
+            );
+          },
+        });
+      }
     }
 
     const dsKey = process.env.DEEPSEEK_API_KEY;
     const dsUrl = process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com";
-    const dsModel = process.env.DEEPSEEK_MODEL || "deepseek-chat";
-    if (dsKey) {
+    const dsModel =
+      (aiProvider === "deepseek" && aiModelOverride) ||
+      process.env.DEEPSEEK_MODEL ||
+      "deepseek-chat";
+    if (wantDeepseek && dsKey) {
       providers.push({
         name: "deepseek",
         call: () =>
           fetch(`${dsUrl}/chat/completions`, {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${dsKey}` },
-            body: JSON.stringify({ model: dsModel, messages, temperature: 0.7, max_tokens: 400, top_p: 0.9, stream: true }),
+            body: JSON.stringify({ model: dsModel, messages, temperature: aiTemperature, max_tokens: aiMaxTokens, top_p: 0.9, stream: true }),
           }),
       });
     }

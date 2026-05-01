@@ -1783,36 +1783,6 @@
           });
         }
         return;
-
-        // Validate type
-        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-          showToast('الصورة لازم تكون JPEG أو PNG أو WebP ✦');
-          return;
-        }
-        // Validate size (5MB)
-        if (file.size > 5 * 1024 * 1024) {
-          showToast('حجم الصورة أكبر من ٥ ميجا ✦');
-          return;
-        }
-
-        state.photoFile = file;
-
-        // Show preview
-        var reader = new FileReader();
-        reader.onload = function (ev) {
-          if (dropzone) {
-            dropzone.classList.add('has-photo');
-            // Check if preview already exists
-            var existing = dropzone.querySelector('.dz-preview');
-            if (existing) existing.remove();
-
-            var preview = document.createElement('div');
-            preview.className = 'dz-preview';
-            preview.innerHTML = '<img src="' + ev.target.result + '" alt="صورة بطلنا" style="width:100%;height:100%;object-fit:cover;border-radius:14px"/>';
-            dropzone.appendChild(preview);
-          }
-        };
-        reader.readAsDataURL(file);
       });
     }
 
@@ -1936,7 +1906,8 @@
           body: formData
         })
           .then(function (res) { return res.json(); })
-          .then(function (data) { return data.success && data.data ? data.data : null; });
+          .then(function (data) { return data.success && data.data ? data.data : null; })
+          .catch(function () { return null; });
       }))
       .then(function (uploads) {
         var urls = uploads.filter(Boolean).map(function (item) { return item.url; });
@@ -3766,105 +3737,566 @@
   // ═══════════════════════════════════════════════════════════
   // SERAJ CHAT WIDGET (floating)
   // ═══════════════════════════════════════════════════════════
-  var scChatOpen = false;
-  var scHistory = [];
-  var scSending = false;
-  var scInited = false;
+  var SC_DEFAULT_WHATSAPP = '201152806034';
+  var SC_AVATAR_SRC = 'assets/seraj.png';
+  var SC_LS_KEY = 'seraj-chat-history-v1';
+  var SC_LS_FIRSTOPEN_KEY = 'seraj-chat-opened-once';
+  var SC_LS_CONFIG_KEY = 'seraj-chat-config-v1';
+  var SC_MAX_HISTORY = 50;
+  var SC_SLOW_TIMEOUT_MS = 5000;
+  var SC_DEFAULT_PULSE_FIRST_DELAY_MS = 5000;
+  var SC_DEFAULT_PULSE_INTERVAL_MS = 30000;
+  var SC_DEFAULT_THEME = '#6bbf3f';
+  var SC_DEFAULT_CONFIG = {
+    enabled: true,
+    whatsappNumber: SC_DEFAULT_WHATSAPP,
+    welcomeTitle: 'أهلاً بيك في سِراج! 👋',
+    welcomeSubtitle: 'أنا مساعدك الذكي. اسألني عن المنتجات والأسعار أو اطلب مباشرة. إيه اللي محتاجه؟',
+    chips: [
+      { label: 'المنتجات والأسعار', question: 'إيه المنتجات والأسعار؟' },
+      { label: 'القصة المخصصة',   question: 'عايز أطلب القصة المخصصة' },
+      { label: 'قصة خالد',         question: 'عايز أطلب قصة خالد بن الوليد' },
+      { label: 'الشحن والتوصيل',  question: 'الشحن بكام وبيوصل إمتى؟' }
+    ],
+    routesMode: 'all',
+    routesList: [],
+    pulseEnabled: true,
+    pulseFirstDelayMs: SC_DEFAULT_PULSE_FIRST_DELAY_MS,
+    pulseIntervalMs: SC_DEFAULT_PULSE_INTERVAL_MS,
+    themeColor: SC_DEFAULT_THEME
+  };
+  var scConfig = SC_DEFAULT_CONFIG;
+
+  var scState = {
+    open: false,
+    sending: false,
+    history: [],
+    inited: false,
+    everOpened: false,
+    pulseTimer: null,
+    lastFocusedBeforeOpen: null
+  };
+
+  function scLoadHistory() {
+    try {
+      var raw = localStorage.getItem(SC_LS_KEY);
+      if (!raw) return [];
+      var arr = JSON.parse(raw);
+      if (!Array.isArray(arr)) return [];
+      return arr.filter(function (m) {
+        return m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string';
+      });
+    } catch (e) { return []; }
+  }
+  function scSaveHistory() {
+    try {
+      var trimmed = scState.history.slice(-SC_MAX_HISTORY);
+      localStorage.setItem(SC_LS_KEY, JSON.stringify(trimmed));
+    } catch (e) {}
+  }
+  function scClearStorage() {
+    try { localStorage.removeItem(SC_LS_KEY); } catch (e) {}
+  }
+  function scMarkOpened() {
+    try { localStorage.setItem(SC_LS_FIRSTOPEN_KEY, '1'); } catch (e) {}
+    scState.everOpened = true;
+  }
+  function scWasOpenedBefore() {
+    try { return localStorage.getItem(SC_LS_FIRSTOPEN_KEY) === '1'; } catch (e) { return false; }
+  }
+
+  function scWaText(prefix) {
+    var msg = prefix || 'مرحباً، كنت بتكلم سِراج وأحتاج مساعدة';
+    var num = (scConfig && scConfig.whatsappNumber) || SC_DEFAULT_WHATSAPP;
+    return 'https://wa.me/' + num + '?text=' + encodeURIComponent(msg);
+  }
+
+  function scLoadCachedConfig() {
+    try {
+      var raw = localStorage.getItem(SC_LS_CONFIG_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') return parsed;
+    } catch (e) {}
+    return null;
+  }
+  function scSaveCachedConfig(cfg) {
+    try { localStorage.setItem(SC_LS_CONFIG_KEY, JSON.stringify(cfg)); } catch (e) {}
+  }
+  function scNormalizeConfig(raw) {
+    if (!raw || typeof raw !== 'object') return SC_DEFAULT_CONFIG;
+    var chips = Array.isArray(raw.chips) ? raw.chips.filter(function (c) {
+      return c && typeof c.label === 'string' && typeof c.question === 'string'
+        && c.label.trim() && c.question.trim();
+    }) : [];
+    var routesMode = raw.routesMode === 'whitelist' || raw.routesMode === 'blacklist' ? raw.routesMode : 'all';
+    var routesList = Array.isArray(raw.routesList)
+      ? raw.routesList.filter(function (p) { return typeof p === 'string' && p.trim(); }).map(function (p) { return p.trim(); })
+      : [];
+    var theme = (typeof raw.themeColor === 'string' && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(raw.themeColor))
+      ? raw.themeColor : SC_DEFAULT_THEME;
+    return {
+      enabled: raw.enabled !== false,
+      whatsappNumber: (raw.whatsappNumber || SC_DEFAULT_WHATSAPP).toString(),
+      welcomeTitle: raw.welcomeTitle || SC_DEFAULT_CONFIG.welcomeTitle,
+      welcomeSubtitle: raw.welcomeSubtitle || SC_DEFAULT_CONFIG.welcomeSubtitle,
+      chips: chips.length ? chips : SC_DEFAULT_CONFIG.chips,
+      routesMode: routesMode,
+      routesList: routesList,
+      pulseEnabled: raw.pulseEnabled !== false,
+      pulseFirstDelayMs: typeof raw.pulseFirstDelayMs === 'number' ? raw.pulseFirstDelayMs : SC_DEFAULT_PULSE_FIRST_DELAY_MS,
+      pulseIntervalMs: typeof raw.pulseIntervalMs === 'number' ? raw.pulseIntervalMs : SC_DEFAULT_PULSE_INTERVAL_MS,
+      themeColor: theme
+    };
+  }
+
+  function scPathAllowedByRoutes() {
+    var mode = (scConfig && scConfig.routesMode) || 'all';
+    var list = (scConfig && scConfig.routesList) || [];
+    if (mode === 'all' || !list.length) return true;
+    var path = (location.pathname || '/').toLowerCase();
+    var hit = list.some(function (p) {
+      var pat = p.toLowerCase();
+      if (!pat) return false;
+      if (pat === '/' && path === '/') return true;
+      return path === pat || path.indexOf(pat.replace(/\/$/, '') + '/') === 0 || path === pat.replace(/\/$/, '');
+    });
+    return mode === 'whitelist' ? hit : !hit;
+  }
+
+  function applyChatTheme() {
+    try {
+      var c = (scConfig && scConfig.themeColor) || SC_DEFAULT_THEME;
+      document.documentElement.style.setProperty('--sc-theme', c);
+    } catch (e) {}
+  }
+  function scFetchConfig() {
+    return fetch('/api/chat-config', { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (body) {
+        if (body && body.success && body.data) return scNormalizeConfig(body.data);
+        return null;
+      })
+      .catch(function () { return null; });
+  }
+
+  function scUpdateVh() {
+    var h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    document.documentElement.style.setProperty('--sc-vh', h + 'px');
+  }
+
+  function applyChatConfigVisibility(fab, win) {
+    var visible = !!scConfig.enabled && scPathAllowedByRoutes();
+    if (!visible) {
+      if (fab) fab.style.display = 'none';
+      if (win) win.hidden = true;
+      // If the chat was already open when we got told to hide it (e.g. config
+      // refresh disables the widget mid-session, or the user navigates to a
+      // route excluded by routesList), make sure we don't leave the body
+      // scroll-locked. On mobile body.sc-modal-open sets overflow:hidden +
+      // touch-action:none, which would trap the user with no visible way to
+      // close the chat.
+      if (scState.open) {
+        try { document.body.classList.remove('sc-modal-open'); } catch (e) {}
+        scState.open = false;
+        if (fab) fab.classList.remove('is-open');
+      }
+    } else if (fab) {
+      fab.style.display = '';
+    }
+  }
+
+  function renderChips(chipsBar, input, isSendingRef) {
+    if (!chipsBar) return;
+    // Remove all existing dynamic chips except the WhatsApp anchor (sc-wa-chip)
+    var waChip = chipsBar.querySelector('.sc-wa-chip');
+    chipsBar.querySelectorAll('button[data-q]').forEach(function (b) { b.remove(); });
+    var chips = (scConfig && scConfig.chips) || [];
+    chips.forEach(function (c) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.setAttribute('data-q', c.question);
+      btn.textContent = c.label;
+      btn.addEventListener('click', function () {
+        if (isSendingRef.value) return;
+        input.value = c.question;
+        // scSend is closed-over in init scope; dispatch via a custom event
+        chipsBar.dispatchEvent(new CustomEvent('sc:chip-send'));
+      });
+      // Insert before the WA anchor so it remains last
+      if (waChip) chipsBar.insertBefore(btn, waChip);
+      else chipsBar.appendChild(btn);
+    });
+    // Update WA chip href with configured number
+    if (waChip) {
+      var num = (scConfig && scConfig.whatsappNumber) || SC_DEFAULT_WHATSAPP;
+      var preset = encodeURIComponent('مرحباً، عايز أسأل عن سِراج');
+      waChip.setAttribute('href', 'https://wa.me/' + num + '?text=' + preset);
+    }
+  }
 
   function initSerajChat() {
-    if (scInited) return;
-    scInited = true;
+    if (scState.inited) return;
+    scState.inited = true;
 
-    var btn = document.getElementById('serajChatBtn');
+    var fab = document.getElementById('serajChatBtn');
     var win = document.getElementById('serajChatWindow');
     var closeBtn = document.getElementById('serajChatClose');
+    var clearBtn = document.getElementById('serajChatClear');
     var input = document.getElementById('serajChatInput');
     var sendBtn = document.getElementById('serajChatSend');
     var msgs = document.getElementById('serajChatMessages');
     var WHATSAPP = '201152806034';
-    if (!btn || !win || !closeBtn || !input || !sendBtn || !msgs) return;
-    updateSerajChatVisibility();
+    var chipsBar = document.getElementById('serajChatChips');
+    var scrollDownBtn = document.getElementById('serajChatScrollDown');
+    if (!fab || !win || !closeBtn || !input || !sendBtn || !msgs) return;
 
-    btn.addEventListener('click', function () {
-      scChatOpen = !scChatOpen;
-      win.hidden = !scChatOpen;
-      if (scChatOpen) {
-        btn.style.display = 'none';
-        if (msgs.children.length === 0) {
-          appendScBot('أهلاً بكِ! أنا سِراج — مساعدك الذكي. تقدري تسأليني عن المنتجات والأسعار أو تطلبي مباشرة. إيه اللي تحتاجيه؟');
-        }
-        setTimeout(function () { input.focus(); }, 100);
+    // Hydrate config from cache immediately, then refresh from API in the background.
+    var cached = scLoadCachedConfig();
+    if (cached) scConfig = scNormalizeConfig(cached);
+    applyChatTheme();
+    applyChatConfigVisibility(fab, win);
+
+    // Re-evaluate route visibility on SPA navigation (popstate, pushState wraps below).
+    window.addEventListener('popstate', function () { applyChatConfigVisibility(fab, win); });
+    window.addEventListener('hashchange', function () { applyChatConfigVisibility(fab, win); });
+    try {
+      var origPushState = history.pushState;
+      history.pushState = function () {
+        var ret = origPushState.apply(this, arguments);
+        try { applyChatConfigVisibility(fab, win); } catch (e) {}
+        return ret;
+      };
+      var origReplaceState = history.replaceState;
+      history.replaceState = function () {
+        var ret = origReplaceState.apply(this, arguments);
+        try { applyChatConfigVisibility(fab, win); } catch (e) {}
+        return ret;
+      };
+    } catch (e) {}
+
+    var sendingRef = { value: false };
+    Object.defineProperty(sendingRef, 'value', {
+      get: function () { return scState.sending; }
+    });
+    scFetchConfig().then(function (cfg) {
+      if (!cfg) return;
+      scConfig = cfg;
+      scSaveCachedConfig(cfg);
+      applyChatTheme();
+      applyChatConfigVisibility(fab, win);
+      renderChips(chipsBar, input, sendingRef);
+      // If welcome is currently shown, re-render to reflect new copy.
+      var welcome = msgs.querySelector('.sc-welcome');
+      if (welcome) {
+        welcome.remove();
+        renderWelcome();
       }
     });
 
-    closeBtn.addEventListener('click', function () {
-      scChatOpen = false;
-      win.hidden = true;
-      btn.style.display = '';
-    });
+    scState.everOpened = scWasOpenedBefore();
+    scState.history = scLoadHistory();
+    scUpdateVh();
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', scUpdateVh);
+      window.visualViewport.addEventListener('scroll', scUpdateVh);
+    }
+    window.addEventListener('resize', scUpdateVh);
 
-    sendBtn.addEventListener('click', function () { if (!scSending) scSend(); });
-    input.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' && !scSending) { e.preventDefault(); scSend(); }
-    });
+    // ---------- Pulse FAB until first open ----------
+    function startPulseLoop() {
+      if (scState.everOpened) return;
+      if (!scConfig.pulseEnabled) return;
+      var firstDelay = typeof scConfig.pulseFirstDelayMs === 'number'
+        ? scConfig.pulseFirstDelayMs : SC_DEFAULT_PULSE_FIRST_DELAY_MS;
+      var interval = typeof scConfig.pulseIntervalMs === 'number'
+        ? scConfig.pulseIntervalMs : SC_DEFAULT_PULSE_INTERVAL_MS;
+      setTimeout(function () { triggerPulse(); }, firstDelay);
+      scState.pulseTimer = setInterval(triggerPulse, interval);
+    }
+    function stopPulseLoop() {
+      if (scState.pulseTimer) { clearInterval(scState.pulseTimer); scState.pulseTimer = null; }
+      fab.classList.remove('sc-pulse');
+    }
+    function triggerPulse() {
+      if (scState.open || scState.everOpened) { stopPulseLoop(); return; }
+      // restart animation
+      fab.classList.remove('sc-pulse');
+      // force reflow then re-add
+      void fab.offsetWidth;
+      fab.classList.add('sc-pulse');
+      setTimeout(function () { fab.classList.remove('sc-pulse'); }, 1500);
+    }
+    startPulseLoop();
 
-    document.querySelectorAll('#serajChatChips button[data-q]').forEach(function (chip) {
-      chip.addEventListener('click', function () {
-        if (scSending) return;
-        input.value = chip.getAttribute('data-q');
-        scSend();
+    // ---------- Open / close ----------
+    function openChat() {
+      if (scState.open) return;
+      scState.open = true;
+      scState.lastFocusedBeforeOpen = document.activeElement;
+      win.hidden = false;
+      win.classList.remove('is-closing');
+      fab.classList.add('is-open');
+      fab.setAttribute('aria-expanded', 'true');
+      stopPulseLoop();
+      scMarkOpened();
+      document.body.classList.add('sc-modal-open');
+
+      // Render: replay history if any, else show welcome
+      if (msgs.children.length === 0) {
+        if (scState.history.length > 0) {
+          replayHistory();
+        } else {
+          renderWelcome();
+        }
+      }
+
+      requestAnimationFrame(function () {
+        scScroll(true);
+        setTimeout(function () { input.focus(); }, 50);
       });
+    }
+
+    function closeChat() {
+      if (!scState.open) return;
+      scState.open = false;
+      fab.classList.remove('is-open');
+      fab.setAttribute('aria-expanded', 'false');
+      win.classList.add('is-closing');
+      document.body.classList.remove('sc-modal-open');
+      setTimeout(function () {
+        win.hidden = true;
+        win.classList.remove('is-closing');
+        if (scState.lastFocusedBeforeOpen && scState.lastFocusedBeforeOpen.focus) {
+          try { scState.lastFocusedBeforeOpen.focus(); } catch (e) {}
+        }
+      }, 200);
+    }
+
+    fab.addEventListener('click', function () {
+      if (scState.open) { closeChat(); } else { openChat(); }
     });
+    closeBtn.addEventListener('click', closeChat);
+
+    // ---------- Clear chat ----------
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function () {
+        if (!confirm('مسح كل المحادثة؟')) return;
+        scState.history = [];
+        scClearStorage();
+        msgs.innerHTML = '';
+        if (chipsBar) chipsBar.classList.remove('sc-collapsed');
+        renderWelcome();
+        scScroll();
+        input.focus();
+      });
+    }
+
+    // ---------- Keyboard: Enter to send, Escape to close, focus trap ----------
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !scState.sending) { e.preventDefault(); scSend(); }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (!scState.open) return;
+      if (e.key === 'Escape') { e.preventDefault(); closeChat(); return; }
+      if (e.key === 'Tab') scTrapFocus(e);
+    });
+    function scTrapFocus(e) {
+      var focusables = win.querySelectorAll(
+        'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (!focusables.length) return;
+      var first = focusables[0];
+      var last  = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+
+    // ---------- Send button + chips ----------
+    sendBtn.addEventListener('click', function () { if (!scState.sending) scSend(); });
+    if (chipsBar) {
+      chipsBar.addEventListener('sc:chip-send', function () {
+        if (!scState.sending) scSend();
+      });
+      // Static chips that ship with the HTML still work (data-q attribute)
+      chipsBar.querySelectorAll('button[data-q]').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          if (scState.sending) return;
+          input.value = chip.getAttribute('data-q') || '';
+          scSend();
+        });
+      });
+    }
+
+    // ---------- Scroll-to-bottom ----------
+    if (scrollDownBtn) scrollDownBtn.hidden = false;  // controlled by .is-visible class now
+    msgs.addEventListener('scroll', updateScrollDown);
+    if (scrollDownBtn) {
+      scrollDownBtn.addEventListener('click', function () { scScroll(true); });
+    }
+
+    function updateScrollDown() {
+      if (!scrollDownBtn) return;
+      var distFromBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight;
+      scrollDownBtn.classList.toggle('is-visible', distFromBottom > 100);
+    }
+
+    function scScroll(force) {
+      if (!force) {
+        var distFromBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight;
+        if (distFromBottom > 200) return;
+      }
+      msgs.scrollTop = msgs.scrollHeight;
+      if (scrollDownBtn) scrollDownBtn.classList.remove('is-visible');
+    }
+
+    // ---------- Renderers ----------
+    function renderWelcome() {
+      var card = document.createElement('div');
+      card.className = 'sc-welcome';
+      var titleEl = document.createElement('h4');
+      titleEl.textContent = (scConfig && scConfig.welcomeTitle) || SC_DEFAULT_CONFIG.welcomeTitle;
+      var subEl = document.createElement('p');
+      subEl.textContent = (scConfig && scConfig.welcomeSubtitle) || SC_DEFAULT_CONFIG.welcomeSubtitle;
+      var avatarWrap = document.createElement('div');
+      avatarWrap.className = 'sc-welcome-avatar';
+      avatarWrap.innerHTML = '<img src="' + SC_AVATAR_SRC + '" alt="">';
+      card.appendChild(avatarWrap);
+      card.appendChild(titleEl);
+      card.appendChild(subEl);
+      msgs.appendChild(card);
+    }
+
+    function replayHistory() {
+      scState.history.forEach(function (m) {
+        if (m.role === 'user') appendScUser(m.content, true);
+        else if (m.role === 'assistant') appendScBot(m.content, true);
+      });
+      // After first user message, hide chips
+      var hasUserMsg = scState.history.some(function (m) { return m.role === 'user'; });
+      if (hasUserMsg && chipsBar) chipsBar.classList.add('sc-collapsed');
+    }
+
+    function avatarHTML() {
+      return '<div class="sc-msg-avatar" aria-hidden="true"><img src="' + SC_AVATAR_SRC + '" alt=""></div>';
+    }
+
+    function appendScUser(text, skipScroll) {
+      var row = document.createElement('div');
+      row.className = 'sc-msg-row sc-row-user';
+      var bubble = document.createElement('div');
+      bubble.className = 'sc-msg sc-msg-user';
+      bubble.textContent = text;
+      row.appendChild(bubble);
+      msgs.appendChild(row);
+      if (chipsBar) chipsBar.classList.add('sc-collapsed');
+      if (!skipScroll) scScroll(true);
+    }
+
+    function appendScBot(text, skipScroll) {
+      var row = document.createElement('div');
+      row.className = 'sc-msg-row sc-row-bot';
+      row.innerHTML = avatarHTML();
+      var bubble = document.createElement('div');
+      bubble.className = 'sc-msg sc-msg-bot';
+      bubble.textContent = text;
+      row.appendChild(bubble);
+      msgs.appendChild(row);
+      if (!skipScroll) scScroll();
+    }
+
+    function appendScError(text) {
+      var box = document.createElement('div');
+      box.className = 'sc-msg-error';
+      var head = document.createElement('div');
+      head.className = 'sc-msg-error-head';
+      head.innerHTML =
+        '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
+        '<circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>' +
+        '<span></span>';
+      head.querySelector('span').textContent = text;
+      box.appendChild(head);
+      var waLink = document.createElement('a');
+      waLink.className = 'sc-wa-link';
+      waLink.href = scWaText('مرحباً، كنت بتكلم سِراج وحصلت مشكلة وأحتاج مساعدة');
+      waLink.target = '_blank';
+      waLink.rel = 'noopener';
+      waLink.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17.5 14.3c-.3-.15-1.8-.9-2.1-1-.28-.1-.48-.15-.68.15-.2.3-.78 1-.95 1.2-.18.2-.35.22-.65.08-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.65-2.05-.18-.3-.02-.46.13-.6.13-.14.3-.35.44-.52.15-.18.2-.3.3-.5.1-.2.05-.38-.03-.53-.08-.15-.68-1.63-.93-2.23-.24-.58-.5-.5-.68-.5h-.58c-.2 0-.53.08-.8.38s-1.05 1.03-1.05 2.5c0 1.47 1.07 2.9 1.22 3.1.15.2 2.13 3.25 5.15 4.55.72.3 1.28.48 1.72.62.72.23 1.38.2 1.9.12.58-.08 1.8-.73 2.05-1.43.25-.7.25-1.3.18-1.43-.08-.13-.28-.2-.58-.35z"/></svg> تواصل واتساب';
+      box.appendChild(waLink);
+      msgs.appendChild(box);
+      scScroll(true);
+    }
+
+    function makeTypingRow() {
+      var row = document.createElement('div');
+      row.className = 'sc-typing-row';
+      row.innerHTML = avatarHTML() + '<div class="sc-typing"><span></span><span></span><span></span></div>';
+      return row;
+    }
 
     function scSend() {
       var msg = input.value.trim();
-      if (!msg || scSending) return;
+      if (!msg || scState.sending) return;
       input.value = '';
-      scSending = true;
+      scState.sending = true;
       sendBtn.disabled = true;
 
-      appendScUser(msg);
-      scHistory.push({ role: 'user', content: msg });
+      // Hide welcome card on first send
+      var welcome = msgs.querySelector('.sc-welcome');
+      if (welcome) welcome.remove();
 
-      var typingEl = document.createElement('div');
-      typingEl.className = 'sc-msg sc-msg-typing';
-      typingEl.innerHTML = '<span></span><span></span><span></span>';
+      appendScUser(msg);
+      scState.history.push({ role: 'user', content: msg });
+      scSaveHistory();
+
+      var typingEl = makeTypingRow();
       msgs.appendChild(typingEl);
-      scScroll();
+      scScroll(true);
+
+      // Slow-API hint after 5s
+      var slowHint = null;
+      var slowTimer = setTimeout(function () {
+        if (!scState.sending) return;
+        slowHint = document.createElement('div');
+        slowHint.className = 'sc-slow-hint';
+        slowHint.textContent = 'سِراج بيفكر... ⏳';
+        msgs.appendChild(slowHint);
+        scScroll();
+      }, SC_SLOW_TIMEOUT_MS);
+
+      function clearSlow() {
+        clearTimeout(slowTimer);
+        if (slowHint && slowHint.parentNode) slowHint.remove();
+      }
 
       fetch('/api/chat-seraj', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: msg, history: scHistory.slice(-10) })
+        body: JSON.stringify({ message: msg, history: scState.history.slice(-10) })
       })
       .then(function (res) {
         if (!res.ok) return res.json().then(function (e) { throw new Error(e.error || 'حصلت مشكلة'); });
         return scReadStream(res, typingEl);
       })
       .then(function (text) {
+        clearSlow();
         if (typingEl.parentNode) typingEl.remove();
-        var full = text || 'جربي تاني';
-        appendScBot(full);
-        scHistory.push({ role: 'assistant', content: full });
+        var full = text || 'حاول تاني يا فندم 🌱';
+        // The streamed bot row might already be appended; if not, render now.
+        var lastRow = msgs.lastElementChild;
+        if (!lastRow || !lastRow.classList.contains('sc-row-bot')) {
+          appendScBot(full);
+        }
+        scState.history.push({ role: 'assistant', content: full });
+        scSaveHistory();
       })
       .catch(function (err) {
+        clearSlow();
         if (typingEl.parentNode) typingEl.remove();
-        var errEl = document.createElement('div');
-        errEl.className = 'sc-msg sc-msg-error';
-        errEl.textContent = err.message || 'حصلت مشكلة — جربي تاني';
-        var waLink = document.createElement('a');
-        waLink.className = 'sc-wa-link';
-        waLink.href = 'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent('مرحباً، كنت بتكلم سِراج وحصلت مشكلة وأحتاج مساعدة');
-        waLink.target = '_blank';
-        waLink.rel = 'noopener';
-        waLink.textContent = 'تواصل واتساب';
-        errEl.appendChild(document.createElement('br'));
-        errEl.appendChild(waLink);
-        msgs.appendChild(errEl);
-        scScroll();
+        appendScError(err.message || 'حصلت مشكلة — حاول تاني');
       })
       .finally(function () {
-        scSending = false;
+        scState.sending = false;
         sendBtn.disabled = false;
         input.focus();
       });
@@ -3875,18 +4307,20 @@
         var reader = res.body.getReader();
         var decoder = new TextDecoder();
         var fullText = '';
-        var botEl = null;
-        var botText = null;
+        var botRow = null;
+        var botBubble = null;
         var buffer = '';
 
-        function ensureBotEl() {
-          if (botEl) return;
+        function ensureBotRow() {
+          if (botRow) return;
           if (typingEl.parentNode) typingEl.remove();
-          botEl = document.createElement('div');
-          botEl.className = 'sc-msg sc-msg-bot';
-          botText = document.createElement('div');
-          botEl.appendChild(botText);
-          msgs.appendChild(botEl);
+          botRow = document.createElement('div');
+          botRow.className = 'sc-msg-row sc-row-bot';
+          botRow.innerHTML = avatarHTML();
+          botBubble = document.createElement('div');
+          botBubble.className = 'sc-msg sc-msg-bot';
+          botRow.appendChild(botBubble);
+          msgs.appendChild(botRow);
         }
 
         function pump() {
@@ -3903,9 +4337,9 @@
               try {
                 var parsed = JSON.parse(data);
                 if (parsed.content) {
-                  ensureBotEl();
+                  ensureBotRow();
                   fullText += parsed.content;
-                  botText.textContent = fullText;
+                  botBubble.textContent = fullText;
                   scScroll();
                 }
               } catch (e) {}
@@ -3916,32 +4350,6 @@
         pump();
       });
     }
-
-    function appendScUser(text) {
-      var el = document.createElement('div');
-      el.className = 'sc-msg sc-msg-user';
-      el.textContent = text;
-      msgs.appendChild(el);
-      scScroll();
-    }
-
-    function appendScBot(text) {
-      var el = document.createElement('div');
-      el.className = 'sc-msg sc-msg-bot';
-      el.textContent = text;
-      var waLink = document.createElement('a');
-      waLink.className = 'sc-wa-link';
-      waLink.href = 'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent('مرحباً، كنت بتكلم سِراج وأحتاج مساعدة');
-      waLink.target = '_blank';
-      waLink.rel = 'noopener';
-      waLink.textContent = 'تواصل معانا واتساب';
-      el.appendChild(document.createElement('br'));
-      el.appendChild(waLink);
-      msgs.appendChild(el);
-      scScroll();
-    }
-
-    function scScroll() { msgs.scrollTop = msgs.scrollHeight; }
   }
 
   if (document.readyState !== 'loading') {
