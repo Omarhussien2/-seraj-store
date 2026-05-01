@@ -2502,6 +2502,56 @@ input, textarea { font-family: inherit; }
   font-size: 22px;
   color: var(--ink);
 }
+.coupon-discount-row {
+  color: var(--seraj-dark);
+  font-weight: 800;
+}
+.coupon-box {
+  max-width: 700px;
+  margin: 14px auto 0;
+  padding: 18px;
+  background: var(--seraj-wash);
+  border: 2.5px dashed var(--seraj-dark);
+  border-radius: 18px;
+}
+.coupon-inline {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+.coupon-inline input {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  padding: 0 14px;
+  border: 2.5px solid var(--ink);
+  border-radius: 14px;
+  background: #fff;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+.coupon-remove {
+  border: 0;
+  background: transparent;
+  color: var(--ember);
+  font-weight: 800;
+  cursor: pointer;
+}
+.coupon-status {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--ink-mute);
+}
+.coupon-status.ok { color: var(--seraj-dark); font-weight: 800; }
+.coupon-status.error { color: var(--ember); font-weight: 800; }
+@media (max-width: 520px) {
+  .coupon-inline {
+    flex-direction: column;
+  }
+  .coupon-inline .btn {
+    width: 100%;
+  }
+}
 .cart-note {
   text-align: center;
   margin-top: 12px;

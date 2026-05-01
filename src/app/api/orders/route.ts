@@ -6,6 +6,12 @@ import Order, { generateOrderNumber } from "@/lib/models/Order";
 import Product from "@/lib/models/Product";
 import { requireAdmin } from "@/lib/requireAdmin";
 import { isRateLimited, getClientIp } from "@/lib/rateLimit";
+import {
+  applyCouponOrThrow,
+  redeemCouponOrThrow,
+  rollbackCouponRedemption,
+} from "@/lib/coupons/apply";
+import { normalizeCouponCode } from "@/lib/coupons/normalize";
 
 // Force dynamic rendering — prevent Vercel from caching or treating as static
 export const dynamic = "force-dynamic";
@@ -48,6 +54,7 @@ const CreateOrderSchema = z.object({
   shippingFee: z.number().min(0).default(0),
   deposit: z.number().min(0).default(0),
   paymentMethod: z.enum(["instapay"]).default("instapay"),
+  couponCode: z.string().min(1).max(64).optional(),
   customStory: CustomStorySchema.optional(),
   customerName: z.string().min(1, "اسم العميل مطلوب"),
   customerPhone: z
@@ -122,7 +129,6 @@ export async function POST(request: Request) {
     const body = await request.json();
     const validated = CreateOrderSchema.parse(body);
 
-    // Recalculate total from actual DB prices — never trust client-side total
     const slugs = validated.items.map((i) => i.productSlug);
     const products = await Product.find({ slug: { $in: slugs }, active: true })
       .select("slug price")
@@ -130,13 +136,16 @@ export async function POST(request: Request) {
 
     const productMap = new Map(products.map((p) => [p.slug, p.price]));
 
-    let calculatedTotal = 0;
+    let subtotal = 0;
+    const pricedItems: { productSlug: string; qty: number; unitPrice: number }[] = [];
+
     for (const item of validated.items) {
-      // coloring-workbook has dynamic pricing — use client price
       if (item.productSlug === "coloring-workbook") {
-        calculatedTotal += item.price * item.qty;
+        subtotal += item.price * item.qty;
+        pricedItems.push({ productSlug: item.productSlug, qty: item.qty, unitPrice: item.price });
         continue;
       }
+
       const price = productMap.get(item.productSlug);
       if (price === undefined) {
         return NextResponse.json(
@@ -144,40 +153,112 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       }
-      calculatedTotal += price * item.qty;
+
+      subtotal += price * item.qty;
+      pricedItems.push({ productSlug: item.productSlug, qty: item.qty, unitPrice: price });
+    }
+
+    const shippingFee = validated.shippingFee || 0;
+    const deposit = validated.deposit || 0;
+    let discountTotal = 0;
+    let discounts = { shipping: 0, subtotal: 0, products: 0 };
+    let coupon: { code: string; couponId: mongoose.Types.ObjectId } | undefined;
+    let totalAfterDiscount = subtotal + shippingFee;
+
+    if (validated.couponCode) {
+      try {
+        const applied = await applyCouponOrThrow({
+          code: validated.couponCode,
+          items: pricedItems,
+          subtotal,
+          shippingFee,
+          customerPhone: validated.customerPhone,
+        });
+
+        discountTotal = applied.discountTotal;
+        discounts = applied.discountBreakdown;
+        coupon = { code: applied.code, couponId: applied.couponId };
+        totalAfterDiscount = applied.totalAfterDiscount;
+      } catch (e) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "الكوبون غير صالح أو غير مناسب للسلة",
+            details: {
+              code: normalizeCouponCode(validated.couponCode),
+              reason: (e as Error).message,
+            },
+          },
+          { status: 400 }
+        );
+      }
     }
 
     const orderNumber = await generateOrderNumber();
+    const orderId = new mongoose.Types.ObjectId();
 
-    const order = await Order.create({
-      orderNumber,
-      items: validated.items,
-      total: calculatedTotal + (validated.shippingFee || 0),
-      subtotal: calculatedTotal,
-      shippingFee: validated.shippingFee || 0,
-      deposit: validated.deposit || 0,
-      remaining: calculatedTotal + (validated.shippingFee || 0),
-      paymentMethod: validated.paymentMethod,
-      paymentStatus: "unpaid",
-      orderStatus: "pending",
-      customStory: validated.customStory
-        ? {
-            heroName: validated.customStory.heroName,
-            age: validated.customStory.age,
-            challenge: validated.customStory.challenge,
-            ...(validated.customStory.customChallenge
-              ? { customChallenge: validated.customStory.customChallenge }
-              : {}),
-            ...(validated.customStory.photoUrl
-              ? { photoUrl: validated.customStory.photoUrl }
-              : {}),
-          }
-        : undefined,
-      customerName: validated.customerName,
-      customerPhone: validated.customerPhone,
-      address: validated.address,
-      notes: validated.notes,
-    });
+    if (coupon && discountTotal > 0) {
+      try {
+        await redeemCouponOrThrow({
+          couponId: coupon.couponId,
+          code: coupon.code,
+          orderId,
+          customerPhone: validated.customerPhone,
+          discountTotal,
+        });
+      } catch (e) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "تم انتهاء الكوبون أو تم استخدامه بالحد الأقصى",
+            details: { code: coupon.code, reason: (e as Error).message },
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    let order;
+    try {
+      order = await Order.create({
+        _id: orderId,
+        orderNumber,
+        items: validated.items,
+        total: totalAfterDiscount,
+        subtotal,
+        shippingFee,
+        discountTotal,
+        discounts,
+        coupon,
+        deposit,
+        remaining: Math.max(0, totalAfterDiscount - deposit),
+        paymentMethod: validated.paymentMethod,
+        paymentStatus: "unpaid",
+        orderStatus: "pending",
+        customStory: validated.customStory
+          ? {
+              heroName: validated.customStory.heroName,
+              age: validated.customStory.age,
+              challenge: validated.customStory.challenge,
+              ...(validated.customStory.customChallenge
+                ? { customChallenge: validated.customStory.customChallenge }
+                : {}),
+              ...(validated.customStory.photoUrl
+                ? { photoUrl: validated.customStory.photoUrl }
+                : {}),
+            }
+          : undefined,
+        customerName: validated.customerName,
+        customerPhone: validated.customerPhone,
+        address: validated.address,
+        notes: validated.notes,
+      });
+    } catch (e) {
+      if (coupon && discountTotal > 0) {
+        await rollbackCouponRedemption({ couponId: coupon.couponId, orderId });
+      }
+      throw e;
+    }
 
     return NextResponse.json(
       {
@@ -186,6 +267,11 @@ export async function POST(request: Request) {
           orderNumber: order.orderNumber,
           _id: order._id,
           total: order.total,
+          subtotal: order.subtotal,
+          shippingFee: order.shippingFee,
+          discountTotal: order.discountTotal,
+          discounts: order.discounts,
+          couponCode: order.coupon?.code,
           deposit: order.deposit,
           remaining: order.remaining,
           orderStatus: order.orderStatus,
