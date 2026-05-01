@@ -73,6 +73,16 @@ export interface IOrder extends Document {
   total: number;
   subtotal: number;
   shippingFee: number;
+  discountTotal: number;
+  discounts: {
+    shipping: number;
+    subtotal: number;
+    products: number;
+  };
+  coupon?: {
+    code: string;
+    couponId: mongoose.Types.ObjectId;
+  };
   deposit: number;
   remaining: number;
   paymentMethod: string;
@@ -106,6 +116,18 @@ const OrderSchema = new mongoose.Schema<IOrder>(
     total: { type: Number, required: true, min: 0 },
     subtotal: { type: Number, min: 0, default: 0 },
     shippingFee: { type: Number, min: 0, default: 0 },
+    discountTotal: { type: Number, min: 0, default: 0 },
+    discounts: {
+      shipping: { type: Number, min: 0, default: 0 },
+      subtotal: { type: Number, min: 0, default: 0 },
+      products: { type: Number, min: 0, default: 0 },
+      _id: false,
+    },
+    coupon: {
+      code: { type: String, trim: true },
+      couponId: { type: mongoose.Schema.Types.ObjectId, ref: "Coupon" },
+      _id: false,
+    },
     deposit: { type: Number, required: true, min: 0, default: 0 },
     remaining: { type: Number, required: true, min: 0 },
     paymentMethod: {
@@ -167,7 +189,7 @@ export async function generateOrderNumber(): Promise<string> {
     });
     try {
       await Counter.create({ _id: counterId, seq: existingCount });
-    } catch (e) {
+    } catch {
       // Ignore E11000 duplicate key error in case another request created it first
     }
   }

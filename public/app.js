@@ -12,10 +12,12 @@
   var CART_KEY = 'seraj-cart';
   var WIZARD_KEY = 'seraj-wizard';
   var ORDER_KEY = 'seraj-last-order';
+  var COUPON_KEY = 'seraj-applied-coupon';
   var PRODUCTS_CACHE_KEY = 'seraj-products-cache-v1';
   var PRODUCTS_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
   var SHIPPING_FEE = 35; // fallback — overridden by /api/config
   var FREE_SHIPPING_ABOVE = 500; // fallback — overridden by /api/config
+  var appliedCoupon = null;
 
   // ----- Cloudinary Config -----
   var CLOUD_NAME = 'dkhndsrhr';
@@ -305,6 +307,7 @@
 
   function saveCart() {
     try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch (e) { /* silent */ }
+    if (appliedCoupon) clearAppliedCoupon();
   }
 
   function loadCart() {
@@ -319,6 +322,31 @@
         }
       }
     } catch (e) { cart = []; }
+  }
+
+  function saveAppliedCoupon() {
+    try { localStorage.setItem(COUPON_KEY, JSON.stringify(appliedCoupon)); } catch (e) { /* silent */ }
+  }
+
+  function loadAppliedCoupon() {
+    try {
+      var saved = localStorage.getItem(COUPON_KEY);
+      appliedCoupon = saved ? JSON.parse(saved) : null;
+    } catch (e) { appliedCoupon = null; }
+  }
+
+  function clearAppliedCoupon() {
+    appliedCoupon = null;
+    try { localStorage.removeItem(COUPON_KEY); } catch (e) { /* silent */ }
+  }
+
+  function getCurrentCoupon(subtotal, shippingFee) {
+    if (!appliedCoupon) return null;
+    if (appliedCoupon.subtotal !== subtotal || appliedCoupon.shippingFee !== shippingFee) {
+      clearAppliedCoupon();
+      return null;
+    }
+    return appliedCoupon;
   }
 
   // ----- Wizard data localStorage -----
@@ -1134,7 +1162,9 @@
 
     var total = calculateTotal();
     var shipping = getShippingFee(total);
-    var grandTotal = total + shipping;
+    var currentCoupon = getCurrentCoupon(total, shipping);
+    var discount = currentCoupon ? currentCoupon.discountTotal : 0;
+    var grandTotal = Math.max(0, total + shipping - discount);
 
     var h = '';
 
@@ -1161,7 +1191,19 @@
     } else {
       h += '<div class="cart-summary-row"><span>الشحن</span><span>' + toArabicNum(shipping) + ' ج.م</span></div>';
     }
+    if (currentCoupon) {
+      h += '<div class="cart-summary-row coupon-discount-row"><span>كوبون ' + currentCoupon.code + '</span><span>- ' + toArabicNum(discount) + ' ج.م</span></div>';
+    }
     h += '<div class="cart-summary-row total"><span>الإجمالي</span><span>' + toArabicNum(grandTotal) + ' ج.م</span></div>';
+    h += '</div>';
+    h += '<div class="coupon-box">';
+    h += '<label class="field"><span>كود الخصم</span>';
+    h += '<div class="coupon-inline">';
+    h += '<input type="text" id="couponCode" placeholder="SERAJ10" value="' + (currentCoupon ? currentCoupon.code : '') + '" dir="ltr"/>';
+    h += '<button type="button" id="applyCouponBtn" class="btn btn-ghost">تطبيق</button>';
+    if (currentCoupon) h += '<button type="button" id="removeCouponBtn" class="coupon-remove">إزالة</button>';
+    h += '</div></label>';
+    h += '<p id="couponStatus" class="' + (currentCoupon ? 'coupon-status ok' : 'coupon-status') + '">' + (currentCoupon ? 'تم تطبيق الخصم بنجاح ✦' : 'اكتبي الكود واضغطي تطبيق قبل تأكيد الطلب.') + '</p>';
     h += '</div></div>';
 
     // InstaPay card
@@ -1198,6 +1240,69 @@
     setTimeout(initReveals, 60);
   }
 
+  function applyCouponCode() {
+    var input = document.getElementById('couponCode');
+    var status = document.getElementById('couponStatus');
+    var phoneEl = document.getElementById('custPhone');
+    var code = input ? input.value.trim() : '';
+    if (!code) {
+      if (status) status.textContent = 'اكتبي كود الخصم الأول.';
+      return;
+    }
+
+    var subtotal = calculateTotal();
+    var shipping = getShippingFee(subtotal);
+    var payload = {
+      code: code,
+      shippingFee: shipping,
+      customerPhone: phoneEl && /^01[0-9]{9}$/.test(phoneEl.value.trim()) ? phoneEl.value.trim() : undefined,
+      items: cart.map(function (item) {
+        return {
+          productSlug: item.slug,
+          qty: item.qty,
+          price: item.price
+        };
+      })
+    };
+
+    var btn = document.getElementById('applyCouponBtn');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'جاري...';
+    }
+    if (status) status.textContent = 'بنراجع الكود...';
+
+    fetch('/api/coupons/validate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data.success || !data.data) {
+          throw new Error(data.error || 'الكوبون غير صالح');
+        }
+        appliedCoupon = data.data;
+        saveAppliedCoupon();
+        renderCheckoutPage();
+        showToast('تم تطبيق الكوبون ✦');
+      })
+      .catch(function (err) {
+        clearAppliedCoupon();
+        if (status) {
+          status.textContent = err.message || 'الكوبون غير صالح';
+          status.className = 'coupon-status error';
+        }
+        showToast(err.message || 'الكوبون غير صالح');
+      })
+      .finally(function () {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'تطبيق';
+        }
+      });
+  }
+
   // ----- Submit Order -----
   function submitOrder() {
     var form = document.getElementById('checkoutForm');
@@ -1230,7 +1335,8 @@
 
     var total = calculateTotal();
     var shipping = getShippingFee(total);
-    var grandTotal = total + shipping;
+    var currentCoupon = getCurrentCoupon(total, shipping);
+    var grandTotal = Math.max(0, total + shipping - (currentCoupon ? currentCoupon.discountTotal : 0));
 
     var orderData = {
       customerName: nameEl.value.trim(),
@@ -1252,6 +1358,7 @@
       }),
       total: grandTotal,
       shippingFee: shipping,
+      couponCode: currentCoupon ? currentCoupon.code : undefined,
       deposit: 0,
       paymentMethod: 'instapay'
     };
@@ -1375,6 +1482,21 @@
     var btn = e.target.closest('#submitOrderBtn');
     if (!btn || btn.disabled) return;
     submitOrder();
+  });
+
+  document.addEventListener('click', function (e) {
+    var applyBtn = e.target.closest('#applyCouponBtn');
+    if (applyBtn && !applyBtn.disabled) {
+      applyCouponCode();
+      return;
+    }
+
+    var removeBtn = e.target.closest('#removeCouponBtn');
+    if (removeBtn) {
+      clearAppliedCoupon();
+      renderCheckoutPage();
+      showToast('تمت إزالة الكوبون');
+    }
   });
 
   // ----- Router -----
@@ -3280,6 +3402,7 @@
     loadColoringCart();
     attachColoringListeners();
     loadCart();
+    loadAppliedCoupon();
     updateCartBadge();
     // Hydrate products from localStorage FIRST so returning visitors render
     // real product images immediately — no mockup → photo flicker on refresh.

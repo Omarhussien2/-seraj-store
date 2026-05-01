@@ -56,6 +56,17 @@ interface Order {
   orderNumber: string;
   items: OrderItem[];
   total: number;
+  subtotal?: number;
+  shippingFee?: number;
+  discountTotal?: number;
+  discounts?: {
+    shipping: number;
+    subtotal: number;
+    products: number;
+  };
+  coupon?: {
+    code: string;
+  };
   deposit: number;
   remaining: number;
   paymentMethod: string;
@@ -327,7 +338,14 @@ export default function AdminOrdersPage() {
                   <TableCell className="font-mono text-sm" dir="ltr">
                     {order.customerPhone}
                   </TableCell>
-                  <TableCell>{order.total} ج.م</TableCell>
+                  <TableCell>
+                    <div>{order.total} ج.م</div>
+                    {order.discountTotal ? (
+                      <Badge variant="outline" className="mt-1 bg-green-50 text-green-700">
+                        {order.coupon?.code || "كوبون"} -{order.discountTotal} ج.م
+                      </Badge>
+                    ) : null}
+                  </TableCell>
                   <TableCell>
                     <Select
                       value={order.paymentStatus}
@@ -507,6 +525,14 @@ export default function AdminOrdersPage() {
                     </TableBody>
                   </Table>
                   <div className="mt-3 pt-3 border-t space-y-1 text-sm">
+                    <p><strong>المجموع الفرعي:</strong> {selectedOrder.subtotal ?? selectedOrder.total} ج.م</p>
+                    <p><strong>الشحن:</strong> {selectedOrder.shippingFee ?? 0} ج.م</p>
+                    {selectedOrder.discountTotal ? (
+                      <p className="text-green-700">
+                        <strong>الخصم:</strong> -{selectedOrder.discountTotal} ج.م
+                        {selectedOrder.coupon?.code ? ` (${selectedOrder.coupon.code})` : ""}
+                      </p>
+                    ) : null}
                     <p><strong>الإجمالي:</strong> {selectedOrder.total} ج.م</p>
                     <p><strong>المقدم:</strong> {selectedOrder.deposit} ج.م</p>
                     <p><strong>المتبقي:</strong> {selectedOrder.remaining} ج.م</p>
