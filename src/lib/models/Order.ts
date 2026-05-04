@@ -87,6 +87,7 @@ export interface IOrder extends Document {
   deposit: number;
   remaining: number;
   paymentMethod: string;
+  paymentMode: "full" | "deposit";
   paymentStatus: "unpaid" | "deposit_paid" | "fully_paid";
   orderStatus: "pending" | "in_progress" | "shipped" | "delivered" | "cancelled";
   customStory?: {
@@ -137,6 +138,12 @@ const OrderSchema = new mongoose.Schema<IOrder>(
       required: true,
       default: "instapay",
       enum: ["instapay"],
+    },
+    paymentMode: {
+      type: String,
+      required: true,
+      default: "full",
+      enum: ["full", "deposit"],
     },
     paymentStatus: {
       type: String,
