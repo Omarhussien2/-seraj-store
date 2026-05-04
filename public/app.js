@@ -3077,7 +3077,7 @@
   // CMS CONTENT / DOM INJECTION
   // ---------------------------------------------------------
   var SITE_CONTENT = {};
-  var HTML_KEYS = ['hero.title', 'hero.subtitle', 'about.quote'];
+  var HTML_KEYS = ['hero.title', 'hero.subtitle', 'about.quote', 'showcase.cat1.title', 'showcase.cat1.desc', 'showcase.cat2.title', 'showcase.cat2.desc', 'showcase.cat3.title', 'showcase.cat3.desc', 'showcase.cat4.title', 'showcase.cat4.desc', 'showcase.cat5.title', 'showcase.cat5.desc'];
   var MARKDOWN_KEYS = ['faq.content', 'shipping.content', 'returns.content', 'about.story'];
 
   function fetchSiteContent() {
@@ -3112,11 +3112,22 @@
         }
 
         if (HTML_KEYS.indexOf(key) !== -1) {
-          el.innerHTML = SITE_CONTENT[key];
+          el.innerHTML = SITE_CONTENT[key].replace(/&quot;/g, '"');
         } else if (MARKDOWN_KEYS.indexOf(key) !== -1) {
           el.innerHTML = simpleMarkdown(SITE_CONTENT[key]);
+        } else if (key === 'hero.marquee') {
+          // Marquee: convert "text ✦ text ✦" format into <span>text</span><b>✦</b> structure
+          var items = SITE_CONTENT[key].split('✦').map(function(s){ return s.trim(); }).filter(Boolean);
+          var html = '';
+          // Duplicate for seamless marquee loop
+          for (var dup = 0; dup < 2; dup++) {
+            items.forEach(function(item) {
+              html += '<span>' + item + '</span><b>✦</b>';
+            });
+          }
+          el.innerHTML = html;
         } else {
-          el.textContent = SITE_CONTENT[key];
+          el.textContent = SITE_CONTENT[key].replace(/&quot;/g, '"');
         }
       }
     });
