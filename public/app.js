@@ -218,6 +218,8 @@
       }
       if (slug && PRODUCTS[slug]) {
         var p = PRODUCTS[slug];
+        // Hide card if product is marked inactive (admin soft-delete)
+        if (p.active === false) { card.style.display = 'none'; return; }
         var foot = card.querySelector('.product-foot');
         if (foot) {
           var cta = foot.querySelector('.cta-mini');
@@ -302,6 +304,8 @@
             }));
           } catch (e) { /* quota — silent */ }
           console.log('✅ Products loaded from API (' + data.data.length + ')');
+          // Re-populate catalog with fresh data so hidden products disappear
+          populateCatalog();
         }
         updateDOMPrices();
       })
@@ -486,7 +490,7 @@
     var container = document.getElementById('productDetail');
     if (!container) return;
     var product = PRODUCTS[slug];
-    if (!product) {
+    if (!product || product.active === false) {
       container.innerHTML = '<div class="page-head tight"><span class="kicker">المنتج غير موجود</span><h1>منتهي!</h1><p>المنتج ده مش موجود. شوف منتجاتنا التانية.</p><a href="#/products" data-link class="btn btn-primary" style="margin-top:20px">شوف المنتجات</a></div>';
       return;
     }
