@@ -52,8 +52,6 @@ export default function AdminDashboard() {
   const [freeShippingAbove, setFreeShippingAbove] = useState(0);
   const [checkoutContinueShoppingText, setCheckoutContinueShoppingText] = useState("كمل تسوق");
   const [checkoutDeliveryEstimateText, setCheckoutDeliveryEstimateText] = useState("عادةً الطلب بيوصل خلال 5 إلى 7 أيام عمل.");
-  const [chatWidgetEnabled, setChatWidgetEnabled] = useState(true);
-  const [chatWidgetHiddenPages, setChatWidgetHiddenPages] = useState("checkout,success,wizard,preview");
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [settingsSaved, setSettingsSaved] = useState(false);
 
@@ -73,8 +71,6 @@ export default function AdminDashboard() {
           setFreeShippingAbove(json.data.freeShippingAbove);
           setCheckoutContinueShoppingText(json.data.checkoutContinueShoppingText || "كمل تسوق");
           setCheckoutDeliveryEstimateText(json.data.checkoutDeliveryEstimateText || "عادةً الطلب بيوصل خلال 5 إلى 7 أيام عمل.");
-          setChatWidgetEnabled(json.data.chatWidgetEnabled !== false);
-          setChatWidgetHiddenPages(json.data.chatWidgetHiddenPages || "checkout,success,wizard,preview");
         }
       })
       .catch(() => {});
@@ -91,8 +87,6 @@ export default function AdminDashboard() {
         freeShippingAbove,
         checkoutContinueShoppingText,
         checkoutDeliveryEstimateText,
-        chatWidgetEnabled,
-        chatWidgetHiddenPages,
       }),
     })
       .then((res) => res.json())
@@ -227,28 +221,10 @@ export default function AdminDashboard() {
                 onChange={(e) => setCheckoutDeliveryEstimateText(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
-              <Label>ظهور بوت سراج</Label>
-              <select
-                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                value={chatWidgetEnabled ? "true" : "false"}
-                onChange={(e) => setChatWidgetEnabled(e.target.value === "true")}
-              >
-                <option value="true">ظاهر</option>
-                <option value="false">مخفي بالكامل</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <Label>صفحات إخفاء البوت</Label>
-              <Input
-                dir="ltr"
-                value={chatWidgetHiddenPages}
-                onChange={(e) => setChatWidgetHiddenPages(e.target.value)}
-                placeholder="checkout,success,wizard,preview"
-              />
-              <p className="text-xs text-muted-foreground">اكتب أسماء الصفحات مفصولة بفواصل.</p>
-            </div>
           </div>
+          <p className="text-xs text-muted-foreground">
+            💬 تحكّم في ودجت الشات (تشغيل/إيقاف، صفحات الظهور، النبضة، الذكاء الاصطناعي…) من <a href="/admin/chat-settings" className="underline text-blue-600">إعدادات سِراج (الشات)</a>.
+          </p>
           <div className="flex items-center gap-3">
             <Button onClick={saveSettings} disabled={settingsLoading}>
               {settingsLoading ? "جاري الحفظ..." : "حفظ الإعدادات"}

@@ -510,12 +510,11 @@
       h += '<button class="btn btn-primary btn-xl" data-add-cart="' + slug + '">' + product.ctaText + ' <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/></svg></button>';
     }
     h += '</div></div></div>';
-    // Gallery — build gallery from product photo + gallery[] images, then video section
+    // Gallery — only items uploaded by the admin into product.gallery. The main
+    // product image (product.imageUrl) is already shown in the hero above and is
+    // intentionally NOT auto-prepended here, so the admin has full control over
+    // what appears in the gallery and in what order.
     var galleryImages = [];
-    var mainPhoto = resolvePhotoUrl(product.imageUrl, product.media);
-    if (mainPhoto) {
-      galleryImages.push({ url: mainPhoto, alt: product.name });
-    }
     if (product.gallery && product.gallery.length > 0) {
       var sorted = product.gallery.slice().sort(function(a, b) { return (a.sortOrder || 0) - (b.sortOrder || 0); });
       var images = sorted.filter(function(gi) { return gi.resourceType !== 'video'; });

@@ -10,9 +10,10 @@ const SETTINGS_KEYS = [
   "free_shipping_above",
   "checkout_continue_shopping_text",
   "checkout_delivery_estimate_text",
-  "chat_widget_enabled",
-  "chat_widget_hidden_pages",
 ];
+
+// Legacy chat keys — read so legacy callers still get a coherent shape, but
+// chat widget visibility is now managed through ChatSettings (see /admin/chat-settings).
 
 export async function GET() {
   const authError = await requireAdmin();
@@ -37,9 +38,6 @@ export async function GET() {
         checkoutDeliveryEstimateText:
           result.checkout_delivery_estimate_text ||
           "عادةً الطلب بيوصل خلال 5 إلى 7 أيام عمل.",
-        chatWidgetEnabled: result.chat_widget_enabled !== "false",
-        chatWidgetHiddenPages:
-          result.chat_widget_hidden_pages || "checkout,success,wizard,preview",
       },
     });
   } catch (error) {
@@ -63,8 +61,6 @@ export async function PUT(request: Request) {
       freeShippingAbove,
       checkoutContinueShoppingText,
       checkoutDeliveryEstimateText,
-      chatWidgetEnabled,
-      chatWidgetHiddenPages,
     } = body;
 
     const updates: { key: string; value: string; section: string }[] = [];
@@ -89,21 +85,6 @@ export async function PUT(request: Request) {
         section: "checkout",
       });
     }
-    if (typeof chatWidgetEnabled === "boolean") {
-      updates.push({
-        key: "chat_widget_enabled",
-        value: String(chatWidgetEnabled),
-        section: "chat",
-      });
-    }
-    if (typeof chatWidgetHiddenPages === "string") {
-      updates.push({
-        key: "chat_widget_hidden_pages",
-        value: chatWidgetHiddenPages.trim(),
-        section: "chat",
-      });
-    }
-
     for (const u of updates) {
       await SiteContent.findOneAndUpdate(
         { key: u.key },
@@ -128,9 +109,6 @@ export async function PUT(request: Request) {
         checkoutDeliveryEstimateText:
           savedMap.checkout_delivery_estimate_text ||
           "عادةً الطلب بيوصل خلال 5 إلى 7 أيام عمل.",
-        chatWidgetEnabled: savedMap.chat_widget_enabled !== "false",
-        chatWidgetHiddenPages:
-          savedMap.chat_widget_hidden_pages || "checkout,success,wizard,preview",
       },
     });
   } catch (error) {
