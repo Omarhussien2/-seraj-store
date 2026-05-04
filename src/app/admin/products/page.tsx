@@ -116,6 +116,8 @@ export default function AdminProductsPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [draggedGalleryIdx, setDraggedGalleryIdx] = useState<number | null>(null);
+  const [dragOverGalleryIdx, setDragOverGalleryIdx] = useState<number | null>(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
 
   const fetchProducts = useCallback(async () => {
@@ -318,6 +320,18 @@ export default function AdminProductsPage() {
     const target = direction === "up" ? index - 1 : index + 1;
     if (target < 0 || target >= newGallery.length) return;
     [newGallery[index], newGallery[target]] = [newGallery[target], newGallery[index]];
+    newGallery.forEach((item, i) => (item.sortOrder = i));
+    updateField("gallery", newGallery);
+  }
+
+  function reorderGalleryItem(from: number, to: number) {
+    if (!editingProduct?.gallery) return;
+    if (from === to) return;
+    const newGallery = [...editingProduct.gallery];
+    if (from < 0 || from >= newGallery.length) return;
+    if (to < 0 || to >= newGallery.length) return;
+    const [moved] = newGallery.splice(from, 1);
+    newGallery.splice(to, 0, moved);
     newGallery.forEach((item, i) => (item.sortOrder = i));
     updateField("gallery", newGallery);
   }
@@ -815,8 +829,56 @@ export default function AdminProductsPage() {
 
                 {editingProduct.gallery && editingProduct.gallery.length > 0 ? (
                   <div className="space-y-3 mt-4">
+                    <p className="text-xs text-muted-foreground -mb-1">
+                      اسحب الصف من المقبض ⠿ لإعادة الترتيب، أو استخدم أزرار ▲▼.
+                    </p>
                     {editingProduct.gallery.map((item, idx) => (
-                      <div key={idx} className="flex items-start gap-3 p-3 bg-white border rounded-lg">
+                      <div
+                        key={idx}
+                        draggable
+                        onDragStart={(e) => {
+                          setDraggedGalleryIdx(idx);
+                          e.dataTransfer.effectAllowed = "move";
+                          // Required for Firefox to actually start the drag.
+                          e.dataTransfer.setData("text/plain", String(idx));
+                        }}
+                        onDragEnd={() => {
+                          setDraggedGalleryIdx(null);
+                          setDragOverGalleryIdx(null);
+                        }}
+                        onDragOver={(e) => {
+                          if (draggedGalleryIdx === null) return;
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = "move";
+                          if (dragOverGalleryIdx !== idx) setDragOverGalleryIdx(idx);
+                        }}
+                        onDragLeave={() => {
+                          if (dragOverGalleryIdx === idx) setDragOverGalleryIdx(null);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          if (draggedGalleryIdx !== null && draggedGalleryIdx !== idx) {
+                            reorderGalleryItem(draggedGalleryIdx, idx);
+                          }
+                          setDraggedGalleryIdx(null);
+                          setDragOverGalleryIdx(null);
+                        }}
+                        className={`flex items-start gap-3 p-3 bg-white border rounded-lg transition-all ${
+                          draggedGalleryIdx === idx ? "opacity-40" : ""
+                        } ${
+                          dragOverGalleryIdx === idx && draggedGalleryIdx !== idx
+                            ? "border-green-500 ring-2 ring-green-200"
+                            : ""
+                        }`}
+                      >
+                        {/* Drag handle */}
+                        <div
+                          className="flex items-center justify-center w-6 self-stretch text-gray-400 cursor-grab active:cursor-grabbing select-none"
+                          title="اسحب لإعادة الترتيب"
+                        >
+                          ⠿
+                        </div>
+
                         {/* Thumbnail */}
                         <div className="w-24 h-24 flex-shrink-0 rounded-md overflow-hidden bg-gray-100 border">
                           {item.resourceType === "video" ? (

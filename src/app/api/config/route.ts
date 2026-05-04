@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import SiteContent from "@/lib/models/SiteContent";
 import { getOrCreatePaymentSettings, toPublic as toPaymentPublic } from "@/lib/paymentSettings";
+import { getOrCreateChatSettings, toPublic as toChatPublic } from "@/lib/chatSettings";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,7 @@ export async function GET() {
   let checkoutContinueShoppingText = "كمل تسوق";
   let checkoutDeliveryEstimateText = "عادةً الطلب بيوصل خلال 5 إلى 7 أيام عمل.";
   let chatWidgetEnabled = true;
-  let chatWidgetHiddenPages = "checkout,success,wizard,preview";
+  let chatWidgetHiddenPages = "";
   let depositEnabled = true;
   let depositPercent = 60;
 
@@ -24,8 +25,6 @@ export async function GET() {
           "free_shipping_above",
           "checkout_continue_shopping_text",
           "checkout_delivery_estimate_text",
-          "chat_widget_enabled",
-          "chat_widget_hidden_pages",
         ],
       },
     }).lean();
@@ -35,8 +34,20 @@ export async function GET() {
       if (s.key === "free_shipping_above") freeShippingAbove = parseInt(s.value, 10);
       if (s.key === "checkout_continue_shopping_text") checkoutContinueShoppingText = s.value;
       if (s.key === "checkout_delivery_estimate_text") checkoutDeliveryEstimateText = s.value;
-      if (s.key === "chat_widget_enabled") chatWidgetEnabled = s.value !== "false";
-      if (s.key === "chat_widget_hidden_pages") chatWidgetHiddenPages = s.value;
+    }
+
+    // Chat widget visibility comes from ChatSettings (the single source of
+    // truth managed via /admin/chat-settings). The legacy SiteContent keys
+    // chat_widget_enabled / chat_widget_hidden_pages are no longer consulted.
+    try {
+      const chat = toChatPublic(await getOrCreateChatSettings());
+      chatWidgetEnabled = chat.enabled;
+      // Legacy field — only meaningful in blacklist mode. The richer
+      // routesMode/routesList lives on /api/chat-config.
+      chatWidgetHiddenPages =
+        chat.routesMode === "blacklist" ? chat.routesList.join(",") : "";
+    } catch {
+      // chat settings unavailable — keep defaults
     }
 
     try {

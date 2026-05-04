@@ -193,6 +193,12 @@ export async function POST(req: NextRequest) {
               contents.shift();
             }
 
+            // Gemini 2.5 Flash enables "thinking mode" by default, which silently
+            // consumes the maxOutputTokens budget before the model produces visible
+            // output — manifesting as truncated/empty replies. We disable it via
+            // thinkingConfig.thinkingBudget=0 so the entire token budget goes to
+            // the actual response. Older 1.5 models ignore this field, so it's safe
+            // to send unconditionally.
             return fetch(
               `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${gKey}`,
               {
@@ -200,7 +206,12 @@ export async function POST(req: NextRequest) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                   contents,
-                  generationConfig: { temperature: aiTemperature, maxOutputTokens: aiMaxTokens, topP: 0.9 },
+                  generationConfig: {
+                    temperature: aiTemperature,
+                    maxOutputTokens: aiMaxTokens,
+                    topP: 0.9,
+                    thinkingConfig: { thinkingBudget: 0 },
+                  },
                 }),
               }
             );
