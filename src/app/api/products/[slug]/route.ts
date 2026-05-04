@@ -3,7 +3,7 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import { requireAdmin } from "@/lib/requireAdmin";
-import { invalidateProductsCache } from "@/app/api/products/route";
+import { invalidateProductsCache } from "@/lib/productsCache";
 
 /**
  * GET /api/products/[slug]
