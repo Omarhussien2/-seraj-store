@@ -665,6 +665,15 @@
             <svg viewBox="0 0 24 24" width="22" height="22"><path d="M10 6l-6 6 6 6M4 12h16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <div class="wizard-progress">
+            <div class="wizard-stepper" id="wizStepper" aria-hidden="true">
+              <span class="ws-dot is-active" data-step="1">١</span>
+              <span class="ws-line"></span>
+              <span class="ws-dot" data-step="2">٢</span>
+              <span class="ws-line"></span>
+              <span class="ws-dot" data-step="3">٣</span>
+              <span class="ws-line"></span>
+              <span class="ws-dot" data-step="4">٤</span>
+            </div>
             <div class="wizard-progress-bar"><span id="wizBar" style="width:25%"></span></div>
             <small id="wizStepLabel">الخطوة ١ من ٤</small>
           </div>
@@ -897,12 +906,16 @@
     <!-- 404                                                        -->
     <!-- ========================================================= -->
     <section class="page" data-page="not-found">
-      <div class="cart-empty" style="padding:60px 20px;text-align:center">
-        <svg viewBox="0 0 24 24" width="64" height="64"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 15s1.5-2 4-2 4 2 4 2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><line x1="9" y1="9" x2="9.01" y2="9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="15" y1="9" x2="15.01" y2="9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+      <div class="not-found-shell">
+        <img src="assets/seraj.png" alt="" class="empty-mascot lg" loading="lazy"/>
+        <span class="kicker">٤٠٤</span>
         <h2>الصفحة دي مش موجودة!</h2>
-        <p>مكنتش متأكد إن في حد هيروح هنا.. يلا نرجع نختار حاجة حلوة!</p>
-        <a href="#/home" data-link class="btn btn-primary btn-xl" style="margin-top:20px">الرئيسية</a>
-        <a href="#/products" data-link class="btn btn-ghost btn-xl" style="margin-top:8px">شوف المنتجات</a>
+        <p>الصفحة اللي بتدوّر عليها اتنقلت أو اتشالت. دي اقتراحاتنا:</p>
+        <div class="empty-actions">
+          <a href="#/products" data-link class="btn btn-primary btn-xl">شوف المنتجات</a>
+          <a href="#/wizard" data-link class="btn btn-secondary btn-xl">اصنع قصة مخصصة</a>
+          <a href="#/mama-world" data-link class="btn btn-ghost">عالم ماما وبابا</a>
+        </div>
       </div>
     </section>
 
@@ -954,11 +967,17 @@
           <!-- Dynamic article cards loaded from API -->
         </div>
         <div id="articles-loading" class="articles-loading" style="display:none">
-          <div class="articles-spinner"></div>
-          <p>جاري التحميل...</p>
+          <img src="assets/seraj.png" alt="" class="seraj-loader" aria-hidden="true"/>
+          <p>سِراج بيجمّع المقالات...</p>
         </div>
         <div id="articles-empty" class="articles-empty" style="display:none">
-          <p>مفيش مقالات بالبحث ده — جرب كلمات تانية</p>
+          <img src="assets/grandma-fatima-seated.png" alt="" class="empty-mascot" loading="lazy"/>
+          <h3>مفيش مقالات بالبحث ده</h3>
+          <p>جرّب كلمات تانية، أو شوف اقتراحات منتجاتنا للأهل:</p>
+          <div class="empty-actions">
+            <a href="#/products" data-link class="btn btn-primary">شوف المنتجات</a>
+            <a href="#/wizard" data-link class="btn btn-secondary">اصنع قصة مخصصة</a>
+          </div>
         </div>
         <div id="articles-error" class="articles-error" style="display:none">
           <p>حصلت مشكلة، حاول تاني</p>

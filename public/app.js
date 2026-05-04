@@ -1064,7 +1064,14 @@
       if (!emptyEl) {
         var em = document.createElement('div');
         em.id = 'catalogEmpty'; em.className = 'catalog-empty-state';
-        em.innerHTML = '<p>مفيش منتجات في هذا القسم دلوقتي — تابعينا!</p>';
+        em.innerHTML =
+          '<img src="assets/seraj.png" alt="" class="empty-mascot" loading="lazy"/>' +
+          '<h3>القسم ده لسه فاضي!</h3>' +
+          '<p>بنحضّر حاجات حلوة للقسم ده — لحد ما يجهز، شوف اقتراحاتنا:</p>' +
+          '<div class="empty-actions">' +
+            '<a href="#/products" data-link class="btn btn-primary">كل المنتجات</a>' +
+            '<a href="#/wizard" data-link class="btn btn-secondary">اصنع قصة مخصصة</a>' +
+          '</div>';
         grid.appendChild(em);
       } else { emptyEl.style.display = ''; }
     } else if (emptyEl) { emptyEl.style.display = 'none'; }
@@ -1128,6 +1135,52 @@
     document.body.appendChild(t);
     requestAnimationFrame(function () { t.classList.add('show'); });
     setTimeout(function () { t.classList.remove('show'); setTimeout(function () { t.remove(); }, 300); }, 2200);
+  }
+
+  // Render up to 3 product suggestion cards for the cart page that the user
+  // hasn't already added. Each card has a one-tap "أضيف" button that fires
+  // the same data-add-cart handler the rest of the site uses.
+  function renderCrossSellStrip() {
+    var inCart = {};
+    cart.forEach(function (it) { inCart[it.slug] = true; });
+
+    var slugs = Object.keys(PRODUCTS).filter(function (s) {
+      var p = PRODUCTS[s];
+      if (!p || !p.price || p.comingSoon) return false;
+      if (inCart[s]) return false;
+      // Hide the wizard slug; users add custom story via the wizard, not a chip.
+      if (p.isWizard) return false;
+      return true;
+    });
+
+    if (!slugs.length) return '';
+
+    // Stable shuffle: pick first 3 after shuffling once per cart render.
+    slugs.sort(function () { return Math.random() - 0.5; });
+    var picks = slugs.slice(0, 3);
+
+    var h = '<div class="cross-sell-strip">';
+    h += '<h3 class="cross-sell-title">ممكن يعجبك كمان</h3>';
+    h += '<div class="cross-sell-row">';
+    picks.forEach(function (slug) {
+      var p = PRODUCTS[slug];
+      var photoUrl = resolvePhotoUrl(p.imageUrl, p.media);
+      var img = photoUrl ? cloudinaryUrl(photoUrl, 200) : '';
+      h += '<div class="cross-sell-card">';
+      if (img) {
+        h += '<a href="#/product/' + slug + '" data-link class="cs-thumb"><img src="' + img + '" alt="' + escapeHtml(p.name) + '" loading="lazy"/></a>';
+      } else {
+        h += '<a href="#/product/' + slug + '" data-link class="cs-thumb cs-thumb-fallback"></a>';
+      }
+      h += '<div class="cs-meta">';
+      h += '<a href="#/product/' + slug + '" data-link class="cs-name">' + escapeHtml(p.name) + '</a>';
+      h += '<span class="cs-price">' + toArabicNum(p.price) + ' ج.م</span>';
+      h += '</div>';
+      h += '<button class="cs-add" data-add-cart="' + slug + '" aria-label="أضيف ' + escapeHtml(p.name) + ' للسلة">+ أضيف</button>';
+      h += '</div>';
+    });
+    h += '</div></div>';
+    return h;
   }
 
   // ----- Cart Page Rendering -----
@@ -1206,6 +1259,9 @@
     }
     h += '<div class="cart-summary-row total"><span>الإجمالي</span><span>' + toArabicNum(grandTotal) + ' ج.م</span></div>';
     h += '</div>';
+
+    // Cross-sell: surface up to 3 products not already in cart.
+    h += renderCrossSellStrip();
 
     h += '<a href="#/checkout" data-link class="btn btn-primary btn-xl btn-fullrow" style="margin-top:24px">إتمام الطلب</a>';
     h += '<a href="#/products" data-link class="btn btn-ghost btn-fullrow" style="margin-top:8px">' + escapeHtml(CHECKOUT_CONTINUE_TEXT) + '</a>';
@@ -1321,7 +1377,7 @@
     h += '<div class="checkout-form-section">';
     h += '<h3 style="font-size:18px;margin-bottom:16px">بيانات التوصيل</h3>';
     h += '<form id="checkoutForm" class="checkout-form" onsubmit="return false">';
-    h += '<label class="field"><span>اسم الأم <small style="color:var(--ember)">*</small></span>';
+    h += '<label class="field"><span>الاسم <small style="color:var(--ember)">*</small></span>';
     h += '<input type="text" id="custName" required placeholder="الاسم بالكامل" autocomplete="name"/></label>';
     h += '<label class="field"><span>رقم الموبايل (واتساب) <small style="color:var(--ember)">*</small></span>';
     h += '<div style="position:relative">';
@@ -2046,6 +2102,18 @@
     if (bar) bar.style.width = n * 25 + '%';
     if (label) label.textContent = 'الخطوة ' + arabicDigits[n] + ' من ٤';
 
+    // Highlight stepper dots: done (steps before n), active (n), pending (after).
+    shell.querySelectorAll('.ws-dot').forEach(function (dot) {
+      var s = parseInt(dot.dataset.step, 10);
+      dot.classList.toggle('is-active', s === n);
+      dot.classList.toggle('is-done', s < n);
+    });
+    var lines = shell.querySelectorAll('.ws-line');
+    lines.forEach(function (line, idx) {
+      // line idx (0-based) connects step (idx+1) to (idx+2) — done if both <= n-1.
+      line.classList.toggle('is-done', idx + 1 < n);
+    });
+
     setTimeout(initReveals, 60);
 
     if (n === 4) {
@@ -2274,7 +2342,7 @@
         data.data.forEach(function (a, i) {
           var sectionColor = getSectionColor(a.section);
           var coverStyle = a.coverImage
-            ? 'background-image:url(' + a.coverImage + ')'
+            ? 'background-image:url(' + cloudinaryUrl(a.coverImage, 600) + ')'
             : 'background:linear-gradient(135deg,' + sectionColor + ',' + sectionColor + '88)';
           html += '<article class="article-card reveal" style="--d:.' + ((i % 12) * 5 + 5) + 's" onclick="location.hash=\'#/article/' + a.slug + '\'">';
           html += '<div class="article-img" style="' + coverStyle + '"></div>';
@@ -2700,7 +2768,7 @@
 
         var sectionColor = getSectionColor(a.section);
         var coverHtml = a.coverImage
-          ? '<div class="article-detail-cover" style="background-image:url(' + a.coverImage + ')"></div>'
+          ? '<div class="article-detail-cover" style="background-image:url(' + cloudinaryUrl(a.coverImage, 1200) + ')"></div>'
           : '';
 
         // Convert markdown to HTML (simple converter)
@@ -2736,7 +2804,7 @@
           data.related.forEach(function (r) {
             var rColor = getSectionColor(r.section);
             var rCover = r.coverImage
-              ? 'background-image:url(' + r.coverImage + ')'
+              ? 'background-image:url(' + cloudinaryUrl(r.coverImage, 400) + ')'
               : 'background:linear-gradient(135deg,' + rColor + ',' + rColor + '88)';
             relatedHtml += '<a href="#/article/' + r.slug + '" class="related-card">';
             relatedHtml += '<div class="related-img" style="' + rCover + '"></div>';
@@ -2956,6 +3024,12 @@
 
     btn.style.transform = 'scale(.95)';
     setTimeout(function () { btn.style.transform = ''; }, 200);
+
+    // If we're on the cart page, refresh it so the new item appears immediately
+    // (relevant for the cross-sell strip).
+    if (location.hash.indexOf('#/cart') === 0) {
+      renderCartPage();
+    }
   });
 
   // ----- Preview → Checkout: ensure custom story is in cart -----
