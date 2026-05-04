@@ -6,6 +6,19 @@ import { requireAdmin } from "@/lib/requireAdmin";
 
 export const dynamic = "force-dynamic";
 
+// Tiny in-process cache. Vercel's serverless functions reuse warm instances
+// for ~minutes, so this absorbs the bursty traffic that the same homepage load
+// produces (4–6 calls to /api/products with different filters per pageview).
+// Admin writes invalidate via invalidateProductsCache() in the POST/PUT/DELETE
+// paths so the cache is never stale beyond a single change.
+const CACHE_TTL_MS = 60 * 1000;
+type CacheEntry = { body: string; expiresAt: number };
+const productsCache = new Map<string, CacheEntry>();
+
+export function invalidateProductsCache() {
+  productsCache.clear();
+}
+
 /**
  * GET /api/products
  * Query params: ?category=قصص جاهزة&section=tales&series=سباق الفتوحات&all=true
@@ -13,13 +26,31 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(request: Request) {
   try {
-    await connectDB();
-
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
     const section = searchParams.get("section");
     const series = searchParams.get("series");
     const showAll = searchParams.get("all") === "true";
+
+    // Admin "show all" requests are never cached — admins need fresh data.
+    const cacheKey = showAll
+      ? null
+      : `cat=${category || ""}|sec=${section || ""}|ser=${series || ""}`;
+
+    if (cacheKey) {
+      const hit = productsCache.get(cacheKey);
+      if (hit && hit.expiresAt > Date.now()) {
+        return new NextResponse(hit.body, {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "X-Cache": "HIT",
+          },
+        });
+      }
+    }
+
+    await connectDB();
 
     const filter: Record<string, unknown> = {};
     if (!showAll) {
@@ -39,10 +70,25 @@ export async function GET(request: Request) {
       .sort({ order: 1 })
       .lean();
 
-    return NextResponse.json({
+    const body = JSON.stringify({
       success: true,
       count: products.length,
       data: products,
+    });
+
+    if (cacheKey) {
+      productsCache.set(cacheKey, {
+        body,
+        expiresAt: Date.now() + CACHE_TTL_MS,
+      });
+    }
+
+    return new NextResponse(body, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "X-Cache": cacheKey ? "MISS" : "BYPASS",
+      },
     });
   } catch (error) {
     console.error("GET /api/products error:", error);
@@ -129,6 +175,7 @@ export async function POST(request: Request) {
     }
 
     const product = await Product.create(validated);
+    invalidateProductsCache();
 
     return NextResponse.json(
       { success: true, data: product },

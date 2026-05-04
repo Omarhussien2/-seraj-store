@@ -169,6 +169,9 @@ const OrderSchema = new mongoose.Schema<IOrder>(
 // Index for admin queries
 OrderSchema.index({ orderStatus: 1, createdAt: -1 });
 OrderSchema.index({ customerPhone: 1 });
+// Speeds up dashboard "deposit pending" lookup + recent-orders sort.
+OrderSchema.index({ paymentStatus: 1, createdAt: -1 });
+OrderSchema.index({ createdAt: -1 });
 
 // ---------- Counter schema for atomic order numbers ----------
 interface ICounter {
