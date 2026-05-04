@@ -11,7 +11,7 @@ const navItems = [
   { href: "/admin/products", label: "المنتجات", icon: "📚" },
   { href: "/admin/payment-settings", label: "الدفع والعربون", icon: "💳" },
   { href: "/admin/coupons", label: "الكوبونات", icon: "🏷️" },
-  { href: "/admin/coloring", label: "ألوان سراج", icon: "🎨" },
+  { href: "/admin/coloring", label: "كشكول التلوين", icon: "🎨" },
   { href: "/admin/articles", label: "المقالات", icon: "📝" },
   { href: "/admin/stories", label: "القصص", icon: "📖" },
   { href: "/admin/content", label: "المحتوى", icon: "✏️" },

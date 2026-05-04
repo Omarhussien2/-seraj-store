@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import ColoringItem from "@/lib/models/ColoringItem";
 import ColoringCategory from "@/lib/models/ColoringCategory";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { invalidateColoringCache } from "@/lib/coloringCache";
 
 export const dynamic = "force-dynamic";
 
@@ -161,6 +162,8 @@ export async function PATCH(
       ]);
     }
 
+    invalidateColoringCache();
+
     return NextResponse.json({ success: true, data: item });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -218,6 +221,8 @@ export async function DELETE(
         { new: true }
       ).lean();
 
+      invalidateColoringCache();
+
       return NextResponse.json({
         success: true,
         data: updated,
@@ -230,6 +235,8 @@ export async function DELETE(
         { $inc: { itemCount: -1 } }
       );
       await ColoringItem.findOneAndDelete({ slug });
+
+      invalidateColoringCache();
 
       return NextResponse.json({
         success: true,

@@ -4515,6 +4515,54 @@ body.sc-modal-open { overflow: hidden; touch-action: none; }
 .cat-price { font-weight: 800; font-size: .85rem; color: var(--seraj-dark); }
 .cat-old-price { font-size: .72rem; color: var(--ink-mute); text-decoration: line-through; }
 
+/* "How it works" strip on the coloring-workbook product page. */
+.pd-howitworks { padding: 32px 0 8px; }
+.pd-howitworks .how-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 12px;
+}
+.pd-howitworks .how-step {
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 18px;
+  box-shadow: 0 4px 0 var(--ink);
+  padding: 18px 14px;
+  text-align: center;
+}
+.pd-howitworks .how-step h3 { font-size: 1rem; margin: 6px 0 4px; }
+.pd-howitworks .how-step p { font-size: .9rem; color: var(--ink-soft); margin: 0; }
+.how-step-num {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  background: var(--seraj);
+  color: var(--paper);
+  border: 2px solid var(--ink);
+  box-shadow: 0 2px 0 var(--ink);
+  border-radius: 50%;
+  font-weight: 800; font-size: 16px;
+  margin-bottom: 6px;
+}
+.pd-secondary-cta {
+  margin-top: 20px;
+  display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+}
+@media (max-width: 600px) {
+  .pd-howitworks .how-grid { grid-template-columns: 1fr; }
+}
+
+/* Coloring tab helper cards (browse + popular category) — pure-navigation
+   cards that share the catalog grid with regular products but skip prices. */
+.cat-helper-inner { display: flex; flex-direction: column; height: 100%; }
+.cat-cover-helper {
+  background: linear-gradient(135deg, #fde6c8, #ffd6c5);
+  display: flex; align-items: center; justify-content: center;
+}
+.cat-helper-emoji { font-size: 60px; line-height: 1; }
+.cat-helper-sub { color: var(--seraj-dark); font-weight: 700; font-size: .85rem; }
+
 /* Empty state */
 .catalog-empty-state {
   grid-column: 1 / -1; text-align: center;
@@ -4818,6 +4866,43 @@ body.sc-modal-open { overflow: hidden; touch-action: none; }
 }
 
 /* ============ COLORING BOOK PAGE ============ */
+/* Progress strip — visible "X / minY" cue with bar; spans both columns. */
+.cb-progress {
+  grid-column: 1 / -1;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 0 3px 0 var(--ink);
+  padding: 12px 14px;
+}
+.cb-progress-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.cb-progress-head strong { font-size: 1rem; }
+.cb-add-more {
+  font-size: .85rem; font-weight: 800; color: var(--seraj-dark);
+  text-decoration: none;
+  background: var(--cream-2);
+  border: 1.5px solid var(--ink);
+  padding: 4px 10px; border-radius: 999px;
+}
+.cb-add-more:hover { background: var(--seraj); color: var(--paper); }
+.cb-progress-bar {
+  height: 8px;
+  background: var(--cream-2);
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.cb-progress-bar > span {
+  display: block; height: 100%;
+  background: var(--seraj);
+  transition: width .35s ease;
+}
+.cb-progress-low .cb-progress-bar > span { background: #e8a14a; }
+.cb-progress-over .cb-progress-bar > span { background: var(--ember); }
+
 .cb-page-wrap {
   display: grid;
   gap: 24px;

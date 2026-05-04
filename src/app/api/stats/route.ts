@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Order from "@/lib/models/Order";
+import ColoringItem from "@/lib/models/ColoringItem";
 import { requireAdmin } from "@/lib/requireAdmin";
 
 /**
@@ -14,6 +15,8 @@ import { requireAdmin } from "@/lib/requireAdmin";
  *     (orders that paid the deposit but are awaiting COD remainder collection)
  *   - recentOrders (last 10 with paymentStatus)
  *   - oldPendingOrders (count of pending orders > 24 hours old — daily nag)
+ *   - topColoringItems (top 5 most-saved coloring sheets so the admin can
+ *     see which assets are driving the workbook customizer)
  */
 export async function GET() {
   try {
@@ -30,7 +33,8 @@ export async function GET() {
     const prev30End = last30;
     const oldPendingCutoff = new Date(now.getTime() - day);
 
-    const [stats] = await Order.aggregate([
+    const [orderStatsResult, topColoringItems] = await Promise.all([
+      Order.aggregate([
       {
         $facet: {
           totalOrders: [{ $count: "count" }],
@@ -122,7 +126,15 @@ export async function GET() {
           ],
         },
       },
+    ]),
+      ColoringItem.find({ active: true })
+        .sort({ savedCount: -1, printCount: -1 })
+        .limit(5)
+        .select("slug title thumbnail savedCount printCount categorySlug")
+        .lean(),
     ]);
+
+    const stats = orderStatsResult[0];
 
     return NextResponse.json({
       success: true,
@@ -138,6 +150,7 @@ export async function GET() {
         depositPendingRemaining: stats.depositPending[0]?.remaining || 0,
         oldPendingOrdersCount: stats.oldPendingOrders[0]?.count || 0,
         recentOrders: stats.recentOrders || [],
+        topColoringItems: topColoringItems || [],
       },
     });
   } catch (error) {

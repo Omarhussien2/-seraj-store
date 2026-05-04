@@ -4,6 +4,11 @@ import { connectDB } from "@/lib/db";
 import ColoringItem from "@/lib/models/ColoringItem";
 import ColoringCategory from "@/lib/models/ColoringCategory";
 import { requireAdmin } from "@/lib/requireAdmin";
+import {
+  getColoringCache,
+  setColoringCache,
+  invalidateColoringCache,
+} from "@/lib/coloringCache";
 
 export const dynamic = "force-dynamic";
 
@@ -22,8 +27,6 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(request: NextRequest) {
   try {
-    await connectDB();
-
     const { searchParams } = new URL(request.url);
     const q = searchParams.get("q")?.trim();
     const category = searchParams.get("category");
@@ -36,6 +39,32 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(48, Math.max(6, parseInt(searchParams.get("limit") || "24", 10)));
 
     const showAll = searchParams.get("all") === "true";
+
+    // Admin "show all" requests bypass cache; everything else uses a 60s TTL
+    // cache keyed on the active filter params so the public browser is fast.
+    const cacheKey = showAll
+      ? null
+      : `q=${q || ""}|cat=${category || ""}|type=${type || ""}|diff=${
+          difficulty || ""
+        }|age=${age || ""}|lic=${license || ""}|feat=${
+          featured ? "1" : "0"
+        }|p=${page}|l=${limit}`;
+
+    if (cacheKey) {
+      const hit = getColoringCache(cacheKey);
+      if (hit) {
+        return new NextResponse(hit, {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "X-Cache": "HIT",
+          },
+        });
+      }
+    }
+
+    await connectDB();
+
     const filter: Record<string, unknown> = {};
     if (!showAll) filter.active = true;
     if (category) filter.categorySlug = category;
@@ -71,7 +100,7 @@ export async function GET(request: NextRequest) {
       ]);
     }
 
-    return NextResponse.json({
+    const body = JSON.stringify({
       success: true,
       data: items,
       pagination: {
@@ -80,6 +109,18 @@ export async function GET(request: NextRequest) {
         total,
         pages: Math.ceil(total / limit),
         hasMore: page * limit < total,
+      },
+    });
+
+    if (cacheKey) {
+      setColoringCache(cacheKey, body);
+    }
+
+    return new NextResponse(body, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "X-Cache": cacheKey ? "MISS" : "BYPASS",
       },
     });
   } catch (err) {
@@ -159,6 +200,8 @@ export async function POST(request: NextRequest) {
       { slug: validated.categorySlug },
       { $inc: { itemCount: 1 } }
     );
+
+    invalidateColoringCache();
 
     return NextResponse.json(
       { success: true, data: item },
