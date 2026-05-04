@@ -146,6 +146,31 @@
         { text: 'أحلى هدية لأحفادي! الجودة ممتازة والمحتوى تعليمي وممتع في نفس الوقت.', name: 'فاطمة — جدة', place: 'المنصورة · ٤ و ٦ سنين', color: '#6bbf3f', initial: 'ف' }
       ],
       related: ['story-khaled', 'custom-story']
+    },
+    'coloring-workbook': {
+      name: 'كشكول ألوان سِراج',
+      badge: 'بتصميمك أنت',
+      price: 0, // computed at /#/coloring-book customizer (per-page + cover)
+      priceText: 'يبدأ من ٣٠ ج.م',
+      category: 'تلوين',
+      section: 'coloring',
+      shortDesc: 'كشكول تلوين بتختار صفحاته وغلافه — وسِراج بيطبعه ويوصّله',
+      longDesc: 'كشكول تلوين مخصّص بطلنا الصغير بيختار صفحاته بنفسه! اختار من مكتبة الرسومات (حيوانات، عربيات، شخصيات سِراج، وأكتر)، حدّد عدد الصفحات والغلاف، وإحنا نطبعه ونجلّده ونوصّله لباب البيت.',
+      features: [
+        'مكتبة كبيرة من الرسومات: حيوانات، شخصيات، عربيات، حروف وأرقام',
+        'بتختار عدد الصفحات (الحد الأدنى ٥)',
+        'اختياري: غلاف مقوّى مخصّص باسم طفلك',
+        'مطبوع على ورق سميك مناسب للأقلام والألوان المائية',
+        'هدية مثالية لـ ٣–١٠ سنين'
+      ],
+      media: { type: 'cards-fan', bg: 'sand' },
+      action: 'coloring-book',
+      ctaText: 'ابدأ كشكولك',
+      reviews: [
+        { text: 'بنتي فرحت لما لقت رسومات اختارتها بنفسها مطبوعة في كشكول واحد. أحلى هدية!', name: 'سارة — أم ليلى', place: 'القاهرة · ٥ سنين', color: '#e85d4c', initial: 'س' },
+        { text: 'فكرة عبقرية. وفّرت عليّا ساعات طبع وقصاصة، والجودة ممتازة جداً.', name: 'دينا — أم يوسف', place: 'الإسكندرية · ٧ سنين', color: '#36a39a', initial: 'د' }
+      ],
+      related: ['story-khaled', 'bundle']
     }
   };
 
@@ -556,10 +581,30 @@
       h += '<button class="btn btn-primary btn-xl" disabled style="opacity:.5;cursor:not-allowed">' + product.ctaText + '</button>';
     } else if (product.action === 'wizard') {
       h += '<a href="#/wizard" data-link class="btn btn-primary btn-xl">' + product.ctaText + ' <svg viewBox="0 0 24 24" width="22" height="22"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a>';
+    } else if (product.action === 'coloring-book') {
+      h += '<a href="#/mama-coloring" data-link class="btn btn-primary btn-xl">' + product.ctaText + ' <svg viewBox="0 0 24 24" width="22" height="22"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a>';
     } else if (product.action === 'cart') {
       h += '<button class="btn btn-primary btn-xl" data-add-cart="' + slug + '">' + product.ctaText + ' <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/></svg></button>';
     }
     h += '</div></div></div>';
+
+    // Educational "how it works" strip for the coloring workbook — leads users
+    // through the 3-step flow before they hit the customizer.
+    if (slug === 'coloring-workbook') {
+      h += '<section class="section pd-howitworks">' +
+        '<div class="section-head"><span class="kicker">إزاي بنشتغل</span><h2>٣ خطوات وكشكولك جاهز</h2></div>' +
+        '<div class="how-grid">' +
+          '<div class="how-step"><span class="how-step-num">١</span><h3>اختار الرسومات</h3><p>صفّح مكتبتنا وضيف اللي يعجب طفلك للكشكول.</p></div>' +
+          '<div class="how-step"><span class="how-step-num">٢</span><h3>حدّد الشكل</h3><p>كشكول مجلّد بغلاف، أو أوراق منفصلة جاهزة للتلوين.</p></div>' +
+          '<div class="how-step"><span class="how-step-num">٣</span><h3>إحنا نطبع ونوصّل</h3><p>كشكول مطبوع على ورق سميك بيوصل لباب البيت.</p></div>' +
+        '</div>' +
+        '<div class="pd-secondary-cta">' +
+          '<a href="#/mama-coloring" data-link class="btn btn-primary btn-xl">تصفّح الرسومات</a>' +
+          '<a href="#/coloring-book" data-link class="btn btn-secondary">شوف كشكولك المحفوظ</a>' +
+        '</div>' +
+      '</section>';
+    }
+
     // Gallery — only items uploaded by the admin into product.gallery. The main
     // product image (product.imageUrl) is already shown in the hero above and is
     // intentionally NOT auto-prepended here, so the admin has full control over
@@ -948,7 +993,8 @@
     'tales':          { title: 'سباق الفتوحات',         kicker: 'أبطالنا الحقيقيين!',            desc: 'أبطالنا بجد! مستويات تناسب كل الأعمار مع جزء خاص لتجهيز الأب والأم لأسئلة طفلك.',   color: '#36a39a', img: 'assets/catagory/catalog-tales.png' },
     'custom-stories': { title: 'قصة مخصوصة',  kicker: 'باسم وصورة طفلك!',          desc: 'هدية عمره ما هينساها.. قصة تفاعلية ممتعة ومطبوعة بجودة عالية بطلها طفلك!',           color: '#c9974e', img: 'assets/catagory/catalog-custom-stories.png' },
     'play-learn':     { title: 'ألعاب سراج',      kicker: 'العب واتعلم!',         desc: 'فلاش كاردز وألعاب ترفيهية بتنمي مهارات طفلك وتخليه يكتشف العالم وهو بيضحك ومبسوط.',           color: '#e85d4c', img: 'assets/catagory/catalog-play-learn.png' },
-    'seraj-stories':  { title: 'حكايات سراج',    kicker: 'الأرنب المسافر عبر الزمن!', desc: 'رحلات مثيرة مع آلة الزمن لاكتشاف أسرار الماضي مع الأرنب سِراج وأصحابه.',        color: '#6bbf3f', img: 'assets/catagory/catalog-seraj-stories.png' }
+    'seraj-stories':  { title: 'حكايات سراج',    kicker: 'الأرنب المسافر عبر الزمن!', desc: 'رحلات مثيرة مع آلة الزمن لاكتشاف أسرار الماضي مع الأرنب سِراج وأصحابه.',        color: '#6bbf3f', img: 'assets/catagory/catalog-seraj-stories.png' },
+    'coloring':       { title: 'التلوين',          kicker: 'كشكول بطلنا بإيدك!',         desc: 'بطلنا بيختار رسوماته بنفسه، إحنا نطبعها ونجلّدها ونوصّلها — كشكول تلوين بتصميمك أنت.', color: '#e85d4c', img: 'assets/catagory/catalog-play-learn.png' }
   };
 
   // ----- Catalog Page — grid + filter tabs -----
@@ -1015,6 +1061,48 @@
       card.dataset.section = sectionId;
       if (!visible) card.style.display = 'none';
       card.innerHTML = buildCatalogCard(slug, p);
+      grid.appendChild(card);
+    });
+
+    // Helper cards for the coloring tab — pure navigation, no price.
+    appendColoringHelperCards(grid);
+  }
+
+  // Inject 2 secondary cards into the catalog grid for the "coloring" section:
+  // a "browse free coloring pages" entry pointing at /#/mama-coloring and a
+  // "popular category" entry pointing at the same browser pre-filtered.
+  function appendColoringHelperCards(grid) {
+    var helpers = [
+      {
+        href: '#/mama-coloring',
+        title: 'تصفّح صور التلوين المجانية',
+        sub: 'اختار من مكتبتنا اللي بتتجدد كل أسبوع',
+        emoji: '🎨'
+      },
+      {
+        href: '#/mama-coloring',
+        title: 'الحيوانات والشخصيات',
+        sub: 'الأكثر طلباً من الأهل',
+        emoji: '🦁'
+      }
+    ];
+    helpers.forEach(function (h) {
+      var card = document.createElement('div');
+      card.className = 'catalog-card catalog-card-helper reveal';
+      card.dataset.section = 'coloring';
+      if (activeCatalogTab !== 'all' && activeCatalogTab !== 'coloring') {
+        card.style.display = 'none';
+      }
+      card.innerHTML =
+        '<a href="' + h.href + '" data-link class="catalog-card-inner cat-helper-inner">' +
+          '<div class="cat-cover cat-cover-helper">' +
+            '<span class="cat-helper-emoji">' + h.emoji + '</span>' +
+          '</div>' +
+          '<div class="cat-info">' +
+            '<h3>' + h.title + '</h3>' +
+            '<div class="cat-foot"><span class="cat-helper-sub">' + h.sub + ' →</span></div>' +
+          '</div>' +
+        '</a>';
       grid.appendChild(card);
     });
   }
@@ -3457,12 +3545,15 @@
      loadFromUrl();
 
      if (coloringCart.length === 0) {
-        wrap.innerHTML = 
+        wrap.innerHTML =
           '<div class="cb-empty-state">' +
-            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>' +
-            '<p>لسه ما اخترتش رسومات لبطلنا.</p>' +
-            '<p style="font-size:14px;color:var(--ink-mute)">اختار رسومات مجانية من قسم الأنشطة والتلوين</p>' +
-            '<a href="#/mama-world" data-link class="btn btn-primary">يلا نختار سويًا</a>' +
+            '<img src="assets/seraj.png" alt="" class="empty-mascot lg" loading="lazy"/>' +
+            '<h3>كشكولك لسه فاضي!</h3>' +
+            '<p>اختار من مكتبتنا أي رسومات تعجب طفلك، وارجع هنا تحدد عدد الصفحات والغلاف.</p>' +
+            '<div class="empty-actions">' +
+              '<a href="#/mama-coloring" data-link class="btn btn-primary btn-xl">تصفّح الرسومات</a>' +
+              '<a href="#/product/coloring-workbook" data-link class="btn btn-secondary">اعرف أكتر عن الكشكول</a>' +
+            '</div>' +
           '</div>';
         return;
      }
@@ -3489,9 +3580,17 @@
 
      var html = '<div class="cb-page-wrap">';
      
-      // Free download notice
-      html += '<div class="coloring-free-notice">';
-      html += '<p>اختار الرسومات اللي تعجبك وحدد شكل الكشكول — وسِراج هيطبعها ويجلّدها ويوصّلها ✦</p>';
+      // Progress strip — clear visual cue for "you have X of min Y pages".
+      var progressTarget = Math.max(minPages, totalPages);
+      var progressPct = Math.min(100, Math.round((totalPages / progressTarget) * 100));
+      var progressClass = totalPages < minPages ? 'cb-progress-low' :
+        (totalPages > maxPages ? 'cb-progress-over' : 'cb-progress-ok');
+      html += '<div class="cb-progress ' + progressClass + '">';
+      html += '  <div class="cb-progress-head">';
+      html += '    <strong>' + toArabicNum(totalPages) + ' / ' + toArabicNum(minPages) + '+ رسومة</strong>';
+      html += '    <a href="#/mama-coloring" data-link class="cb-add-more">+ ضيف رسومة</a>';
+      html += '  </div>';
+      html += '  <div class="cb-progress-bar"><span style="width:' + progressPct + '%"></span></div>';
       html += '</div>';
 
       // Pages warning

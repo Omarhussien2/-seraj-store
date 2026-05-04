@@ -29,6 +29,16 @@ interface RecentOrder {
   createdAt: string;
 }
 
+interface TopColoringItem {
+  _id: string;
+  slug: string;
+  title: string;
+  thumbnail: string;
+  savedCount: number;
+  printCount: number;
+  categorySlug: string;
+}
+
 interface Stats {
   totalOrders: number;
   pendingOrders: number;
@@ -41,6 +51,7 @@ interface Stats {
   depositPendingRemaining: number;
   oldPendingOrdersCount: number;
   recentOrders: RecentOrder[];
+  topColoringItems?: TopColoringItem[];
 }
 
 const orderStatusLabels: Record<string, string> = {
@@ -177,6 +188,13 @@ export default function AdminDashboard() {
       icon: "💬",
       tone: "bg-blue-50 hover:bg-blue-100 border-blue-200",
     },
+    {
+      href: "/admin/coloring",
+      label: "كشكول التلوين",
+      count: null as number | null,
+      icon: "🎨",
+      tone: "bg-orange-50 hover:bg-orange-100 border-orange-200",
+    },
   ];
 
   return (
@@ -210,7 +228,7 @@ export default function AdminDashboard() {
       )}
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         {quickActions.map((qa) => (
           <Link
             key={qa.label}
@@ -371,6 +389,54 @@ export default function AdminDashboard() {
           )}
         </CardContent>
       </Card>
+
+      {/* Top coloring sheets — quick visibility into which assets are
+          driving the workbook customizer (savedCount = added to a kit). */}
+      {stats.topColoringItems && stats.topColoringItems.length > 0 && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <CardTitle>🎨 أكثر رسومات التلوين طلباً</CardTitle>
+            <Link href="/admin/coloring/items" className="text-sm text-blue-600 hover:underline">
+              إدارة الرسومات →
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              {stats.topColoringItems.map((item, idx) => (
+                <Link
+                  key={item._id}
+                  href={`/admin/coloring/items?q=${encodeURIComponent(item.slug)}`}
+                  className="group block rounded-xl border border-gray-200 overflow-hidden hover:border-amber-400 hover:shadow-md transition"
+                >
+                  <div className="relative aspect-square bg-gray-50 flex items-center justify-center">
+                    <span className="absolute top-1 right-1 text-xs font-bold bg-amber-100 text-amber-800 rounded-full w-6 h-6 flex items-center justify-center">
+                      {idx + 1}
+                    </span>
+                    {item.thumbnail ? (
+                      <img
+                        src={item.thumbnail}
+                        alt={item.title}
+                        className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span className="text-3xl">🎨</span>
+                    )}
+                  </div>
+                  <div className="p-2 text-center">
+                    <p className="text-xs font-bold truncate" title={item.title}>
+                      {item.title}
+                    </p>
+                    <p className="text-[11px] text-gray-500 mt-1">
+                      {item.savedCount.toLocaleString("ar-EG")} اختيار · {item.printCount.toLocaleString("ar-EG")} طبع
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Shipping & checkout copy settings */}
       <Card>
