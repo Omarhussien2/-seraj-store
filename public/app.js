@@ -471,6 +471,54 @@
     var metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) metaDesc.setAttribute('content', product.longDesc || '');
 
+    // Dynamic Open Graph for shareable product links
+    function setMetaProp(prop, value) {
+      var el = document.querySelector('meta[property="' + prop + '"]');
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute('property', prop);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', value || '');
+    }
+    var ogTitle = product.name + ' — سِراج';
+    var ogImage = resolvePhotoUrl(product.imageUrl, product.media) ||
+      'https://seraj-store.vercel.app/assets/share-banner.jpg';
+    setMetaProp('og:title', ogTitle);
+    setMetaProp('og:description', product.shortDesc || product.longDesc || '');
+    setMetaProp('og:image', ogImage);
+    setMetaProp('og:url', 'https://seraj-store.vercel.app/#/product/' + slug);
+    setMetaProp('og:type', 'product');
+
+    // Inject Product JSON-LD so Google's product rich-result
+    // (price, availability, brand, image) can show on the SERP.
+    var oldLd = document.getElementById('seraj-product-jsonld');
+    if (oldLd) oldLd.parentNode.removeChild(oldLd);
+    try {
+      var ld = {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: product.name,
+        description: (product.shortDesc || product.longDesc || '').slice(0, 500),
+        image: ogImage,
+        brand: { '@type': 'Brand', name: 'سِراج' },
+        offers: {
+          '@type': 'Offer',
+          url: 'https://seraj-store.vercel.app/#/product/' + slug,
+          priceCurrency: 'EGP',
+          price: String(product.price),
+          availability: product.comingSoon
+            ? 'https://schema.org/PreOrder'
+            : 'https://schema.org/InStock'
+        }
+      };
+      var s = document.createElement('script');
+      s.id = 'seraj-product-jsonld';
+      s.type = 'application/ld+json';
+      s.text = JSON.stringify(ld);
+      document.head.appendChild(s);
+    } catch (e) { /* ignore — SEO enhancement only */ }
+
     var isSoon = product.comingSoon;
     var h = '';
     // Back nav

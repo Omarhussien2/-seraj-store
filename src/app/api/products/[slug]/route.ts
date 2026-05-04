@@ -3,6 +3,7 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { invalidateProductsCache } from "@/app/api/products/route";
 
 /**
  * GET /api/products/[slug]
@@ -124,6 +125,8 @@ export async function PATCH(
       );
     }
 
+    invalidateProductsCache();
+
     return NextResponse.json({
       success: true,
       data: product,
@@ -183,6 +186,8 @@ export async function DELETE(
         { new: true }
       ).lean();
 
+      invalidateProductsCache();
+
       return NextResponse.json({
         success: true,
         data: updated,
@@ -191,6 +196,7 @@ export async function DELETE(
     } else {
       // Hard delete since it's already soft-deleted
       await Product.findOneAndDelete({ slug });
+      invalidateProductsCache();
       
       return NextResponse.json({
         success: true,

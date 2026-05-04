@@ -132,7 +132,17 @@ const PAGE_SIZE = 20;
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
+  // Read initial filter from URL (?status=pending) so dashboard "quick action"
+  // links land directly on the filtered view.
+  const [filter, setFilter] = useState(() => {
+    if (typeof window === "undefined") return "all";
+    const sp = new URLSearchParams(window.location.search);
+    const s = sp.get("status");
+    if (s && ["pending", "in_progress", "shipped", "delivered", "cancelled"].includes(s)) {
+      return s;
+    }
+    return "all";
+  });
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
