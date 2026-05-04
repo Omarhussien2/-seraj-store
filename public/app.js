@@ -515,7 +515,9 @@
       var s = document.createElement('script');
       s.id = 'seraj-product-jsonld';
       s.type = 'application/ld+json';
-      s.text = JSON.stringify(ld);
+      // JSON.stringify doesn't escape forward slashes, so a product field
+      // containing "</script>" would break out of this tag. Escape it.
+      s.text = JSON.stringify(ld).replace(/<\//g, '<\\/');
       document.head.appendChild(s);
     } catch (e) { /* ignore — SEO enhancement only */ }
 

@@ -3,21 +3,13 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import { requireAdmin } from "@/lib/requireAdmin";
+import {
+  getProductsCache,
+  setProductsCache,
+  invalidateProductsCache,
+} from "@/lib/productsCache";
 
 export const dynamic = "force-dynamic";
-
-// Tiny in-process cache. Vercel's serverless functions reuse warm instances
-// for ~minutes, so this absorbs the bursty traffic that the same homepage load
-// produces (4–6 calls to /api/products with different filters per pageview).
-// Admin writes invalidate via invalidateProductsCache() in the POST/PUT/DELETE
-// paths so the cache is never stale beyond a single change.
-const CACHE_TTL_MS = 60 * 1000;
-type CacheEntry = { body: string; expiresAt: number };
-const productsCache = new Map<string, CacheEntry>();
-
-export function invalidateProductsCache() {
-  productsCache.clear();
-}
 
 /**
  * GET /api/products
@@ -38,9 +30,9 @@ export async function GET(request: Request) {
       : `cat=${category || ""}|sec=${section || ""}|ser=${series || ""}`;
 
     if (cacheKey) {
-      const hit = productsCache.get(cacheKey);
-      if (hit && hit.expiresAt > Date.now()) {
-        return new NextResponse(hit.body, {
+      const hit = getProductsCache(cacheKey);
+      if (hit) {
+        return new NextResponse(hit, {
           status: 200,
           headers: {
             "Content-Type": "application/json; charset=utf-8",
@@ -77,10 +69,7 @@ export async function GET(request: Request) {
     });
 
     if (cacheKey) {
-      productsCache.set(cacheKey, {
-        body,
-        expiresAt: Date.now() + CACHE_TTL_MS,
-      });
+      setProductsCache(cacheKey, body);
     }
 
     return new NextResponse(body, {
