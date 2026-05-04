@@ -12,6 +12,8 @@ import {
   rollbackCouponRedemption,
 } from "@/lib/coupons/apply";
 import { normalizeCouponCode } from "@/lib/coupons/normalize";
+import { getOrCreatePaymentSettings, toPublic as toPaymentPublic } from "@/lib/paymentSettings";
+import { computeDeposit } from "@/lib/depositCalc";
 
 // Force dynamic rendering — prevent Vercel from caching or treating as static
 export const dynamic = "force-dynamic";
@@ -55,6 +57,7 @@ const CreateOrderSchema = z.object({
   shippingFee: z.number().min(0).default(0),
   deposit: z.number().min(0).default(0),
   paymentMethod: z.enum(["instapay"]).default("instapay"),
+  paymentMode: z.enum(["full", "deposit"]).default("full"),
   couponCode: z.string().min(1).max(64).optional(),
   customStory: CustomStorySchema.optional(),
   customerName: z.string().min(1, "اسم العميل مطلوب"),
@@ -132,35 +135,52 @@ export async function POST(request: Request) {
 
     const slugs = validated.items.map((i) => i.productSlug);
     const products = await Product.find({ slug: { $in: slugs }, active: true })
-      .select("slug price")
+      .select("slug price depositAmount")
       .lean();
 
-    const productMap = new Map(products.map((p) => [p.slug, p.price]));
+    const productMap = new Map(
+      products.map((p) => [p.slug, { price: p.price, depositAmount: p.depositAmount ?? null }])
+    );
 
     let subtotal = 0;
-    const pricedItems: { productSlug: string; qty: number; unitPrice: number }[] = [];
+    const pricedItems: {
+      productSlug: string;
+      qty: number;
+      unitPrice: number;
+      depositAmount?: number | null;
+    }[] = [];
 
     for (const item of validated.items) {
       if (item.productSlug === "coloring-workbook") {
         subtotal += item.price * item.qty;
-        pricedItems.push({ productSlug: item.productSlug, qty: item.qty, unitPrice: item.price });
+        // Coloring workbook has dynamic pricing; no deposit override.
+        pricedItems.push({
+          productSlug: item.productSlug,
+          qty: item.qty,
+          unitPrice: item.price,
+          depositAmount: null,
+        });
         continue;
       }
 
-      const price = productMap.get(item.productSlug);
-      if (price === undefined) {
+      const productInfo = productMap.get(item.productSlug);
+      if (productInfo === undefined) {
         return NextResponse.json(
           { success: false, error: `المنتج "${item.productSlug}" غير موجود أو غير متاح` },
           { status: 400 }
         );
       }
 
-      subtotal += price * item.qty;
-      pricedItems.push({ productSlug: item.productSlug, qty: item.qty, unitPrice: price });
+      subtotal += productInfo.price * item.qty;
+      pricedItems.push({
+        productSlug: item.productSlug,
+        qty: item.qty,
+        unitPrice: productInfo.price,
+        depositAmount: productInfo.depositAmount,
+      });
     }
 
     const shippingFee = validated.shippingFee || 0;
-    const deposit = validated.deposit || 0;
     let discountTotal = 0;
     let discounts = { shipping: 0, subtotal: 0, products: 0 };
     let coupon: { code: string; couponId: mongoose.Types.ObjectId } | undefined;
@@ -192,6 +212,18 @@ export async function POST(request: Request) {
           },
           { status: 400 }
         );
+      }
+    }
+
+    // Compute deposit server-side from product data + global settings — never
+    // trust the client. If `paymentMode === "full"`, deposit is 0.
+    let deposit = 0;
+    if (validated.paymentMode === "deposit") {
+      const paymentSettings = toPaymentPublic(await getOrCreatePaymentSettings());
+      deposit = computeDeposit(pricedItems, paymentSettings);
+      if (deposit <= 0 || deposit >= totalAfterDiscount) {
+        // Either deposit is disabled / zero / >= total → force full payment.
+        deposit = 0;
       }
     }
 
@@ -235,6 +267,7 @@ export async function POST(request: Request) {
         remaining: Math.max(0, totalAfterDiscount - deposit),
         paymentMethod: validated.paymentMethod,
         paymentStatus: "unpaid",
+        paymentMode: deposit > 0 ? "deposit" : "full",
         orderStatus: "pending",
         customStory: validated.customStory
           ? {
@@ -278,6 +311,7 @@ export async function POST(request: Request) {
           couponCode: order.coupon?.code,
           deposit: order.deposit,
           remaining: order.remaining,
+          paymentMode: order.paymentMode,
           orderStatus: order.orderStatus,
           paymentStatus: order.paymentStatus,
           createdAt: order.createdAt,

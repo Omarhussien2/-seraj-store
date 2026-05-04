@@ -22,6 +22,9 @@
   var CHECKOUT_DELIVERY_TEXT = 'عادةً الطلب بيوصل خلال 5 إلى 7 أيام عمل.';
   var CHAT_WIDGET_ENABLED = true;
   var CHAT_HIDDEN_PAGES = ['checkout', 'success', 'wizard', 'preview'];
+  var DEPOSIT_ENABLED = true;       // overridden by /api/config
+  var DEPOSIT_PERCENT = 60;          // overridden by /api/config
+  var paymentMode = 'full';          // 'full' | 'deposit' (chosen on checkout page)
 
   // ----- Cloudinary Config -----
   var CLOUD_NAME = 'dkhndsrhr';
@@ -300,6 +303,8 @@
           if (data.data.checkoutContinueShoppingText) CHECKOUT_CONTINUE_TEXT = data.data.checkoutContinueShoppingText;
           if (data.data.checkoutDeliveryEstimateText) CHECKOUT_DELIVERY_TEXT = data.data.checkoutDeliveryEstimateText;
           if (typeof data.data.chatWidgetEnabled === 'boolean') CHAT_WIDGET_ENABLED = data.data.chatWidgetEnabled;
+          if (typeof data.data.depositEnabled === 'boolean') DEPOSIT_ENABLED = data.data.depositEnabled;
+          if (typeof data.data.depositPercent === 'number') DEPOSIT_PERCENT = data.data.depositPercent;
           if (typeof data.data.chatWidgetHiddenPages === 'string') {
             CHAT_HIDDEN_PAGES = data.data.chatWidgetHiddenPages.split(',').map(function (p) { return p.trim(); }).filter(Boolean);
           }
@@ -1223,12 +1228,43 @@
     h += '<p id="couponStatus" class="' + (currentCoupon ? 'coupon-status ok' : 'coupon-status') + '">' + (currentCoupon ? 'تم تطبيق الخصم بنجاح ✦' : 'اكتبي الكود واضغطي تطبيق قبل تأكيد الطلب.') + '</p>';
     h += '</div></div>';
 
-    // InstaPay card
+    // Payment mode picker — full vs deposit. The full-payment option is the
+    // visible default; the deposit option is a small link below so customers
+    // who don't read carefully take the faster (full-pay) path.
+    var canDeposit = depositAvailable();
+    var depositAmt = canDeposit ? calculateDeposit() : 0;
+    var remainingAmt = Math.max(0, grandTotal - depositAmt);
+    var amountToPayNow = paymentMode === 'deposit' && canDeposit ? depositAmt : grandTotal;
+
+    h += '<div class="pay-mode reveal">';
+    h += '<label class="pay-mode-card ' + (paymentMode === 'full' ? 'is-active' : '') + '">';
+    h += '<input type="radio" name="payMode" value="full"' + (paymentMode === 'full' ? ' checked' : '') + '/>';
+    h += '<div class="pay-mode-body">';
+    h += '<div class="pay-mode-title">💳 ادفع الكامل (' + toArabicNum(grandTotal) + ' ج.م)</div>';
+    h += '<div class="pay-mode-sub">الأسرع — التوصيل ' + toArabicNum(2) + '–' + toArabicNum(5) + ' أيام</div>';
+    h += '</div>';
+    h += '<span class="pay-mode-badge">موصى به</span>';
+    h += '</label>';
+    if (canDeposit) {
+      h += '<label class="pay-mode-card pay-mode-deposit ' + (paymentMode === 'deposit' ? 'is-active' : '') + '">';
+      h += '<input type="radio" name="payMode" value="deposit"' + (paymentMode === 'deposit' ? ' checked' : '') + '/>';
+      h += '<div class="pay-mode-body">';
+      h += '<div class="pay-mode-title">ادفع عربون ' + toArabicNum(depositAmt) + ' ج.م</div>';
+      h += '<div class="pay-mode-sub">والباقي ' + toArabicNum(remainingAmt) + ' ج.م كاش عند التوصيل</div>';
+      h += '</div>';
+      h += '</label>';
+      if (paymentMode === 'deposit') {
+        h += '<p class="pay-mode-note">⚠️ العربون لا يُردّ في حالة الإلغاء (رسوم تجهيز).</p>';
+      }
+    }
+    h += '</div>';
+
+    // InstaPay card — amount shown depends on the chosen payment mode
     h += '<div class="insta-card reveal">';
-    h += '<div class="insta-head"><span>ادفعي على InstaPay</span></div>';
+    h += '<div class="insta-head"><span>ادفع على InstaPay — ' + toArabicNum(amountToPayNow) + ' ج.م</span></div>';
     h += '<div class="insta-body">';
     h += '<div class="qr"><img src="assets/instapay-qr.jpeg" alt="InstaPay QR" style="width:100%;height:100%;object-fit:contain;border-radius:8px" loading="lazy"/></div>';
-    h += '<div class="insta-num"><small>Username</small><strong>' + INSTAPAY_NUMBER + '</strong><small>أو اضغطي على الرابط:</small>';
+    h += '<div class="insta-num"><small>Username</small><strong>' + INSTAPAY_NUMBER + '</strong><small>أو اضغط على الرابط:</small>';
     h += '<a href="' + INSTAPAY_LINK + '" target="_blank" rel="noopener" style="color:var(--seraj);font-weight:700;word-break:break-all">ipn.eg/S/' + INSTAPAY_NUMBER + '</a></div>';
     h += '</div></div>';
 
@@ -1320,6 +1356,39 @@
       });
   }
 
+  // ----- Deposit calculator (mirrors server lib/depositCalc.ts) -----
+  function calculateDeposit() {
+    if (!DEPOSIT_ENABLED) return 0;
+    var pct = Math.max(0, Math.min(100, Number(DEPOSIT_PERCENT) || 0));
+    var total = 0;
+    cart.forEach(function (item) {
+      var qty = Math.max(1, Number(item.qty) || 1);
+      var unit = Math.max(0, Number(item.price) || 0);
+      var product = PRODUCTS[item.slug];
+      var override =
+        product && typeof product.depositAmount === 'number' && product.depositAmount > 0
+          ? Math.min(product.depositAmount, unit)
+          : null;
+      var perUnit = override !== null ? override : (unit * pct) / 100;
+      total += perUnit * qty;
+    });
+    return Math.max(0, Math.round(total));
+  }
+
+  function depositAvailable() {
+    if (!DEPOSIT_ENABLED) return false;
+    if (!cart || cart.length === 0) return false;
+    var dep = calculateDeposit();
+    if (dep <= 0) return false;
+    var subtotal = calculateTotal();
+    var shipping = getShippingFee(subtotal);
+    var grand = Math.max(
+      0,
+      subtotal + shipping - (appliedCoupon ? appliedCoupon.discountTotal : 0)
+    );
+    return dep < grand;
+  }
+
   // ----- Submit Order -----
   function submitOrder() {
     var form = document.getElementById('checkoutForm');
@@ -1355,6 +1424,9 @@
     var currentCoupon = getCurrentCoupon(total, shipping);
     var grandTotal = Math.max(0, total + shipping - (currentCoupon ? currentCoupon.discountTotal : 0));
 
+    var canDeposit = depositAvailable();
+    var depositValue = paymentMode === 'deposit' && canDeposit ? calculateDeposit() : 0;
+
     var orderData = {
       customerName: nameEl.value.trim(),
       customerPhone: phoneEl.value.trim(),
@@ -1376,7 +1448,8 @@
       total: grandTotal,
       shippingFee: shipping,
       couponCode: currentCoupon ? currentCoupon.code : undefined,
-      deposit: 0,
+      deposit: depositValue,
+      paymentMode: depositValue > 0 ? 'deposit' : 'full',
       paymentMethod: 'instapay'
     };
 
@@ -1417,7 +1490,9 @@
             localStorage.setItem(ORDER_KEY, JSON.stringify({
               orderNumber: data.data.orderNumber,
               total: data.data.total,
-              deposit: data.data.deposit
+              deposit: data.data.deposit,
+              remaining: data.data.remaining,
+              paymentMode: data.data.paymentMode || (data.data.deposit > 0 ? 'deposit' : 'full')
             }));
           } catch (e) { /* silent */ }
 
@@ -1456,6 +1531,7 @@
   function renderSuccessPage() {
     var orderNumEl = document.getElementById('orderNumDisplay');
     var whatsappEl = document.getElementById('whatsappLink');
+    var depositInfoEl = document.getElementById('successDepositInfo');
 
     try {
       var saved = localStorage.getItem(ORDER_KEY);
@@ -1464,11 +1540,24 @@
         if (orderNumEl && orderData.orderNumber) {
           orderNumEl.textContent = orderData.orderNumber;
         }
+        var isDeposit = orderData.paymentMode === 'deposit' && Number(orderData.deposit) > 0;
+        if (depositInfoEl) {
+          if (isDeposit) {
+            depositInfoEl.innerHTML =
+              'دفعت <strong>' + toArabicNum(orderData.deposit) + ' ج.م</strong> عربون الآن — ' +
+              'الباقي <strong>' + toArabicNum(orderData.remaining || 0) + ' ج.م</strong> كاش عند التوصيل.';
+            depositInfoEl.hidden = false;
+          } else {
+            depositInfoEl.hidden = true;
+          }
+        }
         if (whatsappEl && orderData.orderNumber) {
-          var msg = encodeURIComponent(
-            'السلام عليكم، طلبي رقم ' + orderData.orderNumber + ' على متجر سراج. ها هي صورة الإيصال.'
-          );
-          whatsappEl.href = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + msg;
+          var baseMsg = isDeposit
+            ? 'السلام عليكم، طلبي رقم ' + orderData.orderNumber +
+              ' (دفعت عربون ' + orderData.deposit + ' ج.م — الباقي ' +
+              (orderData.remaining || 0) + ' ج.م كاش عند التوصيل). ها هي صورة الإيصال.'
+            : 'السلام عليكم، طلبي رقم ' + orderData.orderNumber + ' على متجر سراج. ها هي صورة الإيصال.';
+          whatsappEl.href = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(baseMsg);
         }
       }
     } catch (e) { /* silent */ }
@@ -1515,6 +1604,14 @@
       renderCheckoutPage();
       showToast('تمت إزالة الكوبون');
     }
+  });
+
+  // Payment mode picker (full vs deposit) — re-render so InstaPay amount updates
+  document.addEventListener('change', function (e) {
+    var radio = e.target.closest('input[name="payMode"]');
+    if (!radio) return;
+    paymentMode = radio.value === 'deposit' ? 'deposit' : 'full';
+    renderCheckoutPage();
   });
 
   // ----- Router -----

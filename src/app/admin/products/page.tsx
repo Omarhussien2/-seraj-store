@@ -37,6 +37,7 @@ interface Product {
   badgeSoon?: boolean;
   price: number;
   originalPrice?: number | null;
+  depositAmount?: number | null;
   priceText: string;
   originalPriceText?: string | null;
   category: string;
@@ -153,6 +154,8 @@ export default function AdminProductsPage() {
       const payload: any = { ...editingProduct };
       if (payload.originalPrice === "") payload.originalPrice = null;
       if (payload.originalPriceText === "") payload.originalPriceText = null;
+      if (payload.depositAmount === "" || payload.depositAmount === undefined)
+        payload.depositAmount = null;
 
       if (isEditing) {
         // PATCH existing product
@@ -552,6 +555,37 @@ export default function AdminProductsPage() {
                     onChange={(e) => updateField("originalPriceText", e.target.value === "" ? null : e.target.value)}
                     placeholder="اتركه فارغ لو مفيش خصم"
                   />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>قيمة العربون المخصصة (ج.م)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={
+                      editingProduct.depositAmount === null ||
+                      editingProduct.depositAmount === undefined
+                        ? ""
+                        : editingProduct.depositAmount
+                    }
+                    onChange={(e) =>
+                      updateField(
+                        "depositAmount",
+                        e.target.value === "" ? null : Number(e.target.value)
+                      )
+                    }
+                    placeholder="اتركه فارغ لاستخدام النسبة العامة"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    لو متعبّى يستخدم القيمة دي بدل النسبة العامة (مثلاً: 70 ج.م).
+                    إدارة النسبة العامة من{" "}
+                    <a href="/admin/payment-settings" className="text-primary underline">
+                      صفحة الدفع
+                    </a>
+                    .
+                  </p>
                 </div>
               </div>
 

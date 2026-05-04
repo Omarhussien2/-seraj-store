@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import SiteContent from "@/lib/models/SiteContent";
+import { getOrCreatePaymentSettings, toPublic as toPaymentPublic } from "@/lib/paymentSettings";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,8 @@ export async function GET() {
   let checkoutDeliveryEstimateText = "عادةً الطلب بيوصل خلال 5 إلى 7 أيام عمل.";
   let chatWidgetEnabled = true;
   let chatWidgetHiddenPages = "checkout,success,wizard,preview";
+  let depositEnabled = true;
+  let depositPercent = 60;
 
   try {
     await connectDB();
@@ -35,6 +38,14 @@ export async function GET() {
       if (s.key === "chat_widget_enabled") chatWidgetEnabled = s.value !== "false";
       if (s.key === "chat_widget_hidden_pages") chatWidgetHiddenPages = s.value;
     }
+
+    try {
+      const payment = toPaymentPublic(await getOrCreatePaymentSettings());
+      depositEnabled = payment.depositEnabled;
+      depositPercent = payment.depositPercent;
+    } catch {
+      // payment settings unavailable — keep defaults
+    }
   } catch {
     // DB unavailable — use env var fallbacks
   }
@@ -52,6 +63,8 @@ export async function GET() {
       checkoutDeliveryEstimateText,
       chatWidgetEnabled,
       chatWidgetHiddenPages,
+      depositEnabled,
+      depositPercent,
     },
   });
 }

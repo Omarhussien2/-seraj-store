@@ -65,6 +65,7 @@ export interface IProduct extends Document {
   badgeSoon?: boolean;
   price: number;
   originalPrice?: number | null;
+  depositAmount?: number | null;
   priceText: string;
   originalPriceText?: string | null;
   category: string;
@@ -106,6 +107,7 @@ const ProductSchema = new mongoose.Schema<IProduct>(
     badgeSoon: { type: Boolean, default: false },
     price: { type: Number, required: true },
     originalPrice: { type: Number },
+    depositAmount: { type: Number, default: null, min: 0 },
     priceText: { type: String, required: true },
     originalPriceText: { type: String },
     category: {

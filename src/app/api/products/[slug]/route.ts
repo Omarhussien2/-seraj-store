@@ -54,6 +54,7 @@ const PatchProductSchema = z.object({
   badgeSoon: z.boolean().optional(),
   price: z.number().min(0).optional(),
   originalPrice: z.number().min(0).nullable().optional(),
+  depositAmount: z.number().min(0).nullable().optional(),
   priceText: z.string().min(1).optional(),
   originalPriceText: z.string().nullable().optional(),
   category: z.enum(["قصص جاهزة", "قصص مخصصة", "فلاش كاردز", "مجموعات"]).optional(),
