@@ -1606,12 +1606,26 @@
     }
   });
 
-  // Payment mode picker (full vs deposit) — re-render so InstaPay amount updates
+  // Payment mode picker (full vs deposit) — re-render so InstaPay amount updates.
+  // Preserves any data the user has already typed in the customer form, since
+  // renderCheckoutPage() rebuilds the entire checkout DOM via innerHTML.
   document.addEventListener('change', function (e) {
     var radio = e.target.closest('input[name="payMode"]');
     if (!radio) return;
     paymentMode = radio.value === 'deposit' ? 'deposit' : 'full';
+
+    var prev = {};
+    ['custName', 'custPhone', 'custAddress', 'custNotes'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) prev[id] = el.value;
+    });
+
     renderCheckoutPage();
+
+    Object.keys(prev).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.value = prev[id];
+    });
   });
 
   // ----- Router -----
