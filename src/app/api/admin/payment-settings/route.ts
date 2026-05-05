@@ -6,9 +6,12 @@ import {
   toPublic,
   updatePaymentSettings,
 } from "@/lib/paymentSettings";
+import { apiCache } from "@/lib/apiCache";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+const configCache = apiCache("config");
 
 const PatchSchema = z.object({
   depositEnabled: z.boolean().optional(),
@@ -39,6 +42,7 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const validated = PatchSchema.parse(body);
     const doc = await updatePaymentSettings(validated);
+    configCache.invalidate();
     return NextResponse.json({ success: true, data: toPublic(doc) });
   } catch (err) {
     if (err instanceof z.ZodError) {

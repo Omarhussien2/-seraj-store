@@ -2,8 +2,12 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { requireAdmin } from "@/lib/requireAdmin";
 import SiteContent from "@/lib/models/SiteContent";
+import { apiCache } from "@/lib/apiCache";
 
 export const dynamic = "force-dynamic";
+
+const configCache = apiCache("config");
+const contentCache = apiCache("content");
 
 const SETTINGS_KEYS = [
   "shipping_fee",
@@ -92,6 +96,9 @@ export async function PUT(request: Request) {
         { upsert: true, new: true }
       );
     }
+
+    configCache.invalidate();
+    contentCache.invalidate();
 
     // Re-read stored values so the response reflects what was actually persisted
     // (e.g. empty strings are rejected by .trim() checks above)

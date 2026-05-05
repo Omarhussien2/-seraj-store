@@ -3,9 +3,12 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import Article from "@/lib/models/Article";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { apiCache } from "@/lib/apiCache";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+const cache = apiCache("articles");
 
 // Valid sections
 const VALID_SECTIONS = [
@@ -59,8 +62,6 @@ const CreateArticleSchema = z.object({
  */
 export async function GET(request: Request) {
   try {
-    await connectDB();
-
     const { searchParams } = new URL(request.url);
     const section = searchParams.get("section");
     const ageGroup = searchParams.get("ageGroup");
@@ -69,6 +70,28 @@ export async function GET(request: Request) {
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "12", 10)));
     const showAll = searchParams.get("all") === "true";
+    const fresh = searchParams.get("fresh") === "1";
+
+    // Admin "show all" requests bypass cache
+    const cacheKey = showAll
+      ? null
+      : `sec=${section || ""}|age=${ageGroup || ""}|tag=${tag || ""}|q=${search || ""}|p=${page}|l=${limit}`;
+
+    if (cacheKey && !fresh) {
+      const hit = cache.get(cacheKey);
+      if (hit) {
+        return new NextResponse(hit, {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "X-Cache": "HIT",
+            "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+          },
+        });
+      }
+    }
+
+    await connectDB();
 
     // Build filter
     const filter: Record<string, unknown> = {};
@@ -110,7 +133,7 @@ export async function GET(request: Request) {
 
     const sections = sectionCounts.map(s => ({ name: s._id, count: s.count }));
 
-    return NextResponse.json({
+    const body = JSON.stringify({
       success: true,
       data: articles,
       pagination: {
@@ -120,6 +143,21 @@ export async function GET(request: Request) {
         pages: Math.ceil(total / limit),
       },
       sections,
+    });
+
+    if (cacheKey) {
+      cache.set(cacheKey, body);
+    }
+
+    return new NextResponse(body, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "X-Cache": cacheKey ? (fresh ? "BYPASS" : "MISS") : "BYPASS",
+        "Cache-Control": showAll
+          ? "private, no-store"
+          : "public, s-maxage=60, stale-while-revalidate=300",
+      },
     });
   } catch (error) {
     console.error("GET /api/articles error:", error);
@@ -176,6 +214,8 @@ export async function POST(request: Request) {
     }
 
     const article = await Article.create(validated);
+
+    cache.invalidate();
 
     return NextResponse.json(
       { success: true, data: article },

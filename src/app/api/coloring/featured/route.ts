@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import ColoringItem from "@/lib/models/ColoringItem";
+import { apiCache } from "@/lib/apiCache";
 
 export const dynamic = "force-dynamic";
+
+const cache = apiCache("coloring-featured");
+const CACHE_KEY = "__featured__";
 
 /**
  * GET /api/coloring/featured
@@ -11,6 +15,18 @@ export const dynamic = "force-dynamic";
  */
 export async function GET() {
   try {
+    const hit = cache.get(CACHE_KEY);
+    if (hit) {
+      return new NextResponse(hit, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "X-Cache": "HIT",
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        },
+      });
+    }
+
     await connectDB();
 
     // Get a mix: featured items + recently popular items
@@ -34,9 +50,20 @@ export async function GET() {
       return true;
     });
 
-    return NextResponse.json({
+    const body = JSON.stringify({
       success: true,
       data: combined.slice(0, 12),
+    });
+
+    cache.set(CACHE_KEY, body);
+
+    return new NextResponse(body, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "X-Cache": "MISS",
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+      },
     });
   } catch (err) {
     console.error("[GET /api/coloring/featured]", err);

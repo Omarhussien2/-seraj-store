@@ -5,8 +5,12 @@ import ColoringItem from "@/lib/models/ColoringItem";
 import ColoringCategory from "@/lib/models/ColoringCategory";
 import { requireAdmin } from "@/lib/requireAdmin";
 import { invalidateColoringCache } from "@/lib/coloringCache";
+import { apiCache } from "@/lib/apiCache";
 
 export const dynamic = "force-dynamic";
+
+const coloringFeaturedCache = apiCache("coloring-featured");
+const statsCache = apiCache("stats");
 
 /**
  * GET /api/coloring/items/[slug]
@@ -74,6 +78,9 @@ export async function POST(
       { slug, active: true },
       { $inc: { [field]: 1 } }
     );
+
+    coloringFeaturedCache.invalidate();
+    statsCache.invalidate();
 
     return NextResponse.json({ success: true });
   } catch (err) {
@@ -163,6 +170,8 @@ export async function PATCH(
     }
 
     invalidateColoringCache();
+    coloringFeaturedCache.invalidate();
+    statsCache.invalidate();
 
     return NextResponse.json({ success: true, data: item });
   } catch (error) {
@@ -222,6 +231,8 @@ export async function DELETE(
       ).lean();
 
       invalidateColoringCache();
+      coloringFeaturedCache.invalidate();
+      statsCache.invalidate();
 
       return NextResponse.json({
         success: true,
@@ -237,6 +248,8 @@ export async function DELETE(
       await ColoringItem.findOneAndDelete({ slug });
 
       invalidateColoringCache();
+      coloringFeaturedCache.invalidate();
+      statsCache.invalidate();
 
       return NextResponse.json({
         success: true,

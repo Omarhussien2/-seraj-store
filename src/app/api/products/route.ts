@@ -37,6 +37,7 @@ export async function GET(request: Request) {
           headers: {
             "Content-Type": "application/json; charset=utf-8",
             "X-Cache": "HIT",
+            "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
           },
         });
       }
@@ -77,6 +78,9 @@ export async function GET(request: Request) {
       headers: {
         "Content-Type": "application/json; charset=utf-8",
         "X-Cache": cacheKey ? "MISS" : "BYPASS",
+        "Cache-Control": cacheKey
+          ? "public, s-maxage=60, stale-while-revalidate=300"
+          : "private, no-store",
       },
     });
   } catch (error) {
