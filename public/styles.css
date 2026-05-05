@@ -4929,13 +4929,87 @@ body.sc-modal-open { overflow: hidden; touch-action: none; }
   display: flex;
   flex-direction: column;
   align-items: center;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, opacity .15s ease;
+}
+.cb-item-card[draggable="true"] { cursor: grab; }
+.cb-item-card.cb-item-dragging {
+  opacity: .35;
+  cursor: grabbing;
+}
+.cb-item-card.cb-item-drop-target {
+  border-color: var(--seraj);
+  box-shadow: 0 0 0 3px rgba(232, 93, 76, .25);
+  transform: scale(1.02);
+}
+
+/* Drag handle in the top-start corner — clearly grabbable, doesn't fight
+   the remove button. Numbered badge on the opposite corner shows the
+   page order so the user can see at a glance what position each item is. */
+.cb-item-handle {
+  position: absolute;
+  top: 4px;
+  inset-inline-start: 4px;
+  width: 22px; height: 22px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  color: var(--ink-soft);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: grab;
+  user-select: none;
+}
+.cb-item-card.cb-item-dragging .cb-item-handle { cursor: grabbing; }
+.cb-item-order {
+  position: absolute;
+  top: 4px;
+  inset-inline-end: 4px;
+  min-width: 22px; height: 22px;
+  padding: 0 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800;
+  color: var(--paper);
+  background: var(--seraj);
+  border-radius: 999px;
+}
+
+/* Inline ▲▼ reorder buttons — accessible touch/keyboard alternative to
+   drag for users on small screens or with assistive tech. */
+.cb-item-actions {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.cb-item-move {
+  width: 26px; height: 26px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #fff;
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.cb-item-move:not(:disabled):hover {
+  background: var(--seraj);
+  color: var(--paper);
+  border-color: var(--seraj);
+}
+.cb-item-move:disabled { opacity: .35; cursor: not-allowed; }
+
+.cb-reorder-hint {
+  margin: 0 0 10px;
+  font-size: .85rem;
+  color: var(--ink-soft);
+  text-align: center;
 }
 
 .cb-item-img {
   width: 100%;
   aspect-ratio: 1;
   object-fit: contain;
-  margin-bottom: 4px;
+  margin: 26px 0 4px; /* leave room above for handle/order badges */
 }
 
 .cb-item-title {
