@@ -14,10 +14,13 @@ import {
 import { normalizeCouponCode } from "@/lib/coupons/normalize";
 import { getOrCreatePaymentSettings, toPublic as toPaymentPublic } from "@/lib/paymentSettings";
 import { computeDeposit } from "@/lib/depositCalc";
+import { apiCache } from "@/lib/apiCache";
 
 // Force dynamic rendering — prevent Vercel from caching or treating as static
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+const statsCache = apiCache("stats");
 
 // ---------- Zod validation schemas ----------
 const ColoringDetailsSchema = z.object({
@@ -297,6 +300,8 @@ export async function POST(request: Request) {
       throw e;
     }
 
+    statsCache.invalidate();
+
     return NextResponse.json(
       {
         success: true,
@@ -372,6 +377,8 @@ export async function DELETE(request: Request) {
     }
 
     const result = await Order.deleteMany({ _id: { $in: ids } });
+
+    statsCache.invalidate();
 
     return NextResponse.json({
       success: true,

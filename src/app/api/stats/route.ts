@@ -3,6 +3,10 @@ import { connectDB } from "@/lib/db";
 import Order from "@/lib/models/Order";
 import ColoringItem from "@/lib/models/ColoringItem";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { apiCache } from "@/lib/apiCache";
+
+const cache = apiCache("stats");
+const CACHE_KEY = "__stats__";
 
 /**
  * GET /api/stats
@@ -18,10 +22,27 @@ import { requireAdmin } from "@/lib/requireAdmin";
  *   - topColoringItems (top 5 most-saved coloring sheets so the admin can
  *     see which assets are driving the workbook customizer)
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const authError = await requireAdmin();
     if (authError) return authError;
+
+    const { searchParams } = new URL(request.url);
+    const fresh = searchParams.get("fresh") === "1";
+
+    if (!fresh) {
+      const hit = cache.get(CACHE_KEY);
+      if (hit) {
+        return new NextResponse(hit, {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "X-Cache": "HIT",
+            "Cache-Control": "private, no-store",
+          },
+        });
+      }
+    }
 
     await connectDB();
 
@@ -136,7 +157,7 @@ export async function GET() {
 
     const stats = orderStatsResult[0];
 
-    return NextResponse.json({
+    const body = JSON.stringify({
       success: true,
       data: {
         totalOrders: stats.totalOrders[0]?.count || 0,
@@ -151,6 +172,17 @@ export async function GET() {
         oldPendingOrdersCount: stats.oldPendingOrders[0]?.count || 0,
         recentOrders: stats.recentOrders || [],
         topColoringItems: topColoringItems || [],
+      },
+    });
+
+    cache.set(CACHE_KEY, body);
+
+    return new NextResponse(body, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "X-Cache": fresh ? "BYPASS" : "MISS",
+        "Cache-Control": "private, no-store",
       },
     });
   } catch (error) {

@@ -6,9 +6,13 @@ import {
   updateChatSettings,
   type ChatSettingsAdmin,
 } from "@/lib/chatSettings";
+import { apiCache } from "@/lib/apiCache";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+const chatConfigCache = apiCache("chat-config");
+const configCache = apiCache("config");
 
 export async function GET() {
   const authError = await requireAdmin();
@@ -33,6 +37,8 @@ export async function PUT(request: Request) {
   try {
     const body = (await request.json()) as Partial<ChatSettingsAdmin>;
     const doc = await updateChatSettings(body);
+    chatConfigCache.invalidate();
+    configCache.invalidate();
     return NextResponse.json({ success: true, data: toAdmin(doc) });
   } catch (error) {
     console.error("PUT /api/admin/chat-settings error:", error);

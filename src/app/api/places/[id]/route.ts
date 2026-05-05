@@ -3,9 +3,12 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import Place from "@/lib/models/Place";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { apiCache } from "@/lib/apiCache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const cache = apiCache("places");
 
 /**
  * GET /api/places/[id]
@@ -127,6 +130,8 @@ export async function PATCH(
       );
     }
 
+    cache.invalidate();
+
     return NextResponse.json({
       success: true,
       data: place,
@@ -181,6 +186,8 @@ export async function DELETE(
         { status: 404 }
       );
     }
+
+    cache.invalidate();
 
     return NextResponse.json({
       success: true,

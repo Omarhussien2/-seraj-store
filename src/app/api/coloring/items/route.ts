@@ -9,8 +9,12 @@ import {
   setColoringCache,
   invalidateColoringCache,
 } from "@/lib/coloringCache";
+import { apiCache } from "@/lib/apiCache";
 
 export const dynamic = "force-dynamic";
+
+const coloringFeaturedCache = apiCache("coloring-featured");
+const statsCache = apiCache("stats");
 
 /**
  * GET /api/coloring/items
@@ -58,6 +62,7 @@ export async function GET(request: NextRequest) {
           headers: {
             "Content-Type": "application/json; charset=utf-8",
             "X-Cache": "HIT",
+            "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
           },
         });
       }
@@ -121,6 +126,9 @@ export async function GET(request: NextRequest) {
       headers: {
         "Content-Type": "application/json; charset=utf-8",
         "X-Cache": cacheKey ? "MISS" : "BYPASS",
+        "Cache-Control": cacheKey
+          ? "public, s-maxage=60, stale-while-revalidate=300"
+          : "private, no-store",
       },
     });
   } catch (err) {
@@ -202,6 +210,8 @@ export async function POST(request: NextRequest) {
     );
 
     invalidateColoringCache();
+    coloringFeaturedCache.invalidate();
+    statsCache.invalidate();
 
     return NextResponse.json(
       { success: true, data: item },

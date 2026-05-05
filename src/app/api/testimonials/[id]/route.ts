@@ -2,8 +2,11 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Testimonial from "@/lib/models/Testimonial";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { apiCache } from "@/lib/apiCache";
 
 export const dynamic = "force-dynamic";
+
+const cache = apiCache("testimonials");
 
 export async function PATCH(
   request: Request,
@@ -28,6 +31,8 @@ export async function PATCH(
         { status: 404 }
       );
     }
+
+    cache.invalidate();
 
     return NextResponse.json({ success: true, data: updated });
   } catch (error) {
@@ -57,6 +62,8 @@ export async function DELETE(
         { status: 404 }
       );
     }
+
+    cache.invalidate();
 
     return NextResponse.json({ success: true, data: {} });
   } catch (error) {

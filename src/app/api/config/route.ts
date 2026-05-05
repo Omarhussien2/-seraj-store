@@ -3,10 +3,31 @@ import { connectDB } from "@/lib/db";
 import SiteContent from "@/lib/models/SiteContent";
 import { getOrCreatePaymentSettings, toPublic as toPaymentPublic } from "@/lib/paymentSettings";
 import { getOrCreateChatSettings, toPublic as toChatPublic } from "@/lib/chatSettings";
+import { apiCache } from "@/lib/apiCache";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+const cache = apiCache("config");
+const CACHE_KEY = "__config__";
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const fresh = searchParams.get("fresh") === "1";
+
+  if (!fresh) {
+    const hit = cache.get(CACHE_KEY);
+    if (hit) {
+      return new NextResponse(hit, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "X-Cache": "HIT",
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        },
+      });
+    }
+  }
+
   let shippingFee = parseInt(process.env.NEXT_PUBLIC_SHIPPING_FEE || "35", 10);
   let freeShippingAbove = parseInt(process.env.NEXT_PUBLIC_FREE_SHIPPING_ABOVE || "0", 10);
   let checkoutContinueShoppingText = "كمل تسوق";
@@ -36,14 +57,9 @@ export async function GET() {
       if (s.key === "checkout_delivery_estimate_text") checkoutDeliveryEstimateText = s.value;
     }
 
-    // Chat widget visibility comes from ChatSettings (the single source of
-    // truth managed via /admin/chat-settings). The legacy SiteContent keys
-    // chat_widget_enabled / chat_widget_hidden_pages are no longer consulted.
     try {
       const chat = toChatPublic(await getOrCreateChatSettings());
       chatWidgetEnabled = chat.enabled;
-      // Legacy field — only meaningful in blacklist mode. The richer
-      // routesMode/routesList lives on /api/chat-config.
       chatWidgetHiddenPages =
         chat.routesMode === "blacklist" ? chat.routesList.join(",") : "";
     } catch {
@@ -61,7 +77,7 @@ export async function GET() {
     // DB unavailable — use env var fallbacks
   }
 
-  return NextResponse.json({
+  const body = JSON.stringify({
     success: true,
     data: {
       whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "",
@@ -76,6 +92,17 @@ export async function GET() {
       chatWidgetHiddenPages,
       depositEnabled,
       depositPercent,
+    },
+  });
+
+  cache.set(CACHE_KEY, body);
+
+  return new NextResponse(body, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "X-Cache": fresh ? "BYPASS" : "MISS",
+      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
     },
   });
 }
