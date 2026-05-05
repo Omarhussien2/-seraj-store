@@ -3712,8 +3712,13 @@
          if (draggedIdx === null) return;
          var targetIdx = parseInt(card.dataset.index, 10);
          if (isNaN(draggedIdx) || isNaN(targetIdx) || draggedIdx === targetIdx) return;
+         // Forward drag (draggedIdx < targetIdx): removing the source first
+         // shifts every subsequent index down by one, so the target card now
+         // sits at targetIdx-1. Reinsert there so the drop matches the
+         // highlighted ring. Backward drags don't shift the target.
+         var insertAt = draggedIdx < targetIdx ? targetIdx - 1 : targetIdx;
          var moved = coloringCart.splice(draggedIdx, 1)[0];
-         coloringCart.splice(targetIdx, 0, moved);
+         coloringCart.splice(insertAt, 0, moved);
          saveColoringCart();
          renderColoringBook();
        });
