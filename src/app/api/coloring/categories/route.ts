@@ -29,11 +29,17 @@ export async function GET(request: Request) {
 
     // Categories rarely change, so a 60s public cache is a big win and
     // admins always pass ?all=true so they bypass it.
+    //
+    // The cache key distinguishes "param absent" (parentSlug === null,
+    // which loads all categories) from "param present and empty"
+    // (parentSlug === "", which only matches categories with empty
+    // parentSlug). Without this, the two requests collide on the same
+    // key but return different data.
     const cacheKey = showAll
       ? null
       : `cats|tree=${wantTree ? "1" : "0"}|feat=${
           featuredOnly ? "1" : "0"
-        }|p=${parentSlug ?? ""}`;
+        }|p=${parentSlug === null ? "__none__" : parentSlug}`;
 
     if (cacheKey) {
       const hit = getColoringCache(cacheKey);

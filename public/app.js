@@ -3525,12 +3525,22 @@
       html += pagesWarning;
      
      // Left: Items Grid
-     html += '<div class="cb-items-wrap"><div class="cb-items-list">';
-     coloringCart.forEach(function(item) {
-        html += 
-          '<div class="cb-item-card" data-id="' + item._id + '">' +
-            '<img src="' + item.thumbnail + '" alt="' + item.title + '" class="cb-item-img" />' +
+     html += '<div class="cb-items-wrap">';
+     if (coloringCart.length > 1) {
+       html += '<p class="cb-reorder-hint">اسحب الرسومة من المقبض ⠿ — أو استخدم ▲▼ — لتغيير ترتيب الصفحات في الكشكول.</p>';
+     }
+     html += '<div class="cb-items-list">';
+     coloringCart.forEach(function(item, idx) {
+        html +=
+          '<div class="cb-item-card" data-id="' + item._id + '" data-index="' + idx + '" draggable="true">' +
+            '<span class="cb-item-handle" aria-label="اسحب لإعادة الترتيب" title="اسحب لإعادة الترتيب">⠿</span>' +
+            '<span class="cb-item-order">' + toArabicNum(idx + 1) + '</span>' +
+            '<img src="' + item.thumbnail + '" alt="' + item.title + '" class="cb-item-img" loading="lazy" />' +
             '<span class="cb-item-title">' + item.title + '</span>' +
+            '<div class="cb-item-actions">' +
+              '<button class="cb-item-move" data-id="' + item._id + '" data-dir="up" aria-label="حرّك لفوق"' + (idx === 0 ? ' disabled' : '') + '>▲</button>' +
+              '<button class="cb-item-move" data-id="' + item._id + '" data-dir="down" aria-label="حرّك لتحت"' + (idx === coloringCart.length - 1 ? ' disabled' : '') + '>▼</button>' +
+            '</div>' +
             '<button class="cb-item-remove" data-id="' + item._id + '">✕ شيل</button>' +
           '</div>';
      });
@@ -3640,6 +3650,77 @@
              saveColoringCart();
              renderColoringBook();
           }
+       });
+     });
+
+     // Reorder via ▲▼ (keyboard/touch-friendly fallback for HTML5 DnD).
+     wrap.querySelectorAll('.cb-item-move').forEach(function(btn) {
+       btn.addEventListener('click', function(e) {
+         e.stopPropagation();
+         if (btn.disabled) return;
+         var id = btn.dataset.id;
+         var dir = btn.dataset.dir;
+         var index = coloringCart.findIndex(function(c) { return c._id === id; });
+         if (index < 0) return;
+         var target = dir === 'up' ? index - 1 : index + 1;
+         if (target < 0 || target >= coloringCart.length) return;
+         var moved = coloringCart.splice(index, 1)[0];
+         coloringCart.splice(target, 0, moved);
+         saveColoringCart();
+         renderColoringBook();
+       });
+     });
+
+     // HTML5 drag-and-drop reorder. We track the dragged card's original
+     // index, paint a drop ring on whichever card is currently under the
+     // pointer, and on drop splice the array and re-render. The ▲▼ buttons
+     // above are the equivalent keyboard/touch path so this stays optional.
+     var draggedIdx = null;
+     wrap.querySelectorAll('.cb-item-card').forEach(function(card) {
+       card.addEventListener('dragstart', function(e) {
+         draggedIdx = parseInt(card.dataset.index, 10);
+         card.classList.add('cb-item-dragging');
+         if (e.dataTransfer) {
+           e.dataTransfer.effectAllowed = 'move';
+           // Required for Firefox to actually start the drag.
+           try { e.dataTransfer.setData('text/plain', String(draggedIdx)); } catch (_) {}
+         }
+       });
+       card.addEventListener('dragend', function() {
+         card.classList.remove('cb-item-dragging');
+         wrap.querySelectorAll('.cb-item-drop-target').forEach(function(c) {
+           c.classList.remove('cb-item-drop-target');
+         });
+         draggedIdx = null;
+       });
+       card.addEventListener('dragover', function(e) {
+         if (draggedIdx === null) return;
+         e.preventDefault();
+         if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+         var thisIdx = parseInt(card.dataset.index, 10);
+         if (thisIdx === draggedIdx) return;
+         wrap.querySelectorAll('.cb-item-drop-target').forEach(function(c) {
+           if (c !== card) c.classList.remove('cb-item-drop-target');
+         });
+         card.classList.add('cb-item-drop-target');
+       });
+       card.addEventListener('dragleave', function() {
+         card.classList.remove('cb-item-drop-target');
+       });
+       card.addEventListener('drop', function(e) {
+         e.preventDefault();
+         if (draggedIdx === null) return;
+         var targetIdx = parseInt(card.dataset.index, 10);
+         if (isNaN(draggedIdx) || isNaN(targetIdx) || draggedIdx === targetIdx) return;
+         // Standard "drop onto target = take target's rendered slot" semantics:
+         // after splicing the source out, inserting at the target's ORIGINAL
+         // index places the dragged card exactly where the target was painted
+         // (the target shifts to fill the source's old slot). Behavior is
+         // consistent with the ▲▼ buttons (which use index+1 for "down").
+         var moved = coloringCart.splice(draggedIdx, 1)[0];
+         coloringCart.splice(targetIdx, 0, moved);
+         saveColoringCart();
+         renderColoringBook();
        });
      });
 
