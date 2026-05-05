@@ -132,21 +132,29 @@ Local file-size check confirms large assets in `public/assets`, including a 9.6 
 - Place: text index, `{ active: 1, city: 1, category_ids: 1 }`, single-field indexes on city/free/indoor/category/active.
 - Testimonial: no explicit index for `{ active, order, createdAt }` list query.
 
-### Explain status
+### Mongo `.explain()` baseline
 
-`.explain()` could not be completed yet because the provided repo-scoped `SERAJ_STORE_MONGODB_URI` failed authentication with:
+After receiving a corrected read-only `SERAJ_STORE_MONGODB_URI`, the URI connected successfully. The provided URI defaults to database `test`, which contains the active app collections: products 5, articles 40, orders 2, coloringitems 137, coloringcategories 15, places 480, testimonials 0, sitecontents 90. Database `seraj` only has products 4 and orders 19.
 
-```text
-bad auth : authentication failed
-```
+| Query | ms | Keys | Docs | Returned | Plan | Indexes |
+|---|---:|---:|---:|---:|---|---|
+| `products.list.active.sortOrder` | 1 | 2 | 2 | 2 | SORT > FETCH > IXSCAN | `active_1` |
+| `articles.list.activePublished.sortOrderCreated` | 4 | 40 | 40 | 12 | PROJECTION_SIMPLE > SORT > FETCH > IXSCAN | `active_1` |
+| `coloring.items.active.sortOrderSaved` | 2 | 119 | 119 | 24 | SORT > FETCH > IXSCAN | `active_1` |
+| `coloring.categories.active.sortOrderName` | 2 | 14 | 14 | 14 | SORT > FETCH > IXSCAN | `active_1` |
+| `coloring.featured.activeFeatured.sortOrder` | 1 | 22 | 22 | 8 | SORT > FETCH > IXSCAN | `featured_1_active_1` |
+| `coloring.popular.activeNonFeatured.sortSaved` | 0 | 97 | 97 | 4 | SORT > FETCH > IXSCAN | `featured_1_active_1` |
+| `places.list.active.sortOrder` | 5 | 480 | 480 | 20 | SORT > FETCH > IXSCAN | `active_1` |
+| `testimonials.list.active.sortOrderCreated` | 1 | 0 | 0 | 0 | SORT > COLLSCAN | none |
+| `orders.admin.recent.sortCreated` | 1 | 2 | 2 | 2 | LIMIT > FETCH > IXSCAN | `createdAt_-1` |
 
-A corrected permanent repo secret has been requested. The intended explain set is documented for follow-up:
+Aggregation explains for `articles.sectionCounts.aggregate` and `stats.orders.facet` completed with `ok: 1`, but the Node driver returned the modern aggregation explain shape without direct top-level `executionStats` counters. They should be revisited during Cluster B if index work targets those aggregations.
 
-- products active list sorted by order
-- articles active/published list and section counts aggregation
-- coloring active list, featured list, and popular list
-- places active list sorted by order
-- orders recent/admin list and stats facet
+Mongo findings:
+
+- Current data volumes are small enough that absolute query execution times are low (0–5 ms), so production endpoint latency is dominated more by serverless/connection/cache behavior than raw Mongo scan time.
+- Several hot list queries use a single-field filter index and then in-memory sort: products (`active_1` then sort by `order`), articles (`active_1` then sort by `order, createdAt`), coloring items (`active_1` then sort by `order, savedCount`), coloring categories (`active_1` then sort by `order, nameAr`), and places (`active_1` scanning 480 docs then sorting by `order`).
+- Evidence-backed Cluster B candidates, after Cluster A caching, are compound indexes that match filter+sort patterns such as `active+order`, `active+order+createdAt`, `active+order+savedCount`, `featured+active+order`, `featured+active+savedCount`, and `active+order+nameAr`. Add only if the post-cache baseline still shows Mongo-bound latency.
 
 ## Prioritized bottleneck list
 
