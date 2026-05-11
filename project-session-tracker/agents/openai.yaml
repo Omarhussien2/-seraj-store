@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Session Tracker"
+  short_description: "Track projects, tasks, risks, and session notes"
+  default_prompt: "Use $project-session-tracker to create or update a project tracking file with session notes and task tables."

@@ -68,6 +68,9 @@ interface Order {
   coupon?: {
     code: string;
   };
+  groupBuy?: {
+    code: string;
+  };
   deposit: number;
   remaining: number;
   paymentMethod: string;
@@ -349,10 +352,15 @@ export default function AdminOrdersPage() {
                   <TableCell>
                     <div>{order.total} ج.م</div>
                     {order.discountTotal ? (
-                      <Badge variant="outline" className="mt-1 bg-green-50 text-green-700">
-                        {order.coupon?.code || "كوبون"} -{order.discountTotal} ج.م
+                      <Badge variant="outline" className="mt-1 bg-green-50 text-green-700 text-xs block mb-1">
+                        {order.groupBuy?.code ? `جروب: ${order.groupBuy.code}` : (order.coupon?.code || "كوبون")} -{order.discountTotal} ج.م
                       </Badge>
                     ) : null}
+                    {order.groupBuy?.code && !order.discountTotal && (
+                      <Badge variant="outline" className="mt-1 bg-blue-50 text-blue-700 text-xs block mb-1">
+                        جروب: {order.groupBuy.code}
+                      </Badge>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Select

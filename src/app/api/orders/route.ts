@@ -12,6 +12,8 @@ import {
   rollbackCouponRedemption,
 } from "@/lib/coupons/apply";
 import { normalizeCouponCode } from "@/lib/coupons/normalize";
+import GroupBuy from "@/lib/models/GroupBuy";
+import { calculateGroupBuyDiscount, isGroupExpired } from "@/lib/groupBuy/engine";
 
 // Force dynamic rendering — prevent Vercel from caching or treating as static
 export const dynamic = "force-dynamic";
@@ -56,6 +58,7 @@ const CreateOrderSchema = z.object({
   deposit: z.number().min(0).default(0),
   paymentMethod: z.enum(["instapay"]).default("instapay"),
   couponCode: z.string().min(1).max(64).optional(),
+  groupBuyCode: z.string().min(1).max(64).optional(),
   customStory: CustomStorySchema.optional(),
   customerName: z.string().min(1, "اسم العميل مطلوب"),
   customerPhone: z
@@ -164,9 +167,43 @@ export async function POST(request: Request) {
     let discountTotal = 0;
     let discounts = { shipping: 0, subtotal: 0, products: 0 };
     let coupon: { code: string; couponId: mongoose.Types.ObjectId } | undefined;
+    let groupBuyResult: { code: string; discountApplied: boolean; discountAmount: number; } | undefined;
     let totalAfterDiscount = subtotal + shippingFee;
+    let activeGroupBuyDoc: any = null;
 
-    if (validated.couponCode) {
+    if (validated.groupBuyCode) {
+      const code = validated.groupBuyCode.toUpperCase();
+      activeGroupBuyDoc = await GroupBuy.findOne({ code });
+      
+      if (!activeGroupBuyDoc) {
+        return NextResponse.json({ success: false, error: "كود الجروب غير صحيح" }, { status: 400 });
+      }
+      
+      if (isGroupExpired(activeGroupBuyDoc)) {
+        return NextResponse.json({ success: false, error: "الجروب ده انتهت مدته" }, { status: 400 });
+      }
+      
+      if (activeGroupBuyDoc.status !== "open") {
+        return NextResponse.json({ success: false, error: "الجروب ده مش متاح حالياً" }, { status: 400 });
+      }
+
+      const targetTier = activeGroupBuyDoc.tiers.find((t: any) => t.minOrders === activeGroupBuyDoc.targetOrders);
+      if (targetTier) {
+        const { discountAmount, discountType } = calculateGroupBuyDiscount(targetTier, subtotal, shippingFee);
+        
+        discountTotal += discountAmount;
+        if (discountType === "free_shipping") discounts.shipping += discountAmount;
+        else discounts.subtotal += discountAmount;
+        
+        totalAfterDiscount -= discountAmount;
+        
+        groupBuyResult = {
+          code,
+          discountApplied: true,
+          discountAmount
+        };
+      }
+    } else if (validated.couponCode) {
       try {
         const applied = await applyCouponOrThrow({
           code: validated.couponCode,
@@ -231,6 +268,7 @@ export async function POST(request: Request) {
         discountTotal,
         discounts,
         coupon,
+        groupBuy: groupBuyResult,
         deposit,
         remaining: Math.max(0, totalAfterDiscount - deposit),
         paymentMethod: validated.paymentMethod,
@@ -264,6 +302,24 @@ export async function POST(request: Request) {
       throw e;
     }
 
+    if (activeGroupBuyDoc) {
+      activeGroupBuyDoc.orderIds.push(order._id);
+      activeGroupBuyDoc.confirmedOrders += 1;
+      
+      const reachedTier = activeGroupBuyDoc.tiers
+        .slice()
+        .reverse()
+        .find((t: any) => activeGroupBuyDoc.confirmedOrders >= t.minOrders);
+        
+      activeGroupBuyDoc.currentTier = reachedTier ? reachedTier.minOrders : null;
+      
+      if (activeGroupBuyDoc.confirmedOrders >= activeGroupBuyDoc.targetOrders) {
+        activeGroupBuyDoc.status = "completed";
+      }
+      
+      await activeGroupBuyDoc.save();
+    }
+
     return NextResponse.json(
       {
         success: true,
@@ -276,6 +332,7 @@ export async function POST(request: Request) {
           discountTotal: order.discountTotal,
           discounts: order.discounts,
           couponCode: order.coupon?.code,
+          groupBuyCode: order.groupBuy?.code,
           deposit: order.deposit,
           remaining: order.remaining,
           orderStatus: order.orderStatus,

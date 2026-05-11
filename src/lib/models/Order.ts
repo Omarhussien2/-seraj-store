@@ -84,6 +84,11 @@ export interface IOrder extends Document {
     code: string;
     couponId: mongoose.Types.ObjectId;
   };
+  groupBuy?: {
+    code: string;
+    discountApplied: boolean;
+    discountAmount: number;
+  };
   deposit: number;
   remaining: number;
   paymentMethod: string;
@@ -128,6 +133,12 @@ const OrderSchema = new mongoose.Schema<IOrder>(
     coupon: {
       code: { type: String, trim: true },
       couponId: { type: mongoose.Schema.Types.ObjectId, ref: "Coupon" },
+      _id: false,
+    },
+    groupBuy: {
+      code: { type: String, trim: true },
+      discountApplied: { type: Boolean },
+      discountAmount: { type: Number, min: 0 },
       _id: false,
     },
     deposit: { type: Number, required: true, min: 0, default: 0 },

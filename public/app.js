@@ -22,6 +22,9 @@
   var CHECKOUT_DELIVERY_TEXT = 'عادةً الطلب بيوصل خلال 5 إلى 7 أيام عمل.';
   var CHAT_WIDGET_ENABLED = true;
   var CHAT_HIDDEN_PAGES = ['checkout', 'success', 'wizard', 'preview'];
+  var GROUP_BUY_CONFIG = null;
+  var ACTIVE_GROUP_BUY_CODE = null;
+  try { ACTIVE_GROUP_BUY_CODE = localStorage.getItem('seraj-group-buy'); } catch(e){}
 
   // ----- Cloudinary Config -----
   var CLOUD_NAME = 'dkhndsrhr';
@@ -305,6 +308,9 @@
           }
           showFreeShipBanner();
           updateSerajChatVisibility();
+          fetch('/api/group-buys/config').then(function(r){return r.json()}).then(function(gb) {
+            if (gb.success) GROUP_BUY_CONFIG = gb.data;
+          }).catch(function(){});
           console.log('✅ Config loaded from API');
         }
       })
@@ -503,6 +509,13 @@
       h += '<a href="#/wizard" data-link class="btn btn-primary btn-xl">' + product.ctaText + ' <svg viewBox="0 0 24 24" width="22" height="22"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a>';
     } else if (product.action === 'cart') {
       h += '<button class="btn btn-primary btn-xl" data-add-cart="' + slug + '">' + product.ctaText + ' <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/></svg></button>';
+      if (GROUP_BUY_CONFIG && GROUP_BUY_CONFIG.active) {
+        var gbText = (GROUP_BUY_CONFIG.content && GROUP_BUY_CONFIG.content.ctaButton) ? GROUP_BUY_CONFIG.content.ctaButton : "اشتري مع صحابك!";
+        var gbSubText = (GROUP_BUY_CONFIG.content && GROUP_BUY_CONFIG.content.ctaSubtext) ? GROUP_BUY_CONFIG.content.ctaSubtext : "وخدوا خصم مباشر";
+        h += '<button class="btn btn-secondary btn-xl" style="margin-top:10px; background-color:#ffeb3b; color:#000; border-color:#fbc02d; font-weight:bold;" onclick="window.openGroupBuyModal(\'' + slug + '\')">';
+        h += gbText + ' <small style="display:block; font-size:0.7em; font-weight:normal;">' + gbSubText + '</small>';
+        h += '</button>';
+      }
     }
     h += '</div></div></div>';
     // Gallery — build gallery from product photo + gallery[] images, then video section
@@ -1208,6 +1221,9 @@
     if (currentCoupon) {
       h += '<div class="cart-summary-row coupon-discount-row"><span>كوبون ' + currentCoupon.code + '</span><span>- ' + toArabicNum(discount) + ' ج.م</span></div>';
     }
+    if (ACTIVE_GROUP_BUY_CODE && !currentCoupon) {
+      h += '<div class="cart-summary-row coupon-discount-row"><span>جروب ' + ACTIVE_GROUP_BUY_CODE + '</span><span style="font-size:12px; color:var(--seraj)">(خصم مباشر هيتطبق)</span></div>';
+    }
     h += '<div class="cart-summary-row total"><span>الإجمالي</span><span>' + toArabicNum(grandTotal) + ' ج.م</span></div>';
     h += '</div>';
     if (CHECKOUT_DELIVERY_TEXT) {
@@ -1376,6 +1392,7 @@
       total: grandTotal,
       shippingFee: shipping,
       couponCode: currentCoupon ? currentCoupon.code : undefined,
+      groupBuyCode: (!currentCoupon && ACTIVE_GROUP_BUY_CODE) ? ACTIVE_GROUP_BUY_CODE : undefined,
       deposit: 0,
       paymentMethod: 'instapay'
     };
@@ -1471,6 +1488,8 @@
           whatsappEl.href = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + msg;
         }
       }
+      localStorage.removeItem('seraj-group-buy');
+      ACTIVE_GROUP_BUY_CODE = null;
     } catch (e) { /* silent */ }
   }
 
@@ -1601,6 +1620,7 @@
 
 
     if (name === 'product') renderProductDetail(sub);
+    if (name === 'group-buy') renderGroupBuyPage(sub);
     if (name === 'cart') renderCartPage();
     if (name === 'checkout') renderCheckoutPage();
     if (name === 'wizard') setupWizard();
@@ -4466,5 +4486,157 @@
   } else {
     initPwaInstallBanner();
   }
+
+  // =========================================================
+  // GROUP BUY SYSTEM LOGIC
+  // =========================================================
+  window.openGroupBuyModal = function(productSlug) {
+    if (!GROUP_BUY_CONFIG) return;
+    var modal = document.getElementById('groupBuyModal');
+    var tiersContainer = document.getElementById('gbTiersContainer');
+    if (!modal || !tiersContainer) return;
+    
+    // Fill tiers
+    var tiersHtml = '';
+    var tiers = GROUP_BUY_CONFIG.defaultTiers || [];
+    tiers.forEach(function(t) {
+      var val = t.discountType === 'percent' ? toArabicNum(t.discountValue) + '%' :
+                t.discountType === 'fixed' ? toArabicNum(t.discountValue) + ' ج.م' : 'شحن مجاني';
+      tiersHtml += '<div style="display:flex; justify-content:space-between; align-items:center; padding: 10px; border: 1px solid var(--line); border-radius:8px; margin-bottom:8px;">';
+      tiersHtml += '<span><strong style="color:var(--seraj); font-size:16px;">' + val + ' خصم</strong></span>';
+      tiersHtml += '<span>لما تجمعوا <strong>' + toArabicNum(t.minOrders) + ' طلبات</strong></span>';
+      tiersHtml += '</div>';
+    });
+    tiersContainer.innerHTML = tiersHtml;
+    
+    var btn = document.getElementById('createGroupBuyBtn');
+    btn.onclick = function() { submitCreateGroupBuy(productSlug); };
+    
+    modal.style.display = 'flex';
+  };
+  
+  if(document.getElementById('closeGroupBuyModal')) {
+    document.getElementById('closeGroupBuyModal').onclick = function() {
+      document.getElementById('groupBuyModal').style.display = 'none';
+    };
+  }
+  
+  function submitCreateGroupBuy(productSlug) {
+    var nameInput = document.getElementById('gbCreatorName');
+    var name = nameInput ? nameInput.value.trim() : '';
+    if (!name) {
+      showToast('أدخل اسمك الأول عشان صحابك يعرفوك!');
+      return;
+    }
+    
+    var btn = document.getElementById('createGroupBuyBtn');
+    btn.disabled = true;
+    btn.textContent = 'جاري الإنشاء...';
+    
+    fetch('/api/group-buys', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        createdByName: name,
+        targetOrders: GROUP_BUY_CONFIG.defaultTiers[GROUP_BUY_CONFIG.defaultTiers.length - 1].minOrders
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if(res.success) {
+        document.getElementById('groupBuyModal').style.display = 'none';
+        ACTIVE_GROUP_BUY_CODE = res.data.code;
+        localStorage.setItem('seraj-group-buy', res.data.code);
+        
+        // Add item to cart
+        var p = PRODUCTS[productSlug];
+        if (p) {
+          cart.push({ slug: productSlug, name: p.name, price: p.price, qty: 1 });
+          saveCart();
+        }
+        
+        // Redirect to group page
+        window.location.hash = '#/group-buy/' + res.data.code;
+      } else {
+        showToast(res.error || 'حدث خطأ');
+      }
+    })
+    .catch(function() { showToast('مشكلة في الاتصال بالانترنت'); })
+    .finally(function() {
+      btn.disabled = false;
+      btn.textContent = 'يلا نعمل الجروب ✨';
+    });
+  }
+
+  window.renderGroupBuyPage = function(code) {
+    var container = document.getElementById('groupBuyPage');
+    if (!container) return;
+    container.innerHTML = '<div style="padding:60px 20px; text-align:center;"><div class="outings-spinner" style="margin:0 auto 20px;"></div><p>بنحمل تفاصيل الجروب...</p></div>';
+    
+    if (!code) {
+      container.innerHTML = '<div style="padding:60px 20px; text-align:center;"><h2>الكود غير صحيح</h2></div>';
+      return;
+    }
+    
+    fetch('/api/group-buys/' + code)
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (!res.success) {
+          container.innerHTML = '<div style="padding:60px 20px; text-align:center;"><h2>' + (res.error || 'الجروب غير متاح') + '</h2><a href="#/products" data-link class="btn btn-primary" style="margin-top:20px;">شوف المنتجات المتاحة</a></div>';
+          return;
+        }
+        
+        var group = res.data;
+        var h = '';
+        var progress = Math.min(100, Math.round((group.confirmedOrders / group.targetOrders) * 100));
+        
+        h += '<div class="page-head tight" style="text-align:center; padding-top:40px;">';
+        h += '<img src="assets/seraj.png" style="width:80px; margin-bottom:15px;" />';
+        h += '<h1>جروب ' + group.createdByName + ' للخصم! 🎁</h1>';
+        h += '<p style="color:var(--ink-mute);">' + (group.status === 'open' ? 'باقي وقت وتخلص الفرصة، شارك الرابط مع صحابك وخدوا كلكم خصم.' : 'الجروب ده اكتمل أو انتهى.') + '</p>';
+        h += '</div>';
+        
+        h += '<div class="wrapper" style="max-width:500px; margin: 0 auto; padding-bottom:60px;">';
+        
+        h += '<div style="background:#fff; border:2px solid var(--line); border-radius:12px; padding:20px; margin-bottom:20px; text-align:center;">';
+        h += '<h2 style="font-size:24px; color:var(--seraj); letter-spacing:2px; margin-bottom:10px;">' + group.code + '</h2>';
+        h += '<div style="margin-bottom:15px;">';
+        h += '<div style="height:12px; background:var(--cream-2); border-radius:6px; overflow:hidden; margin-bottom:8px;">';
+        h += '<div style="height:100%; width:' + progress + '%; background:var(--seraj); border-radius:6px;"></div>';
+        h += '</div>';
+        h += '<strong style="font-size:14px;">' + toArabicNum(group.confirmedOrders) + ' من ' + toArabicNum(group.targetOrders) + ' طلبات</strong>';
+        h += '</div>';
+        
+        if (group.status === 'open') {
+          h += '<button class="btn btn-primary btn-xl btn-fullrow" onclick="joinAndBuy(\'' + group.code + '\')" style="margin-bottom:10px;">';
+          h += 'اشتري ضمن الجروب (تطبيق الخصم)';
+          h += '</button>';
+          
+          var shareUrl = window.location.origin + '/#/group-buy/' + group.code;
+          var msg = encodeURIComponent("تعالى نشتري من سِراج وناخد خصم! ادخل على جروبي من هنا: " + shareUrl);
+          h += '<a href="https://wa.me/?text=' + msg + '" target="_blank" class="btn btn-secondary btn-fullrow" style="background:#25D366; color:#fff; border-color:#25D366;">';
+          h += 'ابعته لصحابك على واتساب 💬';
+          h += '</a>';
+        } else {
+          h += '<div style="padding:15px; background:var(--cream-2); border-radius:8px; font-weight:bold;">هذا الجروب غير متاح للمشاركة حالياً.</div>';
+          h += '<a href="#/products" data-link class="btn btn-primary btn-fullrow" style="margin-top:10px;">تسوق منتجات سِراج</a>';
+        }
+        
+        h += '</div>';
+        h += '</div>';
+        
+        container.innerHTML = h;
+      })
+      .catch(function() {
+        container.innerHTML = '<div style="padding:60px 20px; text-align:center;"><h2>مشكلة في الاتصال</h2></div>';
+      });
+  };
+
+  window.joinAndBuy = function(code) {
+    ACTIVE_GROUP_BUY_CODE = code;
+    localStorage.setItem('seraj-group-buy', code);
+    showToast('تم حفظ الكود.. هيتطبق في صفحة الدفع ✦');
+    window.location.hash = '#/products';
+  };
 
 })();
