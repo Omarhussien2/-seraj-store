@@ -9,8 +9,8 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const CreateGroupSchema = z.object({
-  customerName: z.string().min(1, "الاسم مطلوب"),
-  customerPhone: z.string().regex(/^01[0-9]{9}$/, "رقم الموبايل غير صحيح"),
+  createdByName: z.string().min(1, "الاسم مطلوب"),
+  createdByPhone: z.string().regex(/^01[0-9]{9}$/, "رقم الموبايل غير صحيح").optional().default("00000000000"),
   targetOrders: z.number().int().min(2), // How many orders they aim for based on tiers
 });
 
@@ -110,8 +110,8 @@ export async function POST(request: Request) {
 
     const group = await GroupBuy.create({
       code,
-      createdByName: validated.customerName,
-      createdByPhone: validated.customerPhone,
+      createdByName: validated.createdByName,
+      createdByPhone: validated.createdByPhone,
       tiers: config.defaultTiers,
       targetOrders: validated.targetOrders,
       confirmedOrders: 0,
@@ -121,7 +121,7 @@ export async function POST(request: Request) {
       expiresAt,
       orderIds: [],
       content: {
-        shareTitle: config.content.friendBannerTitle.replace("{name}", validated.customerName),
+        shareTitle: config.content.friendBannerTitle.replace("{name}", validated.createdByName),
         shareMessage: config.content.shareMessage,
         successMessage: config.content.completedTitle,
       }

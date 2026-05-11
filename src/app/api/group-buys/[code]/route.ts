@@ -14,12 +14,13 @@ export const runtime = "nodejs";
  */
 export async function GET(
   request: Request,
-  { params }: { params: { code: string } }
+  { params }: { params: Promise<{ code: string }> }
 ) {
   try {
     await connectDB();
 
-    const code = params.code.toUpperCase();
+    const { code: rawCode } = await params;
+    const code = rawCode.toUpperCase();
     const group = await GroupBuy.findOne({ code });
 
     if (!group) {
@@ -66,7 +67,7 @@ export async function GET(
  */
 export async function PATCH(
   request: Request,
-  { params }: { params: { code: string } }
+  { params }: { params: Promise<{ code: string }> }
 ) {
   try {
     const authError = await requireAdmin();
@@ -74,7 +75,8 @@ export async function PATCH(
 
     await connectDB();
     const body = await request.json();
-    const code = params.code.toUpperCase();
+    const { code: rawCode } = await params;
+    const code = rawCode.toUpperCase();
 
     const group = await GroupBuy.findOne({ code });
     if (!group) {

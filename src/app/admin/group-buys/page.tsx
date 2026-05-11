@@ -189,7 +189,7 @@ export default function AdminGroupBuysPage() {
                       <TableCell>
                         <Select
                           value={group.status}
-                          onValueChange={(v) => handleStatusChange(group.code, v)}
+                          onValueChange={(v) => { if (v) handleStatusChange(group.code, v); }}
                         >
                           <SelectTrigger className={`w-32 h-8 text-xs font-semibold ${statusColors[group.status] || ""}`}>
                             {statusLabels[group.status]}

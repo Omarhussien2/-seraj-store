@@ -317,16 +317,50 @@
           }
           showFreeShipBanner();
           updateSerajChatVisibility();
-          fetch('/api/group-buys/config').then(function(r){return r.json()}).then(function(gb) {
-            if (gb.success) GROUP_BUY_CONFIG = gb.data;
-          }).catch(function(){});
           console.log('✅ Config loaded from API');
+          // Fetch group buy config (runs in parallel, doesn't block main config)
+          fetchGroupBuyConfig();
         }
       })
       .catch(function () {
         console.warn('⚠️ Config fetch failed, using fallback values');
         showFreeShipBanner();
+        // Still try to load group buy config even if main config fails
+        fetchGroupBuyConfig();
       });
+  }
+
+  function fetchGroupBuyConfig() {
+    fetch('/api/group-buys/config')
+      .then(function(r) { return r.json(); })
+      .then(function(gb) {
+        if (gb.success) {
+          GROUP_BUY_CONFIG = gb.data;
+          console.log('\u2705 Group buy config loaded:', GROUP_BUY_CONFIG.active ? 'ACTIVE' : 'DISABLED');
+          injectGroupBuyCTA();
+        }
+      })
+      .catch(function() {
+        console.warn('\u26a0\ufe0f Group buy config fetch failed');
+      });
+  }
+
+  function injectGroupBuyCTA() {
+    if (!GROUP_BUY_CONFIG || !GROUP_BUY_CONFIG.active) return;
+    var container = document.getElementById('productDetail');
+    if (!container) return;
+    if (container.querySelector('.gb-cta-injected')) return;
+    var addBtn = container.querySelector('[data-add-cart]');
+    if (!addBtn) return;
+    var slug = addBtn.getAttribute('data-add-cart');
+    var gbText = (GROUP_BUY_CONFIG.content && GROUP_BUY_CONFIG.content.ctaButton) || '\u0627\u0634\u062a\u0631\u064a \u0645\u0639 \u0635\u062d\u0627\u0628\u0643!';
+    var gbSubText = (GROUP_BUY_CONFIG.content && GROUP_BUY_CONFIG.content.ctaSubtext) || '\u0648\u062e\u062f\u0648\u0627 \u062e\u0635\u0645 \u0645\u0628\u0627\u0634\u0631';
+    var gbBtn = document.createElement('button');
+    gbBtn.className = 'btn btn-secondary btn-xl gb-cta-injected';
+    gbBtn.style.cssText = 'margin-top:10px; background-color:#ffeb3b; color:#000; border-color:#fbc02d; font-weight:bold; width:100%;';
+    gbBtn.innerHTML = gbText + ' <small style="display:block; font-size:0.7em; font-weight:normal;">' + gbSubText + '</small>';
+    gbBtn.onclick = function() { window.openGroupBuyModal(slug); };
+    addBtn.parentNode.insertBefore(gbBtn, addBtn.nextSibling);
   }
 
   // ----- Cart State -----
@@ -1794,7 +1828,7 @@
   }
 
   // Valid page names for the SPA router
-  var validPages = ['home', 'products', 'about', 'wizard', 'preview', 'checkout', 'success', 'cart', 'product', 'mama-world', 'article', 'faq', 'shipping', 'returns', 'mama-coloring', 'coloring-book'];
+  var validPages = ['home', 'products', 'about', 'wizard', 'preview', 'checkout', 'success', 'cart', 'product', 'mama-world', 'article', 'faq', 'shipping', 'returns', 'mama-coloring', 'coloring-book', 'group-buy'];
 
   function showPage(name, sub) {
     var target = name;

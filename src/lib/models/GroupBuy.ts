@@ -52,7 +52,7 @@ const GroupBuySchema = new mongoose.Schema<IGroupBuy>(
     code: { type: String, required: true, unique: true, index: true, trim: true },
     
     createdByName: { type: String, required: true, trim: true },
-    createdByPhone: { type: String, required: true, trim: true, index: true },
+    createdByPhone: { type: String, default: "", trim: true, index: true },
     
     tiers: {
       type: [GroupBuyTierSchema],
