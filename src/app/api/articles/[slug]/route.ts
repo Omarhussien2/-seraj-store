@@ -3,9 +3,12 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import Article from "@/lib/models/Article";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { apiCache } from "@/lib/apiCache";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+const cache = apiCache("articles");
 
 // Zod schema for source
 const SourceSchema = z.object({
@@ -117,6 +120,8 @@ export async function PATCH(
       );
     }
 
+    cache.invalidate();
+
     return NextResponse.json({
       success: true,
       data: updated,
@@ -170,6 +175,8 @@ export async function DELETE(
         { status: 404 }
       );
     }
+
+    cache.invalidate();
 
     return NextResponse.json({
       success: true,

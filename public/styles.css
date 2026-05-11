@@ -1344,6 +1344,56 @@ input, textarea { font-family: inherit; }
 }
 .wizard-progress small { font-weight: 700; font-size: 13px; color: var(--ink-mute); margin-top: 6px; display: block; text-align: center; }
 
+/* Wizard stepper — clear "you are on step N of 4" cue above the progress bar. */
+.wizard-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+.ws-dot {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  background: var(--paper);
+  color: var(--ink-mute);
+  border: 2.5px solid var(--ink);
+  box-shadow: 0 2px 0 var(--ink);
+  transition: background .25s, color .25s, transform .25s;
+}
+.ws-dot.is-active {
+  background: var(--seraj);
+  color: var(--paper);
+  transform: scale(1.08);
+}
+.ws-dot.is-done {
+  background: var(--seraj-light);
+  color: var(--ink);
+}
+.ws-line {
+  flex: 1;
+  height: 4px;
+  background: var(--cream-2);
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  position: relative;
+  overflow: hidden;
+}
+.ws-line.is-done::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--seraj);
+}
+
 .wizard-character {
   position: relative;
   display: flex;
@@ -1782,6 +1832,95 @@ input, textarea { font-family: inherit; }
   opacity: .6;
   transform: scale(.9);
   transition: all .2s;
+}
+
+/* ===== Payment mode picker (full vs deposit) =====
+   Shown above the InstaPay card on the checkout page. The full-payment
+   card is the visible default; deposit is a smaller secondary card. */
+.pay-mode {
+  max-width: 640px;
+  margin: 24px auto 0;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pay-mode-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 0 3px 0 var(--ink);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+.pay-mode-card:hover { transform: translateY(-1px); }
+.pay-mode-card.is-active {
+  background: #f0f8e7;
+  box-shadow: 0 5px 0 var(--seraj-dark);
+}
+.pay-mode-card input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--seraj-dark);
+  flex-shrink: 0;
+  margin: 0;
+}
+.pay-mode-body { flex: 1; min-width: 0; }
+.pay-mode-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.pay-mode-sub {
+  font-size: 13px;
+  color: var(--ink-mute);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+.pay-mode-badge {
+  background: var(--seraj);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.pay-mode-deposit {
+  border-width: 2px;
+  box-shadow: 0 2px 0 var(--ink);
+  padding: 10px 14px;
+}
+.pay-mode-deposit .pay-mode-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+.pay-mode-deposit .pay-mode-sub { font-size: 12px; }
+.pay-mode-note {
+  font-size: 12px;
+  color: var(--ember);
+  text-align: center;
+  margin: 4px 0 0;
+  line-height: 1.5;
+}
+.success-deposit-info {
+  margin: 12px auto;
+  max-width: 500px;
+  padding: 12px 16px;
+  background: #fef3c7;
+  border: 2px solid #f59e0b;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #92400e;
+  text-align: center;
+  line-height: 1.6;
 }
 
 .insta-card {
@@ -4013,7 +4152,28 @@ body.sc-modal-open { overflow: hidden; touch-action: none; }
   border-radius: 50%; animation: spin .8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-.articles-empty, .articles-error { text-align: center; padding: 40px 20px; color: var(--ink-mute); }
+.articles-empty, .articles-error {
+  text-align: center; padding: 40px 20px; color: var(--ink);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.articles-loading { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+
+/* Seraj bunny "thinking" loader — bounces softly so the user knows we're alive. */
+.seraj-loader {
+  width: 80px; height: 80px;
+  object-fit: contain;
+  animation: serajBounce 1.2s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+@keyframes serajBounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.05, 0.95); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .seraj-loader { animation: none; }
+}
+.articles-empty h3 { font-size: 1.25rem; margin: 4px 0; }
+.articles-empty p, .articles-error p { color: var(--ink-soft); margin: 0 0 14px; }
 .articles-load-more {
   display: block; margin: 24px auto; padding: 10px 32px;
   border: 2px solid var(--seraj); color: var(--seraj); border-radius: 28px;
@@ -4355,12 +4515,149 @@ body.sc-modal-open { overflow: hidden; touch-action: none; }
 .cat-price { font-weight: 800; font-size: .85rem; color: var(--seraj-dark); }
 .cat-old-price { font-size: .72rem; color: var(--ink-mute); text-decoration: line-through; }
 
+/* "How it works" strip on the coloring-workbook product page. */
+.pd-howitworks { padding: 32px 0 8px; }
+.pd-howitworks .how-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 12px;
+}
+.pd-howitworks .how-step {
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  border-radius: 18px;
+  box-shadow: 0 4px 0 var(--ink);
+  padding: 18px 14px;
+  text-align: center;
+}
+.pd-howitworks .how-step h3 { font-size: 1rem; margin: 6px 0 4px; }
+.pd-howitworks .how-step p { font-size: .9rem; color: var(--ink-soft); margin: 0; }
+.how-step-num {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  background: var(--seraj);
+  color: var(--paper);
+  border: 2px solid var(--ink);
+  box-shadow: 0 2px 0 var(--ink);
+  border-radius: 50%;
+  font-weight: 800; font-size: 16px;
+  margin-bottom: 6px;
+}
+.pd-secondary-cta {
+  margin-top: 20px;
+  display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+}
+@media (max-width: 600px) {
+  .pd-howitworks .how-grid { grid-template-columns: 1fr; }
+}
+
+/* Coloring tab helper cards (browse + popular category) — pure-navigation
+   cards that share the catalog grid with regular products but skip prices. */
+.cat-helper-inner { display: flex; flex-direction: column; height: 100%; }
+.cat-cover-helper {
+  background: linear-gradient(135deg, #fde6c8, #ffd6c5);
+  display: flex; align-items: center; justify-content: center;
+}
+.cat-helper-emoji { font-size: 60px; line-height: 1; }
+.cat-helper-sub { color: var(--seraj-dark); font-weight: 700; font-size: .85rem; }
+
 /* Empty state */
 .catalog-empty-state {
   grid-column: 1 / -1; text-align: center;
-  padding: 60px 20px; color: var(--ink-mute);
+  padding: 40px 20px; color: var(--ink);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
 }
-.catalog-empty-state p { font-size: 1rem; }
+.catalog-empty-state h3 { font-size: 1.3rem; margin: 4px 0; }
+.catalog-empty-state p { font-size: 1rem; color: var(--ink-soft); margin: 0 0 16px; max-width: 360px; }
+.empty-mascot { width: 96px; height: 96px; object-fit: contain; opacity: .9; }
+.empty-mascot.lg { width: 140px; height: 140px; }
+.empty-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+
+/* Cross-sell strip on cart page */
+.cross-sell-strip {
+  margin-top: 28px;
+  padding: 16px 0 4px;
+  border-top: 2px dashed var(--line);
+}
+.cross-sell-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0 0 12px;
+  text-align: center;
+}
+.cross-sell-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.cross-sell-card {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 0 3px 0 var(--ink);
+  padding: 8px 8px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+.cs-thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--cream-2);
+}
+.cs-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.cs-thumb-fallback { background: var(--cream); }
+.cs-meta { display: flex; flex-direction: column; gap: 2px; min-height: 38px; justify-content: center; }
+.cs-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cs-price { font-size: 12px; font-weight: 700; color: var(--seraj-dark); }
+.cs-add {
+  width: 100%;
+  background: var(--seraj);
+  color: var(--paper);
+  border: 2px solid var(--ink);
+  box-shadow: 0 2px 0 var(--ink);
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform .12s, box-shadow .12s;
+}
+.cs-add:hover { background: var(--seraj-dark); }
+.cs-add:active { transform: translateY(2px); box-shadow: 0 0 0 var(--ink); }
+
+@media (max-width: 380px) {
+  .cross-sell-row { grid-template-columns: repeat(2, 1fr); }
+  .cross-sell-card:nth-child(3) { display: none; }
+}
+
+/* 404 page shell */
+.not-found-shell {
+  text-align: center;
+  padding: 60px 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.not-found-shell h2 { font-size: 1.6rem; margin: 4px 0; }
+.not-found-shell p { color: var(--ink-soft); margin: 0 0 16px; max-width: 380px; }
 
 /* Keep homepage product-body text clamped (global override) */
 .product-body h3 {
@@ -4569,6 +4866,43 @@ body.sc-modal-open { overflow: hidden; touch-action: none; }
 }
 
 /* ============ COLORING BOOK PAGE ============ */
+/* Progress strip — visible "X / minY" cue with bar; spans both columns. */
+.cb-progress {
+  grid-column: 1 / -1;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 0 3px 0 var(--ink);
+  padding: 12px 14px;
+}
+.cb-progress-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.cb-progress-head strong { font-size: 1rem; }
+.cb-add-more {
+  font-size: .85rem; font-weight: 800; color: var(--seraj-dark);
+  text-decoration: none;
+  background: var(--cream-2);
+  border: 1.5px solid var(--ink);
+  padding: 4px 10px; border-radius: 999px;
+}
+.cb-add-more:hover { background: var(--seraj); color: var(--paper); }
+.cb-progress-bar {
+  height: 8px;
+  background: var(--cream-2);
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.cb-progress-bar > span {
+  display: block; height: 100%;
+  background: var(--seraj);
+  transition: width .35s ease;
+}
+.cb-progress-low .cb-progress-bar > span { background: #e8a14a; }
+.cb-progress-over .cb-progress-bar > span { background: var(--ember); }
+
 .cb-page-wrap {
   display: grid;
   gap: 24px;
@@ -4595,13 +4929,87 @@ body.sc-modal-open { overflow: hidden; touch-action: none; }
   display: flex;
   flex-direction: column;
   align-items: center;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, opacity .15s ease;
+}
+.cb-item-card[draggable="true"] { cursor: grab; }
+.cb-item-card.cb-item-dragging {
+  opacity: .35;
+  cursor: grabbing;
+}
+.cb-item-card.cb-item-drop-target {
+  border-color: var(--seraj);
+  box-shadow: 0 0 0 3px rgba(232, 93, 76, .25);
+  transform: scale(1.02);
+}
+
+/* Drag handle in the top-start corner — clearly grabbable, doesn't fight
+   the remove button. Numbered badge on the opposite corner shows the
+   page order so the user can see at a glance what position each item is. */
+.cb-item-handle {
+  position: absolute;
+  top: 4px;
+  inset-inline-start: 4px;
+  width: 22px; height: 22px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  color: var(--ink-soft);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: grab;
+  user-select: none;
+}
+.cb-item-card.cb-item-dragging .cb-item-handle { cursor: grabbing; }
+.cb-item-order {
+  position: absolute;
+  top: 4px;
+  inset-inline-end: 4px;
+  min-width: 22px; height: 22px;
+  padding: 0 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800;
+  color: var(--paper);
+  background: var(--seraj);
+  border-radius: 999px;
+}
+
+/* Inline ▲▼ reorder buttons — accessible touch/keyboard alternative to
+   drag for users on small screens or with assistive tech. */
+.cb-item-actions {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.cb-item-move {
+  width: 26px; height: 26px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #fff;
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.cb-item-move:not(:disabled):hover {
+  background: var(--seraj);
+  color: var(--paper);
+  border-color: var(--seraj);
+}
+.cb-item-move:disabled { opacity: .35; cursor: not-allowed; }
+
+.cb-reorder-hint {
+  margin: 0 0 10px;
+  font-size: .85rem;
+  color: var(--ink-soft);
+  text-align: center;
 }
 
 .cb-item-img {
   width: 100%;
   aspect-ratio: 1;
   object-fit: contain;
-  margin-bottom: 4px;
+  margin: 26px 0 4px; /* leave room above for handle/order badges */
 }
 
 .cb-item-title {

@@ -92,6 +92,7 @@ export interface IOrder extends Document {
   deposit: number;
   remaining: number;
   paymentMethod: string;
+  paymentMode: "full" | "deposit";
   paymentStatus: "unpaid" | "deposit_paid" | "fully_paid";
   orderStatus: "pending" | "in_progress" | "shipped" | "delivered" | "cancelled";
   customStory?: {
@@ -149,6 +150,12 @@ const OrderSchema = new mongoose.Schema<IOrder>(
       default: "instapay",
       enum: ["instapay"],
     },
+    paymentMode: {
+      type: String,
+      required: true,
+      default: "full",
+      enum: ["full", "deposit"],
+    },
     paymentStatus: {
       type: String,
       required: true,
@@ -173,6 +180,9 @@ const OrderSchema = new mongoose.Schema<IOrder>(
 // Index for admin queries
 OrderSchema.index({ orderStatus: 1, createdAt: -1 });
 OrderSchema.index({ customerPhone: 1 });
+// Speeds up dashboard "deposit pending" lookup + recent-orders sort.
+OrderSchema.index({ paymentStatus: 1, createdAt: -1 });
+OrderSchema.index({ createdAt: -1 });
 
 // ---------- Counter schema for atomic order numbers ----------
 interface ICounter {

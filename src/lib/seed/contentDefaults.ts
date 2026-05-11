@@ -83,4 +83,45 @@ export const DEFAULT_CONTENT = [
   { key: "coloring_min_pages",         section: "coloring-pricing", value: "5"   },
   { key: "coloring_max_pages",         section: "coloring-pricing", value: "50"  },
   { key: "coloring_free_shipping_min", section: "coloring-pricing", value: "100" },
+
+  // ── Hero Marquee ──
+  { key: "hero.marquee", section: "hero", value: "قصص مخصصة ✦ رسوم أصلية ✦ قيم بنحبها ✦ شحن لباب البيت ✦ جودة طباعة عالية" },
+
+  // ── Showcase (أقسام سراج Zig-Zag) ──
+  { key: "showcase.kicker", section: "showcase", value: "أقسام سراج" },
+  { key: "showcase.heading", section: "showcase", value: "اكتشفي عالم سراج المتنوع" },
+  { key: "showcase.subtext", section: "showcase", value: "أكتر من قصص.. تجربة تعليمية متكاملة لبطلنا الصغير" },
+
+  // Category 1: قصص الفتوحات
+  { key: "showcase.cat1.title", section: "showcase", value: "🐎 قصص &quot;سباق الفتوحات&quot;.. أبطالنا الحقيقيين!" },
+  { key: "showcase.cat1.desc", section: "showcase", value: "الأب &quot;عمر&quot; المؤرخ فتح كتبه القديمة وطلّعلنا حكايات أبطالنا بجد، زي خالد بن الوليد وعلي بن أبي طالب والقعقاع! قصص مليانة شجاعة ومغامرة متقسمة لـ 3 مستويات عشان تناسب كل الأعمار (من 2 لـ 4، ومن 4 لـ 8، ومن 8 لـ 12 سنة). وطبعاً منسيناش الأب والأم.. في كل قصة جزء خاص ليك تقرأه باستفاضة عشان تكون جاهز لأسئلة بطلنا الصغير!" },
+  { key: "showcase.cat1.cta", section: "showcase", value: "اكتشف قصص الأبطال" },
+
+  // Category 2: القصة المخصصة
+  { key: "showcase.cat2.title", section: "showcase", value: "🌟 قصة مخصوصة.. باسم وصورة طفلك!" },
+  { key: "showcase.cat2.desc", section: "showcase", value: "عايز تفاجئ طفلك بهدية عمره ما هينساها؟ بخطوات بسيطة جداً، سراج هيدخل ورشه ويألف قصة بطلها هو طفلك نفسه (باسمه وصورته)! قصة ممتعة بتعلمهم قيم وأخلاق بطريقة تفاعلية، وهتجيلك مطبوعة بجودة عالية لحد باب البيت. خلي طفلك يشوف نفسه بطل حقيقي!" },
+  { key: "showcase.cat2.cta", section: "showcase", value: "اصنع قصة لطفلك" },
+
+  // Category 3: ألعاب سراج
+  { key: "showcase.cat3.title", section: "showcase", value: "🧩 ألعاب سراج.. العب واتعلم!" },
+  { key: "showcase.cat3.desc", section: "showcase", value: "مين قال إن المذاكرة والتعلم ملل؟ ألعاب سراج كلها مبنية على فكرة &quot;اللعب والتعلم&quot;. من أول كروت الفلاش كاردز (Flashcards) الذكية لحد الألعاب الترفيهية اللي بتنمي مهارات طفلك وتخليه يكتشف العالم وهو بيضحك ومبسوط." },
+  { key: "showcase.cat3.cta", section: "showcase", value: "شوف ألعاب سراج" },
+
+  // Category 4: عالم ماما وبابا
+  { key: "showcase.cat4.title", section: "showcase", value: "👩‍👧‍👦 عالم ماما وبابا.. ركنكم الخاص للتربية بذكاء!" },
+  { key: "showcase.cat4.desc", section: "showcase", value: "لأن صناعة الأبطال بتبدأ من عندك، جهزنالك مساحة خاصة ليك. مقالات وفيديوهات عن التربية، واقتراحات لأحلى أماكن الخروجات والفسح للأطفال. والمفاجأة؟ &quot;شات بوت&quot; ذكي مدعوم بالذكاء الاصطناعي مع الجدة &quot;زينب&quot;.. جاهزة ترد على أسئلتك وتشاركك خبرتها في أي وقت!" },
+  { key: "showcase.cat4.cta", section: "showcase", value: "ادخل عالم ماما وبابا" },
+
+  // Category 5: سلسلة حكايات سراج
+  { key: "showcase.cat5.title", section: "showcase", value: "🐰 سلسلة حكايات سراج.. الأرنب المسافر عبر الزمن!" },
+  { key: "showcase.cat5.desc", section: "showcase", value: "تعالوا نعيش مغامرات &quot;سراج&quot;.. الولد اللي لقى نفسه فجأة محبوس في جسد أرنب أخضر! عالق بين عالمين: &quot;قرية الابتكار&quot; السحرية وعالمنا الحديث الواقعي. استعدوا لرحلات مثيرة مع آلة الزمن واختراعات الأم &quot;تُقى&quot;، ومغامرات ماتنتهيش مع أصحابه عشان يكتشفوا أسرار الماضي!" },
+  { key: "showcase.cat5.cta", section: "showcase", value: "تابع مغامرات سراج" },
+
+  // ── Footer Contact Info ──
+  { key: "footer.whatsapp", section: "footer", value: "واتساب: ٠١١٥ ٢٨٠ ٦٠٣٤" },
+  { key: "footer.email", section: "footer", value: "البريد: hussien.impression@gmail.com" },
+  { key: "footer.instagram", section: "footer", value: "انستجرام: @seraj.stories" },
+  { key: "footer.col1_title", section: "footer", value: "سِراج" },
+  { key: "footer.col2_title", section: "footer", value: "تواصلي معانا" },
+  { key: "footer.col3_title", section: "footer", value: "الدعم" },
 ];

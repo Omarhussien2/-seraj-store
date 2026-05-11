@@ -25,6 +25,9 @@
   var GROUP_BUY_CONFIG = null;
   var ACTIVE_GROUP_BUY_CODE = null;
   try { ACTIVE_GROUP_BUY_CODE = localStorage.getItem('seraj-group-buy'); } catch(e){}
+  var DEPOSIT_ENABLED = true;       // overridden by /api/config
+  var DEPOSIT_PERCENT = 60;          // overridden by /api/config
+  var paymentMode = 'full';          // 'full' | 'deposit' (chosen on checkout page)
 
   // ----- Cloudinary Config -----
   var CLOUD_NAME = 'dkhndsrhr';
@@ -193,6 +196,8 @@
       }
       if (slug && PRODUCTS[slug]) {
         var p = PRODUCTS[slug];
+        // Hide card if product is marked inactive (admin soft-delete)
+        if (p.active === false) { card.style.display = 'none'; return; }
         var foot = card.querySelector('.product-foot');
         if (foot) {
           var cta = foot.querySelector('.cta-mini');
@@ -277,6 +282,8 @@
             }));
           } catch (e) { /* quota — silent */ }
           console.log('✅ Products loaded from API (' + data.data.length + ')');
+          // Re-populate catalog with fresh data so hidden products disappear
+          populateCatalog();
         }
         updateDOMPrices();
       })
@@ -303,6 +310,8 @@
           if (data.data.checkoutContinueShoppingText) CHECKOUT_CONTINUE_TEXT = data.data.checkoutContinueShoppingText;
           if (data.data.checkoutDeliveryEstimateText) CHECKOUT_DELIVERY_TEXT = data.data.checkoutDeliveryEstimateText;
           if (typeof data.data.chatWidgetEnabled === 'boolean') CHAT_WIDGET_ENABLED = data.data.chatWidgetEnabled;
+          if (typeof data.data.depositEnabled === 'boolean') DEPOSIT_ENABLED = data.data.depositEnabled;
+          if (typeof data.data.depositPercent === 'number') DEPOSIT_PERCENT = data.data.depositPercent;
           if (typeof data.data.chatWidgetHiddenPages === 'string') {
             CHAT_HIDDEN_PAGES = data.data.chatWidgetHiddenPages.split(',').map(function (p) { return p.trim(); }).filter(Boolean);
           }
@@ -462,7 +471,7 @@
     var container = document.getElementById('productDetail');
     if (!container) return;
     var product = PRODUCTS[slug];
-    if (!product) {
+    if (!product || product.active === false) {
       container.innerHTML = '<div class="page-head tight"><span class="kicker">المنتج غير موجود</span><h1>منتهي!</h1><p>المنتج ده مش موجود. شوف منتجاتنا التانية.</p><a href="#/products" data-link class="btn btn-primary" style="margin-top:20px">شوف المنتجات</a></div>';
       return;
     }
@@ -471,6 +480,56 @@
     document.title = product.name + ' | سراج';
     var metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) metaDesc.setAttribute('content', product.longDesc || '');
+
+    // Dynamic Open Graph for shareable product links
+    function setMetaProp(prop, value) {
+      var el = document.querySelector('meta[property="' + prop + '"]');
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute('property', prop);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', value || '');
+    }
+    var ogTitle = product.name + ' — سِراج';
+    var ogImage = resolvePhotoUrl(product.imageUrl, product.media) ||
+      'https://seraj-store.vercel.app/assets/share-banner.jpg';
+    setMetaProp('og:title', ogTitle);
+    setMetaProp('og:description', product.shortDesc || product.longDesc || '');
+    setMetaProp('og:image', ogImage);
+    setMetaProp('og:url', 'https://seraj-store.vercel.app/#/product/' + slug);
+    setMetaProp('og:type', 'product');
+
+    // Inject Product JSON-LD so Google's product rich-result
+    // (price, availability, brand, image) can show on the SERP.
+    var oldLd = document.getElementById('seraj-product-jsonld');
+    if (oldLd) oldLd.parentNode.removeChild(oldLd);
+    try {
+      var ld = {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: product.name,
+        description: (product.shortDesc || product.longDesc || '').slice(0, 500),
+        image: ogImage,
+        brand: { '@type': 'Brand', name: 'سِراج' },
+        offers: {
+          '@type': 'Offer',
+          url: 'https://seraj-store.vercel.app/#/product/' + slug,
+          priceCurrency: 'EGP',
+          price: String(product.price),
+          availability: product.comingSoon
+            ? 'https://schema.org/PreOrder'
+            : 'https://schema.org/InStock'
+        }
+      };
+      var s = document.createElement('script');
+      s.id = 'seraj-product-jsonld';
+      s.type = 'application/ld+json';
+      // JSON.stringify doesn't escape forward slashes, so a product field
+      // containing "</script>" would break out of this tag. Escape it.
+      s.text = JSON.stringify(ld).replace(/<\//g, '<\\/');
+      document.head.appendChild(s);
+    } catch (e) { /* ignore — SEO enhancement only */ }
 
     var isSoon = product.comingSoon;
     var h = '';
@@ -518,12 +577,12 @@
       }
     }
     h += '</div></div></div>';
-    // Gallery — build gallery from product photo + gallery[] images, then video section
+
+    // Gallery — only items uploaded by the admin into product.gallery. The main
+    // product image (product.imageUrl) is already shown in the hero above and is
+    // intentionally NOT auto-prepended here, so the admin has full control over
+    // what appears in the gallery and in what order.
     var galleryImages = [];
-    var mainPhoto = resolvePhotoUrl(product.imageUrl, product.media);
-    if (mainPhoto) {
-      galleryImages.push({ url: mainPhoto, alt: product.name });
-    }
     if (product.gallery && product.gallery.length > 0) {
       var sorted = product.gallery.slice().sort(function(a, b) { return (a.sortOrder || 0) - (b.sortOrder || 0); });
       var images = sorted.filter(function(gi) { return gi.resourceType !== 'video'; });
@@ -1023,7 +1082,14 @@
       if (!emptyEl) {
         var em = document.createElement('div');
         em.id = 'catalogEmpty'; em.className = 'catalog-empty-state';
-        em.innerHTML = '<p>مفيش منتجات في هذا القسم دلوقتي — تابعينا!</p>';
+        em.innerHTML =
+          '<img src="assets/seraj.png" alt="" class="empty-mascot" loading="lazy"/>' +
+          '<h3>القسم ده لسه فاضي!</h3>' +
+          '<p>بنحضّر حاجات حلوة للقسم ده — لحد ما يجهز، شوف اقتراحاتنا:</p>' +
+          '<div class="empty-actions">' +
+            '<a href="#/products" data-link class="btn btn-primary">كل المنتجات</a>' +
+            '<a href="#/wizard" data-link class="btn btn-secondary">اصنع قصة مخصصة</a>' +
+          '</div>';
         grid.appendChild(em);
       } else { emptyEl.style.display = ''; }
     } else if (emptyEl) { emptyEl.style.display = 'none'; }
@@ -1087,6 +1153,52 @@
     document.body.appendChild(t);
     requestAnimationFrame(function () { t.classList.add('show'); });
     setTimeout(function () { t.classList.remove('show'); setTimeout(function () { t.remove(); }, 300); }, 2200);
+  }
+
+  // Render up to 3 product suggestion cards for the cart page that the user
+  // hasn't already added. Each card has a one-tap "أضيف" button that fires
+  // the same data-add-cart handler the rest of the site uses.
+  function renderCrossSellStrip() {
+    var inCart = {};
+    cart.forEach(function (it) { inCart[it.slug] = true; });
+
+    var slugs = Object.keys(PRODUCTS).filter(function (s) {
+      var p = PRODUCTS[s];
+      if (!p || !p.price || p.comingSoon) return false;
+      if (inCart[s]) return false;
+      // Hide the wizard slug; users add custom story via the wizard, not a chip.
+      if (p.isWizard) return false;
+      return true;
+    });
+
+    if (!slugs.length) return '';
+
+    // Stable shuffle: pick first 3 after shuffling once per cart render.
+    slugs.sort(function () { return Math.random() - 0.5; });
+    var picks = slugs.slice(0, 3);
+
+    var h = '<div class="cross-sell-strip">';
+    h += '<h3 class="cross-sell-title">ممكن يعجبك كمان</h3>';
+    h += '<div class="cross-sell-row">';
+    picks.forEach(function (slug) {
+      var p = PRODUCTS[slug];
+      var photoUrl = resolvePhotoUrl(p.imageUrl, p.media);
+      var img = photoUrl ? cloudinaryUrl(photoUrl, 200) : '';
+      h += '<div class="cross-sell-card">';
+      if (img) {
+        h += '<a href="#/product/' + slug + '" data-link class="cs-thumb"><img src="' + img + '" alt="' + escapeHtml(p.name) + '" loading="lazy"/></a>';
+      } else {
+        h += '<a href="#/product/' + slug + '" data-link class="cs-thumb cs-thumb-fallback"></a>';
+      }
+      h += '<div class="cs-meta">';
+      h += '<a href="#/product/' + slug + '" data-link class="cs-name">' + escapeHtml(p.name) + '</a>';
+      h += '<span class="cs-price">' + toArabicNum(p.price) + ' ج.م</span>';
+      h += '</div>';
+      h += '<button class="cs-add" data-add-cart="' + slug + '" aria-label="أضيف ' + escapeHtml(p.name) + ' للسلة">+ أضيف</button>';
+      h += '</div>';
+    });
+    h += '</div></div>';
+    return h;
   }
 
   // ----- Cart Page Rendering -----
@@ -1166,6 +1278,9 @@
     h += '<div class="cart-summary-row total"><span>الإجمالي</span><span>' + toArabicNum(grandTotal) + ' ج.م</span></div>';
     h += '</div>';
 
+    // Cross-sell: surface up to 3 products not already in cart.
+    h += renderCrossSellStrip();
+
     h += '<a href="#/checkout" data-link class="btn btn-primary btn-xl btn-fullrow" style="margin-top:24px">إتمام الطلب</a>';
     h += '<a href="#/products" data-link class="btn btn-ghost btn-fullrow" style="margin-top:8px">' + escapeHtml(CHECKOUT_CONTINUE_TEXT) + '</a>';
 
@@ -1239,12 +1354,43 @@
     h += '<p id="couponStatus" class="' + (currentCoupon ? 'coupon-status ok' : 'coupon-status') + '">' + (currentCoupon ? 'تم تطبيق الخصم بنجاح ✦' : 'اكتبي الكود واضغطي تطبيق قبل تأكيد الطلب.') + '</p>';
     h += '</div></div>';
 
-    // InstaPay card
+    // Payment mode picker — full vs deposit. The full-payment option is the
+    // visible default; the deposit option is a small link below so customers
+    // who don't read carefully take the faster (full-pay) path.
+    var canDeposit = depositAvailable();
+    var depositAmt = canDeposit ? calculateDeposit() : 0;
+    var remainingAmt = Math.max(0, grandTotal - depositAmt);
+    var amountToPayNow = paymentMode === 'deposit' && canDeposit ? depositAmt : grandTotal;
+
+    h += '<div class="pay-mode reveal">';
+    h += '<label class="pay-mode-card ' + (paymentMode === 'full' ? 'is-active' : '') + '">';
+    h += '<input type="radio" name="payMode" value="full"' + (paymentMode === 'full' ? ' checked' : '') + '/>';
+    h += '<div class="pay-mode-body">';
+    h += '<div class="pay-mode-title">💳 ادفع الكامل (' + toArabicNum(grandTotal) + ' ج.م)</div>';
+    h += '<div class="pay-mode-sub">الأسرع — التوصيل ' + toArabicNum(2) + '–' + toArabicNum(5) + ' أيام</div>';
+    h += '</div>';
+    h += '<span class="pay-mode-badge">موصى به</span>';
+    h += '</label>';
+    if (canDeposit) {
+      h += '<label class="pay-mode-card pay-mode-deposit ' + (paymentMode === 'deposit' ? 'is-active' : '') + '">';
+      h += '<input type="radio" name="payMode" value="deposit"' + (paymentMode === 'deposit' ? ' checked' : '') + '/>';
+      h += '<div class="pay-mode-body">';
+      h += '<div class="pay-mode-title">ادفع عربون ' + toArabicNum(depositAmt) + ' ج.م</div>';
+      h += '<div class="pay-mode-sub">والباقي ' + toArabicNum(remainingAmt) + ' ج.م كاش عند التوصيل</div>';
+      h += '</div>';
+      h += '</label>';
+      if (paymentMode === 'deposit') {
+        h += '<p class="pay-mode-note">⚠️ العربون لا يُردّ في حالة الإلغاء (رسوم تجهيز).</p>';
+      }
+    }
+    h += '</div>';
+
+    // InstaPay card — amount shown depends on the chosen payment mode
     h += '<div class="insta-card reveal">';
-    h += '<div class="insta-head"><span>ادفعي على InstaPay</span></div>';
+    h += '<div class="insta-head"><span>ادفع على InstaPay — ' + toArabicNum(amountToPayNow) + ' ج.م</span></div>';
     h += '<div class="insta-body">';
     h += '<div class="qr"><img src="assets/instapay-qr.jpeg" alt="InstaPay QR" style="width:100%;height:100%;object-fit:contain;border-radius:8px" loading="lazy"/></div>';
-    h += '<div class="insta-num"><small>Username</small><strong>' + INSTAPAY_NUMBER + '</strong><small>أو اضغطي على الرابط:</small>';
+    h += '<div class="insta-num"><small>Username</small><strong>' + INSTAPAY_NUMBER + '</strong><small>أو اضغط على الرابط:</small>';
     h += '<a href="' + INSTAPAY_LINK + '" target="_blank" rel="noopener" style="color:var(--seraj);font-weight:700;word-break:break-all">ipn.eg/S/' + INSTAPAY_NUMBER + '</a></div>';
     h += '</div></div>';
 
@@ -1252,7 +1398,7 @@
     h += '<div class="checkout-form-section">';
     h += '<h3 style="font-size:18px;margin-bottom:16px">بيانات التوصيل</h3>';
     h += '<form id="checkoutForm" class="checkout-form" onsubmit="return false">';
-    h += '<label class="field"><span>اسم الأم <small style="color:var(--ember)">*</small></span>';
+    h += '<label class="field"><span>الاسم <small style="color:var(--ember)">*</small></span>';
     h += '<input type="text" id="custName" required placeholder="الاسم بالكامل" autocomplete="name"/></label>';
     h += '<label class="field"><span>رقم الموبايل (واتساب) <small style="color:var(--ember)">*</small></span>';
     h += '<div style="position:relative">';
@@ -1336,6 +1482,39 @@
       });
   }
 
+  // ----- Deposit calculator (mirrors server lib/depositCalc.ts) -----
+  function calculateDeposit() {
+    if (!DEPOSIT_ENABLED) return 0;
+    var pct = Math.max(0, Math.min(100, Number(DEPOSIT_PERCENT) || 0));
+    var total = 0;
+    cart.forEach(function (item) {
+      var qty = Math.max(1, Number(item.qty) || 1);
+      var unit = Math.max(0, Number(item.price) || 0);
+      var product = PRODUCTS[item.slug];
+      var override =
+        product && typeof product.depositAmount === 'number' && product.depositAmount > 0
+          ? Math.min(product.depositAmount, unit)
+          : null;
+      var perUnit = override !== null ? override : (unit * pct) / 100;
+      total += perUnit * qty;
+    });
+    return Math.max(0, Math.round(total));
+  }
+
+  function depositAvailable() {
+    if (!DEPOSIT_ENABLED) return false;
+    if (!cart || cart.length === 0) return false;
+    var dep = calculateDeposit();
+    if (dep <= 0) return false;
+    var subtotal = calculateTotal();
+    var shipping = getShippingFee(subtotal);
+    var grand = Math.max(
+      0,
+      subtotal + shipping - (appliedCoupon ? appliedCoupon.discountTotal : 0)
+    );
+    return dep < grand;
+  }
+
   // ----- Submit Order -----
   function submitOrder() {
     var form = document.getElementById('checkoutForm');
@@ -1371,6 +1550,9 @@
     var currentCoupon = getCurrentCoupon(total, shipping);
     var grandTotal = Math.max(0, total + shipping - (currentCoupon ? currentCoupon.discountTotal : 0));
 
+    var canDeposit = depositAvailable();
+    var depositValue = paymentMode === 'deposit' && canDeposit ? calculateDeposit() : 0;
+
     var orderData = {
       customerName: nameEl.value.trim(),
       customerPhone: phoneEl.value.trim(),
@@ -1393,7 +1575,8 @@
       shippingFee: shipping,
       couponCode: currentCoupon ? currentCoupon.code : undefined,
       groupBuyCode: (!currentCoupon && ACTIVE_GROUP_BUY_CODE) ? ACTIVE_GROUP_BUY_CODE : undefined,
-      deposit: 0,
+      deposit: depositValue,
+      paymentMode: depositValue > 0 ? 'deposit' : 'full',
       paymentMethod: 'instapay'
     };
 
@@ -1434,7 +1617,9 @@
             localStorage.setItem(ORDER_KEY, JSON.stringify({
               orderNumber: data.data.orderNumber,
               total: data.data.total,
-              deposit: data.data.deposit
+              deposit: data.data.deposit,
+              remaining: data.data.remaining,
+              paymentMode: data.data.paymentMode || (data.data.deposit > 0 ? 'deposit' : 'full')
             }));
           } catch (e) { /* silent */ }
 
@@ -1473,6 +1658,7 @@
   function renderSuccessPage() {
     var orderNumEl = document.getElementById('orderNumDisplay');
     var whatsappEl = document.getElementById('whatsappLink');
+    var depositInfoEl = document.getElementById('successDepositInfo');
 
     try {
       var saved = localStorage.getItem(ORDER_KEY);
@@ -1481,11 +1667,24 @@
         if (orderNumEl && orderData.orderNumber) {
           orderNumEl.textContent = orderData.orderNumber;
         }
+        var isDeposit = orderData.paymentMode === 'deposit' && Number(orderData.deposit) > 0;
+        if (depositInfoEl) {
+          if (isDeposit) {
+            depositInfoEl.innerHTML =
+              'دفعت <strong>' + toArabicNum(orderData.deposit) + ' ج.م</strong> عربون الآن — ' +
+              'الباقي <strong>' + toArabicNum(orderData.remaining || 0) + ' ج.م</strong> كاش عند التوصيل.';
+            depositInfoEl.hidden = false;
+          } else {
+            depositInfoEl.hidden = true;
+          }
+        }
         if (whatsappEl && orderData.orderNumber) {
-          var msg = encodeURIComponent(
-            'السلام عليكم، طلبي رقم ' + orderData.orderNumber + ' على متجر سراج. ها هي صورة الإيصال.'
-          );
-          whatsappEl.href = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + msg;
+          var baseMsg = isDeposit
+            ? 'السلام عليكم، طلبي رقم ' + orderData.orderNumber +
+              ' (دفعت عربون ' + orderData.deposit + ' ج.م — الباقي ' +
+              (orderData.remaining || 0) + ' ج.م كاش عند التوصيل). ها هي صورة الإيصال.'
+            : 'السلام عليكم، طلبي رقم ' + orderData.orderNumber + ' على متجر سراج. ها هي صورة الإيصال.';
+          whatsappEl.href = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(baseMsg);
         }
       }
       localStorage.removeItem('seraj-group-buy');
@@ -1534,6 +1733,28 @@
       renderCheckoutPage();
       showToast('تمت إزالة الكوبون');
     }
+  });
+
+  // Payment mode picker (full vs deposit) — re-render so InstaPay amount updates.
+  // Preserves any data the user has already typed in the customer form, since
+  // renderCheckoutPage() rebuilds the entire checkout DOM via innerHTML.
+  document.addEventListener('change', function (e) {
+    var radio = e.target.closest('input[name="payMode"]');
+    if (!radio) return;
+    paymentMode = radio.value === 'deposit' ? 'deposit' : 'full';
+
+    var prev = {};
+    ['custName', 'custPhone', 'custAddress', 'custNotes'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) prev[id] = el.value;
+    });
+
+    renderCheckoutPage();
+
+    Object.keys(prev).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.value = prev[id];
+    });
   });
 
   // ----- Router -----
@@ -1906,6 +2127,18 @@
     if (bar) bar.style.width = n * 25 + '%';
     if (label) label.textContent = 'الخطوة ' + arabicDigits[n] + ' من ٤';
 
+    // Highlight stepper dots: done (steps before n), active (n), pending (after).
+    shell.querySelectorAll('.ws-dot').forEach(function (dot) {
+      var s = parseInt(dot.dataset.step, 10);
+      dot.classList.toggle('is-active', s === n);
+      dot.classList.toggle('is-done', s < n);
+    });
+    var lines = shell.querySelectorAll('.ws-line');
+    lines.forEach(function (line, idx) {
+      // line idx (0-based) connects step (idx+1) to (idx+2) — done if both <= n-1.
+      line.classList.toggle('is-done', idx + 1 < n);
+    });
+
     setTimeout(initReveals, 60);
 
     if (n === 4) {
@@ -2134,7 +2367,7 @@
         data.data.forEach(function (a, i) {
           var sectionColor = getSectionColor(a.section);
           var coverStyle = a.coverImage
-            ? 'background-image:url(' + a.coverImage + ')'
+            ? 'background-image:url(' + cloudinaryUrl(a.coverImage, 600) + ')'
             : 'background:linear-gradient(135deg,' + sectionColor + ',' + sectionColor + '88)';
           html += '<article class="article-card reveal" style="--d:.' + ((i % 12) * 5 + 5) + 's" onclick="location.hash=\'#/article/' + a.slug + '\'">';
           html += '<div class="article-img" style="' + coverStyle + '"></div>';
@@ -2560,7 +2793,7 @@
 
         var sectionColor = getSectionColor(a.section);
         var coverHtml = a.coverImage
-          ? '<div class="article-detail-cover" style="background-image:url(' + a.coverImage + ')"></div>'
+          ? '<div class="article-detail-cover" style="background-image:url(' + cloudinaryUrl(a.coverImage, 1200) + ')"></div>'
           : '';
 
         // Convert markdown to HTML (simple converter)
@@ -2596,7 +2829,7 @@
           data.related.forEach(function (r) {
             var rColor = getSectionColor(r.section);
             var rCover = r.coverImage
-              ? 'background-image:url(' + r.coverImage + ')'
+              ? 'background-image:url(' + cloudinaryUrl(r.coverImage, 400) + ')'
               : 'background:linear-gradient(135deg,' + rColor + ',' + rColor + '88)';
             relatedHtml += '<a href="#/article/' + r.slug + '" class="related-card">';
             relatedHtml += '<div class="related-img" style="' + rCover + '"></div>';
@@ -2816,6 +3049,12 @@
 
     btn.style.transform = 'scale(.95)';
     setTimeout(function () { btn.style.transform = ''; }, 200);
+
+    // If we're on the cart page, refresh it so the new item appears immediately
+    // (relevant for the cross-sell strip).
+    if (location.hash.indexOf('#/cart') === 0) {
+      renderCartPage();
+    }
   });
 
   // ----- Preview → Checkout: ensure custom story is in cart -----
@@ -2858,7 +3097,7 @@
   // CMS CONTENT / DOM INJECTION
   // ---------------------------------------------------------
   var SITE_CONTENT = {};
-  var HTML_KEYS = ['hero.title', 'hero.subtitle', 'about.quote'];
+  var HTML_KEYS = ['hero.title', 'hero.subtitle', 'about.quote', 'showcase.cat1.title', 'showcase.cat1.desc', 'showcase.cat2.title', 'showcase.cat2.desc', 'showcase.cat3.title', 'showcase.cat3.desc', 'showcase.cat4.title', 'showcase.cat4.desc', 'showcase.cat5.title', 'showcase.cat5.desc'];
   var MARKDOWN_KEYS = ['faq.content', 'shipping.content', 'returns.content', 'about.story'];
 
   function fetchSiteContent() {
@@ -2893,11 +3132,22 @@
         }
 
         if (HTML_KEYS.indexOf(key) !== -1) {
-          el.innerHTML = SITE_CONTENT[key];
+          el.innerHTML = SITE_CONTENT[key].replace(/&quot;/g, '"');
         } else if (MARKDOWN_KEYS.indexOf(key) !== -1) {
           el.innerHTML = simpleMarkdown(SITE_CONTENT[key]);
+        } else if (key === 'hero.marquee') {
+          // Marquee: convert "text ✦ text ✦" format into <span>text</span><b>✦</b> structure
+          var items = SITE_CONTENT[key].split('✦').map(function(s){ return s.trim(); }).filter(Boolean);
+          var html = '';
+          // Duplicate for seamless marquee loop
+          for (var dup = 0; dup < 2; dup++) {
+            items.forEach(function(item) {
+              html += '<span>' + item + '</span><b>✦</b>';
+            });
+          }
+          el.innerHTML = html;
         } else {
-          el.textContent = SITE_CONTENT[key];
+          el.textContent = SITE_CONTENT[key].replace(/&quot;/g, '"');
         }
       }
     });
@@ -3243,12 +3493,15 @@
      loadFromUrl();
 
      if (coloringCart.length === 0) {
-        wrap.innerHTML = 
+        wrap.innerHTML =
           '<div class="cb-empty-state">' +
-            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>' +
-            '<p>لسه ما اخترتش رسومات لبطلنا.</p>' +
-            '<p style="font-size:14px;color:var(--ink-mute)">اختار رسومات مجانية من قسم الأنشطة والتلوين</p>' +
-            '<a href="#/mama-world" data-link class="btn btn-primary">يلا نختار سويًا</a>' +
+            '<img src="assets/seraj.png" alt="" class="empty-mascot lg" loading="lazy"/>' +
+            '<h3>كشكولك لسه فاضي!</h3>' +
+            '<p>اختار من مكتبتنا أي رسومات تعجب طفلك، وارجع هنا تحدد عدد الصفحات والغلاف.</p>' +
+            '<div class="empty-actions">' +
+              '<a href="#/mama-coloring" data-link class="btn btn-primary btn-xl">تصفّح الرسومات</a>' +
+              '<a href="#/product/coloring-workbook" data-link class="btn btn-secondary">اعرف أكتر عن الكشكول</a>' +
+            '</div>' +
           '</div>';
         return;
      }
@@ -3275,21 +3528,39 @@
 
      var html = '<div class="cb-page-wrap">';
      
-      // Free download notice
-      html += '<div class="coloring-free-notice">';
-      html += '<p>اختار الرسومات اللي تعجبك وحدد شكل الكشكول — وسِراج هيطبعها ويجلّدها ويوصّلها ✦</p>';
+      // Progress strip — clear visual cue for "you have X of min Y pages".
+      var progressTarget = Math.max(minPages, totalPages);
+      var progressPct = Math.min(100, Math.round((totalPages / progressTarget) * 100));
+      var progressClass = totalPages < minPages ? 'cb-progress-low' :
+        (totalPages > maxPages ? 'cb-progress-over' : 'cb-progress-ok');
+      html += '<div class="cb-progress ' + progressClass + '">';
+      html += '  <div class="cb-progress-head">';
+      html += '    <strong>' + toArabicNum(totalPages) + ' / ' + toArabicNum(minPages) + '+ رسومة</strong>';
+      html += '    <a href="#/mama-coloring" data-link class="cb-add-more">+ ضيف رسومة</a>';
+      html += '  </div>';
+      html += '  <div class="cb-progress-bar"><span style="width:' + progressPct + '%"></span></div>';
       html += '</div>';
 
       // Pages warning
       html += pagesWarning;
      
      // Left: Items Grid
-     html += '<div class="cb-items-wrap"><div class="cb-items-list">';
-     coloringCart.forEach(function(item) {
-        html += 
-          '<div class="cb-item-card" data-id="' + item._id + '">' +
-            '<img src="' + item.thumbnail + '" alt="' + item.title + '" class="cb-item-img" />' +
+     html += '<div class="cb-items-wrap">';
+     if (coloringCart.length > 1) {
+       html += '<p class="cb-reorder-hint">اسحب الرسومة من المقبض ⠿ — أو استخدم ▲▼ — لتغيير ترتيب الصفحات في الكشكول.</p>';
+     }
+     html += '<div class="cb-items-list">';
+     coloringCart.forEach(function(item, idx) {
+        html +=
+          '<div class="cb-item-card" data-id="' + item._id + '" data-index="' + idx + '" draggable="true">' +
+            '<span class="cb-item-handle" aria-label="اسحب لإعادة الترتيب" title="اسحب لإعادة الترتيب">⠿</span>' +
+            '<span class="cb-item-order">' + toArabicNum(idx + 1) + '</span>' +
+            '<img src="' + item.thumbnail + '" alt="' + item.title + '" class="cb-item-img" loading="lazy" />' +
             '<span class="cb-item-title">' + item.title + '</span>' +
+            '<div class="cb-item-actions">' +
+              '<button class="cb-item-move" data-id="' + item._id + '" data-dir="up" aria-label="حرّك لفوق"' + (idx === 0 ? ' disabled' : '') + '>▲</button>' +
+              '<button class="cb-item-move" data-id="' + item._id + '" data-dir="down" aria-label="حرّك لتحت"' + (idx === coloringCart.length - 1 ? ' disabled' : '') + '>▼</button>' +
+            '</div>' +
             '<button class="cb-item-remove" data-id="' + item._id + '">✕ شيل</button>' +
           '</div>';
      });
@@ -3399,6 +3670,77 @@
              saveColoringCart();
              renderColoringBook();
           }
+       });
+     });
+
+     // Reorder via ▲▼ (keyboard/touch-friendly fallback for HTML5 DnD).
+     wrap.querySelectorAll('.cb-item-move').forEach(function(btn) {
+       btn.addEventListener('click', function(e) {
+         e.stopPropagation();
+         if (btn.disabled) return;
+         var id = btn.dataset.id;
+         var dir = btn.dataset.dir;
+         var index = coloringCart.findIndex(function(c) { return c._id === id; });
+         if (index < 0) return;
+         var target = dir === 'up' ? index - 1 : index + 1;
+         if (target < 0 || target >= coloringCart.length) return;
+         var moved = coloringCart.splice(index, 1)[0];
+         coloringCart.splice(target, 0, moved);
+         saveColoringCart();
+         renderColoringBook();
+       });
+     });
+
+     // HTML5 drag-and-drop reorder. We track the dragged card's original
+     // index, paint a drop ring on whichever card is currently under the
+     // pointer, and on drop splice the array and re-render. The ▲▼ buttons
+     // above are the equivalent keyboard/touch path so this stays optional.
+     var draggedIdx = null;
+     wrap.querySelectorAll('.cb-item-card').forEach(function(card) {
+       card.addEventListener('dragstart', function(e) {
+         draggedIdx = parseInt(card.dataset.index, 10);
+         card.classList.add('cb-item-dragging');
+         if (e.dataTransfer) {
+           e.dataTransfer.effectAllowed = 'move';
+           // Required for Firefox to actually start the drag.
+           try { e.dataTransfer.setData('text/plain', String(draggedIdx)); } catch (_) {}
+         }
+       });
+       card.addEventListener('dragend', function() {
+         card.classList.remove('cb-item-dragging');
+         wrap.querySelectorAll('.cb-item-drop-target').forEach(function(c) {
+           c.classList.remove('cb-item-drop-target');
+         });
+         draggedIdx = null;
+       });
+       card.addEventListener('dragover', function(e) {
+         if (draggedIdx === null) return;
+         e.preventDefault();
+         if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+         var thisIdx = parseInt(card.dataset.index, 10);
+         if (thisIdx === draggedIdx) return;
+         wrap.querySelectorAll('.cb-item-drop-target').forEach(function(c) {
+           if (c !== card) c.classList.remove('cb-item-drop-target');
+         });
+         card.classList.add('cb-item-drop-target');
+       });
+       card.addEventListener('dragleave', function() {
+         card.classList.remove('cb-item-drop-target');
+       });
+       card.addEventListener('drop', function(e) {
+         e.preventDefault();
+         if (draggedIdx === null) return;
+         var targetIdx = parseInt(card.dataset.index, 10);
+         if (isNaN(draggedIdx) || isNaN(targetIdx) || draggedIdx === targetIdx) return;
+         // Standard "drop onto target = take target's rendered slot" semantics:
+         // after splicing the source out, inserting at the target's ORIGINAL
+         // index places the dragged card exactly where the target was painted
+         // (the target shifts to fill the source's old slot). Behavior is
+         // consistent with the ▲▼ buttons (which use index+1 for "down").
+         var moved = coloringCart.splice(draggedIdx, 1)[0];
+         coloringCart.splice(targetIdx, 0, moved);
+         saveColoringCart();
+         renderColoringBook();
        });
      });
 

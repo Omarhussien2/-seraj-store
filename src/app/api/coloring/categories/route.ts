@@ -3,6 +3,11 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import ColoringCategory from "@/lib/models/ColoringCategory";
 import { requireAdmin } from "@/lib/requireAdmin";
+import {
+  getColoringCache,
+  setColoringCache,
+  invalidateColoringCache,
+} from "@/lib/coloringCache";
 
 export const dynamic = "force-dynamic";
 
@@ -16,14 +21,42 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(request: Request) {
   try {
-    await connectDB();
-
     const { searchParams } = new URL(request.url);
     const wantTree = searchParams.get("tree") === "1";
     const featuredOnly = searchParams.has("featured");
     const parentSlug = searchParams.get("parent");
-
     const showAll = searchParams.get("all") === "true";
+
+    // Categories rarely change, so a 60s public cache is a big win and
+    // admins always pass ?all=true so they bypass it.
+    //
+    // The cache key distinguishes "param absent" (parentSlug === null,
+    // which loads all categories) from "param present and empty"
+    // (parentSlug === "", which only matches categories with empty
+    // parentSlug). Without this, the two requests collide on the same
+    // key but return different data.
+    const cacheKey = showAll
+      ? null
+      : `cats|tree=${wantTree ? "1" : "0"}|feat=${
+          featuredOnly ? "1" : "0"
+        }|p=${parentSlug === null ? "__none__" : parentSlug}`;
+
+    if (cacheKey) {
+      const hit = getColoringCache(cacheKey);
+      if (hit) {
+        return new NextResponse(hit, {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "X-Cache": "HIT",
+            "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+          },
+        });
+      }
+    }
+
+    await connectDB();
+
     const filter: Record<string, unknown> = {};
     if (!showAll) filter.active = true;
     if (featuredOnly) filter.featured = true;
@@ -36,6 +69,7 @@ export async function GET(request: Request) {
       .sort({ order: 1, nameAr: 1 })
       .lean();
 
+    let body: string;
     if (wantTree) {
       // Build parent → children tree
       const topLevel = categories.filter((c) => !c.parentSlug);
@@ -43,10 +77,25 @@ export async function GET(request: Request) {
         ...parent,
         children: categories.filter((c) => c.parentSlug === parent.slug),
       }));
-      return NextResponse.json({ success: true, data: tree });
+      body = JSON.stringify({ success: true, data: tree });
+    } else {
+      body = JSON.stringify({ success: true, data: categories });
     }
 
-    return NextResponse.json({ success: true, data: categories });
+    if (cacheKey) {
+      setColoringCache(cacheKey, body);
+    }
+
+    return new NextResponse(body, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "X-Cache": cacheKey ? "MISS" : "BYPASS",
+        "Cache-Control": cacheKey
+          ? "public, s-maxage=60, stale-while-revalidate=300"
+          : "private, no-store",
+      },
+    });
   } catch (err) {
     console.error("[GET /api/coloring/categories]", err);
     return NextResponse.json(
@@ -112,6 +161,8 @@ export async function POST(request: Request) {
     }
 
     const category = await ColoringCategory.create({ ...validated, slug });
+
+    invalidateColoringCache();
 
     return NextResponse.json(
       { success: true, data: category },

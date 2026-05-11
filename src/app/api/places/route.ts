@@ -3,9 +3,12 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import Place from "@/lib/models/Place";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { apiCache } from "@/lib/apiCache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const cache = apiCache("places");
 
 /**
  * GET /api/places
@@ -14,8 +17,6 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(request: Request) {
   try {
-    await connectDB();
-
     const { searchParams } = new URL(request.url);
     const city = searchParams.get("city");
     const category = searchParams.get("category");
@@ -26,9 +27,34 @@ export async function GET(request: Request) {
     const showAll = searchParams.get("all") === "true";
     const minPriceAbove = searchParams.get("min_price_above");
     const maxPriceBelow = searchParams.get("max_price_below");
+    const fresh = searchParams.get("fresh") === "1";
 
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.max(1, Math.min(100, parseInt(searchParams.get("limit") || "20", 10)));
+
+    const cacheKey = showAll
+      ? null
+      : `city=${city || ""}|cat=${category || ""}|free=${isFree || ""}|io=${
+          indoorOutdoor || ""
+        }|area=${area || ""}|q=${q || ""}|min=${
+          minPriceAbove || ""
+        }|max=${maxPriceBelow || ""}|p=${page}|l=${limit}`;
+
+    if (cacheKey && !fresh) {
+      const hit = cache.get(cacheKey);
+      if (hit) {
+        return new NextResponse(hit, {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "X-Cache": "HIT",
+            "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+          },
+        });
+      }
+    }
+
+    await connectDB();
 
     const filter: Record<string, unknown> = {};
     if (!showAll) {
@@ -76,12 +102,27 @@ export async function GET(request: Request) {
 
     const places = await query.lean();
 
-    return NextResponse.json({
+    const body = JSON.stringify({
       success: true,
       count: total,
       data: places,
       page,
       totalPages,
+    });
+
+    if (cacheKey) {
+      cache.set(cacheKey, body);
+    }
+
+    return new NextResponse(body, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "X-Cache": cacheKey ? (fresh ? "BYPASS" : "MISS") : "BYPASS",
+        "Cache-Control": showAll
+          ? "private, no-store"
+          : "public, s-maxage=60, stale-while-revalidate=300",
+      },
     });
   } catch (error) {
     console.error("GET /api/places error:", error);
@@ -164,6 +205,8 @@ export async function POST(request: Request) {
     };
 
     const place = await Place.create(placeData);
+
+    cache.invalidate();
 
     return NextResponse.json(
       { success: true, data: place },

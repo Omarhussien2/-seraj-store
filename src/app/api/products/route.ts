@@ -3,6 +3,11 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import { requireAdmin } from "@/lib/requireAdmin";
+import {
+  getProductsCache,
+  setProductsCache,
+  invalidateProductsCache,
+} from "@/lib/productsCache";
 
 export const dynamic = "force-dynamic";
 
@@ -13,13 +18,32 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(request: Request) {
   try {
-    await connectDB();
-
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
     const section = searchParams.get("section");
     const series = searchParams.get("series");
     const showAll = searchParams.get("all") === "true";
+
+    // Admin "show all" requests are never cached — admins need fresh data.
+    const cacheKey = showAll
+      ? null
+      : `cat=${category || ""}|sec=${section || ""}|ser=${series || ""}`;
+
+    if (cacheKey) {
+      const hit = getProductsCache(cacheKey);
+      if (hit) {
+        return new NextResponse(hit, {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "X-Cache": "HIT",
+            "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+          },
+        });
+      }
+    }
+
+    await connectDB();
 
     const filter: Record<string, unknown> = {};
     if (!showAll) {
@@ -39,10 +63,25 @@ export async function GET(request: Request) {
       .sort({ order: 1 })
       .lean();
 
-    return NextResponse.json({
+    const body = JSON.stringify({
       success: true,
       count: products.length,
       data: products,
+    });
+
+    if (cacheKey) {
+      setProductsCache(cacheKey, body);
+    }
+
+    return new NextResponse(body, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "X-Cache": cacheKey ? "MISS" : "BYPASS",
+        "Cache-Control": cacheKey
+          ? "public, s-maxage=60, stale-while-revalidate=300"
+          : "private, no-store",
+      },
     });
   } catch (error) {
     console.error("GET /api/products error:", error);
@@ -84,6 +123,7 @@ const CreateProductSchema = z.object({
   badgeSoon: z.boolean().optional(),
   price: z.number().min(0),
   originalPrice: z.number().min(0).nullable().optional(),
+  depositAmount: z.number().min(0).nullable().optional(),
   priceText: z.string().min(1),
   originalPriceText: z.string().nullable().optional(),
   category: z.enum(["قصص جاهزة", "قصص مخصصة", "فلاش كاردز", "مجموعات"]),
@@ -128,6 +168,7 @@ export async function POST(request: Request) {
     }
 
     const product = await Product.create(validated);
+    invalidateProductsCache();
 
     return NextResponse.json(
       { success: true, data: product },

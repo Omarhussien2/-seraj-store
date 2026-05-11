@@ -201,7 +201,7 @@ export default function TestimonialsAdmin() {
             <div className="space-y-4 pt-2">
               <input
                 type="text"
-                placeholder="اسم الأم"
+                placeholder="الاسم"
                 className="w-full border rounded-lg px-3 py-2"
                 value={editingTestimonial.name || ""}
                 onChange={(e) => updateField("name", e.target.value)}

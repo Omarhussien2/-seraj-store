@@ -3,8 +3,12 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import SiteContent from "@/lib/models/SiteContent";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { apiCache } from "@/lib/apiCache";
 
 export const dynamic = "force-dynamic";
+
+const cache = apiCache("coloring-pricing");
+const CACHE_KEY = "__pricing__";
 
 // Fallback defaults (used when DB is unavailable or key not seeded yet)
 const DEFAULTS = {
@@ -32,7 +36,24 @@ const FIELD_TO_KEY: Record<string, string> = Object.fromEntries(
  * Returns current coloring print pricing from SiteContent (admin-configurable).
  * Falls back to hardcoded defaults if DB is unavailable.
  */
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const fresh = searchParams.get("fresh") === "1";
+
+  if (!fresh) {
+    const hit = cache.get(CACHE_KEY);
+    if (hit) {
+      return new NextResponse(hit, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "X-Cache": "HIT",
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        },
+      });
+    }
+  }
+
   const pricing = { ...DEFAULTS };
 
   try {
@@ -45,13 +66,23 @@ export async function GET() {
       const val = parseInt(s.value, 10);
       if (isNaN(val)) continue;
       const field = KEY_MAP[s.key];
-      if (field) (pricing as any)[field] = val;
+      if (field) (pricing as Record<string, number>)[field] = val;
     }
   } catch {
     // DB unavailable — use defaults silently
   }
 
-  return NextResponse.json({ success: true, data: pricing });
+  const body = JSON.stringify({ success: true, data: pricing });
+  cache.set(CACHE_KEY, body);
+
+  return new NextResponse(body, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "X-Cache": fresh ? "BYPASS" : "MISS",
+      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+    },
+  });
 }
 
 // Zod schema for PUT (admin update)
@@ -94,6 +125,8 @@ export async function PUT(request: Request) {
     if (ops.length > 0) {
       await SiteContent.bulkWrite(ops);
     }
+
+    cache.invalidate();
 
     return NextResponse.json({
       success: true,

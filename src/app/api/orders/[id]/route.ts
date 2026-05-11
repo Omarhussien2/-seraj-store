@@ -4,6 +4,9 @@ import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import Order from "@/lib/models/Order";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { apiCache } from "@/lib/apiCache";
+
+const statsCache = apiCache("stats");
 
 // ---------- Zod schema for PATCH ----------
 const PatchOrderSchema = z.object({
@@ -14,7 +17,6 @@ const PatchOrderSchema = z.object({
     .enum(["unpaid", "deposit_paid", "fully_paid"])
     .optional(),
   notes: z.string().optional(),
-  // storyStatus is patched via dot-notation to avoid overwriting other customStory fields
   storyStatus: z
     .enum(["pending", "reviewed", "sent_to_print", "delivered"])
     .optional(),
@@ -89,8 +91,6 @@ export async function PATCH(
     const body = await request.json();
     const validated = PatchOrderSchema.parse(body);
 
-    // Build update with dot-notation for nested fields to avoid overwriting
-    // the entire customStory subdocument (which would wipe heroName, age, etc.)
     const updateFields: Record<string, unknown> = {};
     if (validated.orderStatus !== undefined) updateFields.orderStatus = validated.orderStatus;
     if (validated.paymentStatus !== undefined) updateFields.paymentStatus = validated.paymentStatus;
@@ -109,6 +109,8 @@ export async function PATCH(
         { status: 404 }
       );
     }
+
+    statsCache.invalidate();
 
     return NextResponse.json({
       success: true,
@@ -140,7 +142,6 @@ export async function PATCH(
 /**
  * DELETE /api/orders/[id]
  * Permanently delete an order (admin only)
- * Use for removing test/junk orders.
  */
 export async function DELETE(
   _request: Request,
@@ -168,6 +169,8 @@ export async function DELETE(
         { status: 404 }
       );
     }
+
+    statsCache.invalidate();
 
     return NextResponse.json({
       success: true,

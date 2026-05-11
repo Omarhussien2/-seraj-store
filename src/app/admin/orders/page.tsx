@@ -74,6 +74,7 @@ interface Order {
   deposit: number;
   remaining: number;
   paymentMethod: string;
+  paymentMode?: "full" | "deposit";
   paymentStatus: "unpaid" | "deposit_paid" | "fully_paid";
   orderStatus: "pending" | "in_progress" | "shipped" | "delivered" | "cancelled";
   customStory?: CustomStory;
@@ -134,7 +135,17 @@ const PAGE_SIZE = 20;
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
+  // Read initial filter from URL (?status=pending) so dashboard "quick action"
+  // links land directly on the filtered view.
+  const [filter, setFilter] = useState(() => {
+    if (typeof window === "undefined") return "all";
+    const sp = new URLSearchParams(window.location.search);
+    const s = sp.get("status");
+    if (s && ["pending", "in_progress", "shipped", "delivered", "cancelled"].includes(s)) {
+      return s;
+    }
+    return "all";
+  });
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -361,6 +372,13 @@ export default function AdminOrdersPage() {
                         جروب: {order.groupBuy.code}
                       </Badge>
                     )}
+                    {order.deposit > 0 && order.paymentStatus !== "fully_paid" ? (
+                      <div className="mt-1 text-xs text-amber-700 leading-snug">
+                        عربون {order.deposit} ج.م
+                        <br />
+                        متبقي {order.remaining} ج.م كاش
+                      </div>
+                    ) : null}
                   </TableCell>
                   <TableCell>
                     <Select
@@ -550,8 +568,24 @@ export default function AdminOrdersPage() {
                       </p>
                     ) : null}
                     <p><strong>الإجمالي:</strong> {selectedOrder.total} ج.م</p>
-                    <p><strong>المقدم:</strong> {selectedOrder.deposit} ج.م</p>
-                    <p><strong>المتبقي:</strong> {selectedOrder.remaining} ج.م</p>
+                    <p><strong>المقدم (عربون InstaPay):</strong> {selectedOrder.deposit} ج.م</p>
+                    <p><strong>المتبقي (كاش عند التوصيل):</strong> {selectedOrder.remaining} ج.م</p>
+                    {selectedOrder.deposit > 0 &&
+                    selectedOrder.paymentStatus !== "fully_paid" ? (
+                      <Button
+                        size="sm"
+                        className="mt-2 bg-green-600 hover:bg-green-700"
+                        onClick={() =>
+                          updateOrderStatus(
+                            selectedOrder._id,
+                            "paymentStatus",
+                            "fully_paid"
+                          )
+                        }
+                      >
+                        ✓ تم استلام الباقي ({selectedOrder.remaining} ج.م)
+                      </Button>
+                    ) : null}
                   </div>
                 </CardContent>
               </Card>

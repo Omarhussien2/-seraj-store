@@ -3,6 +3,7 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { invalidateProductsCache } from "@/lib/productsCache";
 
 /**
  * GET /api/products/[slug]
@@ -54,6 +55,7 @@ const PatchProductSchema = z.object({
   badgeSoon: z.boolean().optional(),
   price: z.number().min(0).optional(),
   originalPrice: z.number().min(0).nullable().optional(),
+  depositAmount: z.number().min(0).nullable().optional(),
   priceText: z.string().min(1).optional(),
   originalPriceText: z.string().nullable().optional(),
   category: z.enum(["قصص جاهزة", "قصص مخصصة", "فلاش كاردز", "مجموعات"]).optional(),
@@ -123,6 +125,8 @@ export async function PATCH(
       );
     }
 
+    invalidateProductsCache();
+
     return NextResponse.json({
       success: true,
       data: product,
@@ -182,6 +186,8 @@ export async function DELETE(
         { new: true }
       ).lean();
 
+      invalidateProductsCache();
+
       return NextResponse.json({
         success: true,
         data: updated,
@@ -190,6 +196,7 @@ export async function DELETE(
     } else {
       // Hard delete since it's already soft-deleted
       await Product.findOneAndDelete({ slug });
+      invalidateProductsCache();
       
       return NextResponse.json({
         success: true,
