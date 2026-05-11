@@ -571,7 +571,7 @@
     h += '<div class="pd-topnav">';
     h += '<a href="#/products" data-link class="icon-btn"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M10 6l-6 6 6 6M4 12h16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a>';
     h += '<span class="pd-nav-label">منتجات سِراج</span>';
-    h += '<span></span></div>';
+    h += '<button class="icon-btn" onclick="window.shareProduct(\'' + slug + '\', \'' + escapeHtml(product.name).replace(/'/g, "\\'") + '\')" title="مشاركة المنتج"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg></button></div>';
     // Hero
     h += '<div class="pd-wrap">';
     var heroPhoto = resolvePhotoUrl(product.imageUrl, product.media);
@@ -4863,6 +4863,23 @@
     initPwaInstallBanner();
   }
 
+  // =========================================================
+  // NATIVE SHARE LOGIC
+  // =========================================================
+  window.shareProduct = function(slug, name) {
+    var url = window.location.origin + '/#/product/' + slug;
+    var text = 'شوف المنتج ده من سِراج: ' + name;
+    if (navigator.share) {
+      navigator.share({
+        title: name,
+        text: text,
+        url: url
+      }).catch(function(e) { console.log('Share error', e); });
+    } else {
+      var waUrl = 'https://wa.me/?text=' + encodeURIComponent(text + '\n' + url);
+      window.open(waUrl, '_blank');
+    }
+  };
   // =========================================================
   // GROUP BUY SYSTEM LOGIC
   // =========================================================
