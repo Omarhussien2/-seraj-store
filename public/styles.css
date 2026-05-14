@@ -48,18 +48,33 @@
 }
 
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
 html, body { margin: 0; padding: 0; }
 body {
   font-family: var(--body);
   color: var(--ink);
   background: var(--cream);
   min-height: 100vh;
+  max-width: 100%;
   overflow-x: hidden;
   line-height: 1.6;
   font-weight: 500;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+@supports (overflow: clip) {
+  html,
+  body {
+    overflow-x: clip;
+  }
+  .pages,
+  #productDetail {
+    overflow-x: clip;
+  }
 }
 
 img { max-width: 100%; display: block; }
@@ -166,8 +181,8 @@ input, textarea { font-family: inherit; }
 .ship-progress-done { text-align: center; font-size: 13px; font-weight: 700; color: var(--seraj-dark); }
 
 /* ========== PAGES ========== */
-.pages { position: relative; z-index: 1; padding-bottom: calc(var(--bottomnav-h) + 24px); }
-.page { display: none; animation: pageIn .4s ease both; }
+.pages { position: relative; z-index: 1; max-width: 100%; padding-bottom: calc(var(--bottomnav-h) + 24px); overflow-x: hidden; }
+.page { display: none; max-width: 100%; animation: pageIn .4s ease both; }
 .page.is-active { display: block; }
 @keyframes pageIn {
   from { opacity: 0; transform: translateY(8px); }
@@ -2054,13 +2069,19 @@ input, textarea { font-family: inherit; }
 }
 
 /* ========== PRODUCT DETAIL ========== */
+#productDetail {
+  max-width: 100%;
+  overflow-x: hidden;
+}
 .pd-wrap {
+  width: 100%;
   max-width: 1100px;
   margin: 20px auto;
   padding: 0 20px;
   display: grid;
   grid-template-columns: 1fr;
   gap: 30px;
+  min-width: 0;
 }
 @media (min-width: 820px) { .pd-wrap { grid-template-columns: 1fr 1fr; align-items: start; gap: 50px; } }
 .pd-media {
@@ -2072,6 +2093,12 @@ input, textarea { font-family: inherit; }
   place-items: center;
   box-shadow: 0 6px 0 var(--ink);
   overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
+}
+.pd-body {
+  min-width: 0;
+  max-width: 100%;
 }
 /* When pd-media has a real photo, let the image dictate proportions */
 .pd-media:has(.product-photo) {
@@ -2106,6 +2133,10 @@ input, textarea { font-family: inherit; }
   border-bottom: 2px dashed var(--line);
   margin: 20px 0;
   flex-wrap: wrap;
+  min-width: 0;
+}
+.pd-foot .btn {
+  min-width: 0;
 }
 
 .cross-sell {
@@ -2545,9 +2576,13 @@ input, textarea { font-family: inherit; }
     text-align: center;
     font-size: 15px;
     padding: 12px 16px;
+    line-height: 1.25;
+    white-space: normal;
   }
   .pd-foot .btn small {
     font-size: 11px !important;
+    line-height: 1.35;
+    white-space: normal;
   }
 
   /* Gallery: smaller thumbnails, tighter layout */
@@ -2592,6 +2627,12 @@ input, textarea { font-family: inherit; }
   .pd-reviews-section,
   .pd-related-section {
     padding: 0;
+  }
+  .pd-related-section .products-grid {
+    padding: 0 14px;
+  }
+  .pd-related-section .product-card {
+    min-width: 0;
   }
 
   /* Gallery lightbox: better mobile sizing */
