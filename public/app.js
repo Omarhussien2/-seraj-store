@@ -356,10 +356,11 @@
     var gbText = (GROUP_BUY_CONFIG.content && GROUP_BUY_CONFIG.content.ctaButton) || '\u0627\u0634\u062a\u0631\u064a \u0645\u0639 \u0635\u062d\u0627\u0628\u0643!';
     var gbSubText = (GROUP_BUY_CONFIG.content && GROUP_BUY_CONFIG.content.ctaSubtext) || '\u0648\u062e\u062f\u0648\u0627 \u062e\u0635\u0645 \u0645\u0628\u0627\u0634\u0631';
     var gbBtn = document.createElement('button');
+    gbBtn.type = 'button';
     gbBtn.className = 'btn btn-secondary btn-xl gb-cta-injected';
+    gbBtn.setAttribute('data-group-buy-product', slug);
     gbBtn.style.cssText = 'margin-top:10px; background-color:#ffeb3b; color:#000; border-color:#fbc02d; font-weight:bold; width:100%;';
     gbBtn.innerHTML = gbText + ' <small style="display:block; font-size:0.7em; font-weight:normal;">' + gbSubText + '</small>';
-    gbBtn.onclick = function() { window.openGroupBuyModal(slug); };
     addBtn.parentNode.insertBefore(gbBtn, addBtn.nextSibling);
   }
 
@@ -605,7 +606,7 @@
       if (GROUP_BUY_CONFIG && GROUP_BUY_CONFIG.active) {
         var gbText = (GROUP_BUY_CONFIG.content && GROUP_BUY_CONFIG.content.ctaButton) ? GROUP_BUY_CONFIG.content.ctaButton : "اشتري مع صحابك!";
         var gbSubText = (GROUP_BUY_CONFIG.content && GROUP_BUY_CONFIG.content.ctaSubtext) ? GROUP_BUY_CONFIG.content.ctaSubtext : "وخدوا خصم مباشر";
-        h += '<button class="btn btn-secondary btn-xl" style="margin-top:10px; background-color:#ffeb3b; color:#000; border-color:#fbc02d; font-weight:bold;" onclick="window.openGroupBuyModal(\'' + slug + '\')">';
+        h += '<button type="button" class="btn btn-secondary btn-xl" data-group-buy-product="' + slug + '" style="margin-top:10px; background-color:#ffeb3b; color:#000; border-color:#fbc02d; font-weight:bold;">';
         h += gbText + ' <small style="display:block; font-size:0.7em; font-weight:normal;">' + gbSubText + '</small>';
         h += '</button>';
       }
@@ -4883,11 +4884,17 @@
   // =========================================================
   // GROUP BUY SYSTEM LOGIC
   // =========================================================
+  function setModalOpen(modal, isOpen) {
+    if (!modal) return;
+    modal.style.display = isOpen ? 'flex' : 'none';
+  }
+
   window.openGroupBuyModal = function(productSlug) {
     if (!GROUP_BUY_CONFIG) return;
     var modal = document.getElementById('groupBuyModal');
     var tiersContainer = document.getElementById('gbTiersContainer');
     if (!modal || !tiersContainer) return;
+    modal.dataset.productSlug = productSlug;
     
     // Fill tiers
     var tiersHtml = '';
@@ -4902,18 +4909,59 @@
     });
     tiersContainer.innerHTML = tiersHtml;
     
-    var btn = document.getElementById('createGroupBuyBtn');
-    btn.onclick = function() { submitCreateGroupBuy(productSlug); };
-    
-    modal.style.display = 'flex';
+    setModalOpen(modal, true);
   };
-  
-  if(document.getElementById('closeGroupBuyModal')) {
-    document.getElementById('closeGroupBuyModal').onclick = function() {
-      document.getElementById('groupBuyModal').style.display = 'none';
-    };
+
+  function closeGroupBuyModal() {
+    var modal = document.getElementById('groupBuyModal');
+    if (modal) delete modal.dataset.productSlug;
+    setModalOpen(modal, false);
   }
-  
+
+  document.addEventListener('click', function(e) {
+    var target = e.target;
+    var groupBuyBtn = target && target.closest ? target.closest('[data-group-buy-product]') : null;
+    if (groupBuyBtn) {
+      e.preventDefault();
+      window.openGroupBuyModal(groupBuyBtn.getAttribute('data-group-buy-product'));
+      return;
+    }
+
+    var createGroupBtn = target && target.closest ? target.closest('#createGroupBuyBtn') : null;
+    if (createGroupBtn) {
+      e.preventDefault();
+      var createModal = document.getElementById('groupBuyModal');
+      var productSlug = createModal ? createModal.dataset.productSlug : '';
+      if (productSlug) submitCreateGroupBuy(productSlug);
+      return;
+    }
+
+    var joinGroupBtn = target && target.closest ? target.closest('[data-join-group-buy]') : null;
+    if (joinGroupBtn) {
+      e.preventDefault();
+      window.joinAndBuy(joinGroupBtn.getAttribute('data-join-group-buy'));
+      return;
+    }
+
+    var modal = document.getElementById('groupBuyModal');
+    if (!modal || modal.style.display === 'none') return;
+
+    var closeBtn = target && target.closest ? target.closest('#closeGroupBuyModal') : null;
+    if (closeBtn) {
+      e.preventDefault();
+      closeGroupBuyModal();
+      return;
+    }
+
+    if (e.target === modal) {
+      closeGroupBuyModal();
+    }
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeGroupBuyModal();
+  });
+
   function submitCreateGroupBuy(productSlug) {
     var nameInput = document.getElementById('gbCreatorName');
     var name = nameInput ? nameInput.value.trim() : '';
@@ -4937,7 +4985,7 @@
     .then(function(r) { return r.json(); })
     .then(function(res) {
       if(res.success) {
-        document.getElementById('groupBuyModal').style.display = 'none';
+        closeGroupBuyModal();
         ACTIVE_GROUP_BUY_CODE = res.data.code;
         localStorage.setItem('seraj-group-buy', res.data.code);
         
@@ -5001,7 +5049,7 @@
         h += '</div>';
         
         if (group.status === 'open') {
-          h += '<button class="btn btn-primary btn-xl btn-fullrow" onclick="joinAndBuy(\'' + group.code + '\')" style="margin-bottom:10px;">';
+          h += '<button type="button" class="btn btn-primary btn-xl btn-fullrow" data-join-group-buy="' + escapeHtml(group.code) + '" style="margin-bottom:10px;">';
           h += 'اشتري ضمن الجروب (تطبيق الخصم)';
           h += '</button>';
           
