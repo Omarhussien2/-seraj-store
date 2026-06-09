@@ -218,8 +218,8 @@ export default function ContentEditor({ initialData }: { initialData: Record<str
 
       setMessage("تم الحفظ بنجاح! ✓");
       setTimeout(() => setMessage(null), 3000);
-    } catch (err: any) {
-      alert("Error: " + err.message);
+    } catch (err) {
+      alert("Error: " + (err instanceof Error ? err.message : "Unknown error"));
     } finally {
       setSaving(null);
     }

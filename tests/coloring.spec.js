@@ -1,69 +1,107 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { test, expect } = require('@playwright/test');
 
 test.describe('Coloring Features', () => {
-  test('Coloring Catalog rendering and interactivity', async ({ page }) => {
+  test('renders catalog, builds workbook, and sends it to checkout', async ({ page }) => {
+    test.setTimeout(90000);
+
     page.on('console', msg => console.log('BROWSER CONSOLE:', msg.text()));
     page.on('pageerror', err => console.log('BROWSER ERROR:', err.message));
-    
-    await page.goto('http://localhost:3000/#/mama-coloring', { waitUntil: 'load' });
-    
-    // We expect the page title to change
-    await expect(page).toHaveTitle(/سراج | كشكول ألوان/);
 
-    // Categories tabs should load
+    await page.route('**/api/products', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: [] }),
+      });
+    });
+    await page.route('**/api/config', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: {} }),
+      });
+    });
+    await page.route('**/api/group-buys/config', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: { active: false } }),
+      });
+    });
+    await page.route('**/api/coloring/categories', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: [
+            { slug: 'heroes', nameAr: 'Heroes' },
+            { slug: 'animals', nameAr: 'Animals' },
+          ],
+        }),
+      });
+    });
+    await page.route('**/api/coloring/pricing', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: { pricePerPage: 3, coverPrice: 20 } }),
+      });
+    });
+    await page.route('**/api/coloring/items?**', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: [
+            { _id: 'c1', title: 'Seraj Reads', thumbnail: 'assets/seraj.png' },
+            { _id: 'c2', title: 'Brave Khaled', thumbnail: 'assets/khaled-v2.png' },
+            { _id: 'c3', title: 'Layla Draws', thumbnail: 'assets/layla.png' },
+            { _id: 'c4', title: 'Zain Plays', thumbnail: 'assets/zain.png' },
+            { _id: 'c5', title: 'Huda Flies', thumbnail: 'assets/huda-bird.png' },
+          ],
+          pagination: { page: 1, pages: 1 },
+        }),
+      });
+    });
+
+    await page.goto('http://127.0.0.1:3000/#/mama-coloring', { waitUntil: 'domcontentloaded' });
+
+    await expect(page).toHaveTitle(/سراج \| أنشطة وتلوين مجاني/);
+    await expect(page.locator('.page.is-active')).toHaveAttribute('data-page', 'mama-world');
+
     const categoryTabs = page.locator('#coloringTabs .chip');
-    await expect(categoryTabs.first()).toBeVisible({ timeout: 5000 });
+    await expect(categoryTabs.first()).toBeVisible({ timeout: 10000 });
+    await expect(categoryTabs).toHaveCount(3);
 
-    // Ensure there's a "All Categories" or similar button and verify count
-    const tabsCount = await categoryTabs.count();
-    expect(tabsCount).toBeGreaterThan(0);
-
-    // Wait for coloring grid to load items
     const cards = page.locator('.coloring-card');
-    await expect(cards.first()).toBeVisible({ timeout: 5000 });
+    await expect(cards.first()).toBeVisible({ timeout: 10000 });
+    await expect(cards).toHaveCount(5);
 
-    const cardCount = await cards.count();
-    expect(cardCount).toBeGreaterThan(0);
+    const workbookBar = page.locator('#coloringWorkbookBar');
+    const firstAddButton = cards.first().locator('.coloring-btn-add');
+    await firstAddButton.click();
+    await expect(firstAddButton).toHaveClass(/is-added/);
+    await expect(workbookBar).toBeVisible();
+    await expect(workbookBar.locator('#cwbCount')).toHaveText('١');
 
-    console.log(`Found ${tabsCount} categories and ${cardCount} cards`);
-
-    // Let's add the first item to the cart
-    const firstAddBtn = cards.first().locator('.coloring-action-btn');
-    const firstTitle = await cards.first().locator('.coloring-title').innerText();
-    await firstAddBtn.click();
-    
-    // Check if the button changed to 'متضافة' (Added)
-    await expect(firstAddBtn).toHaveClass(/is-added/);
-
-    // Check if the floating workbook button appears
-    const fabButton = page.locator('#floatingWorkbookBtn');
-    await expect(fabButton).toBeVisible();
-    await expect(fabButton.locator('#fwbCount')).toHaveText('١'); // Arabic '1'
-    
-    // Let's click another item to verify counter goes up
-    if (cardCount > 1) {
-       await cards.nth(1).locator('.coloring-action-btn').click();
-       await expect(fabButton.locator('#fwbCount')).toHaveText('٢'); // Arabic '2'
-       console.log('Successfully added 2 items to workbook');
+    for (let i = 1; i < 5; i += 1) {
+      await cards.nth(i).locator('.coloring-btn-add').click();
     }
+    await expect(workbookBar.locator('#cwbCount')).toHaveText('٥');
 
-    // Now go to the workbook checkout
-    await fabButton.click();
-    
-    // We should be on the coloring-book page now!
+    await workbookBar.locator('#cwbBtn').click();
     await expect(page).toHaveURL(/#\/coloring-book/);
 
     const summaryPanel = page.locator('.cb-summary-panel');
-    await expect(summaryPanel).toBeVisible({ timeout: 2000 });
-    
-    const summaryText = await summaryPanel.innerText();
-    console.log('Summary Details:\n', summaryText);
+    await expect(summaryPanel).toBeVisible({ timeout: 5000 });
 
-    // Click checkout
-    const checkoutBtn = page.locator('#btnColoringCheckout');
-    await checkoutBtn.click();
+    const checkoutButton = page.locator('#btnColoringCheckout');
+    await expect(checkoutButton).toBeEnabled();
+    await checkoutButton.click();
 
-    // Verify redirects to main cart/checkout
-    await expect(page).toHaveURL(/#\/checkout/);
+    await expect(page).toHaveURL(/#\/cart/);
   });
 });

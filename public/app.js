@@ -1817,7 +1817,7 @@
     var currentPage = pageName || parseRoute().page;
     var shouldHide = !CHAT_WIDGET_ENABLED || CHAT_HIDDEN_PAGES.indexOf(currentPage) !== -1;
     if (shouldHide) {
-      scChatOpen = false;
+      if (typeof scState !== 'undefined' && scState) scState.open = false;
       win.hidden = true;
       btn.hidden = true;
       btn.style.display = 'none';
@@ -1825,7 +1825,7 @@
     }
 
     btn.hidden = false;
-    btn.style.display = scChatOpen ? 'none' : '';
+    btn.style.display = (typeof scState !== 'undefined' && scState && scState.open) ? 'none' : '';
   }
 
   // Valid page names for the SPA router
@@ -1839,6 +1839,7 @@
       name = 'not-found';
     }
     if (name === 'product') target = 'product';
+    if (name === 'mama-coloring') target = 'mama-world';
 
     pages.forEach(function (p) {
       var isActive = p.dataset.page === target;

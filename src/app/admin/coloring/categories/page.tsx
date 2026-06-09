@@ -70,7 +70,7 @@ export default function ColoringCategoriesAdmin() {
     setDialogOpen(true);
   };
 
-  const updateField = (field: string, value: any) => {
+  const updateField = (field: string, value: unknown) => {
     setEditingCat((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 

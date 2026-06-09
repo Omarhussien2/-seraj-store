@@ -22,7 +22,6 @@ const SiteContentSchema = new mongoose.Schema(
 
 // Add indexes for efficient querying
 SiteContentSchema.index({ section: 1 });
-SiteContentSchema.index({ key: 1 });
 
 export default mongoose.models.SiteContent ||
   mongoose.model<ISiteContent>("SiteContent", SiteContentSchema);

@@ -11,7 +11,12 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "test-results/**",
     "next-env.d.ts",
+    "scripts/**/*.js",
+    "fix-html.js",
+    "inject-html-keys.js",
+    "inject-wizard-keys.js",
   ]),
 ]);
 

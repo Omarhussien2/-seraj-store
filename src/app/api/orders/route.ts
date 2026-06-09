@@ -12,7 +12,7 @@ import {
   rollbackCouponRedemption,
 } from "@/lib/coupons/apply";
 import { normalizeCouponCode } from "@/lib/coupons/normalize";
-import GroupBuy from "@/lib/models/GroupBuy";
+import GroupBuy, { type IGroupBuy, type IGroupBuyTier } from "@/lib/models/GroupBuy";
 import { calculateGroupBuyDiscount, isGroupExpired } from "@/lib/groupBuy/engine";
 import { getOrCreatePaymentSettings, toPublic as toPaymentPublic } from "@/lib/paymentSettings";
 import { computeDeposit } from "@/lib/depositCalc";
@@ -192,7 +192,7 @@ export async function POST(request: Request) {
     let coupon: { code: string; couponId: mongoose.Types.ObjectId } | undefined;
     let groupBuyResult: { code: string; discountApplied: boolean; discountAmount: number; } | undefined;
     let totalAfterDiscount = subtotal + shippingFee;
-    let activeGroupBuyDoc: any = null;
+    let activeGroupBuyDoc: IGroupBuy | null = null;
 
     if (validated.groupBuyCode) {
       const code = validated.groupBuyCode.toUpperCase();
@@ -210,7 +210,9 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: "الجروب ده مش متاح حالياً" }, { status: 400 });
       }
 
-      const targetTier = activeGroupBuyDoc.tiers.find((t: any) => t.minOrders === activeGroupBuyDoc.targetOrders);
+      const targetTier = activeGroupBuyDoc.tiers.find(
+        (tier: IGroupBuyTier) => tier.minOrders === activeGroupBuyDoc?.targetOrders
+      );
       if (targetTier) {
         const { discountAmount, discountType } = calculateGroupBuyDiscount(targetTier, subtotal, shippingFee);
         
@@ -345,7 +347,7 @@ export async function POST(request: Request) {
       const reachedTier = activeGroupBuyDoc.tiers
         .slice()
         .reverse()
-        .find((t: any) => activeGroupBuyDoc.confirmedOrders >= t.minOrders);
+        .find((tier: IGroupBuyTier) => activeGroupBuyDoc.confirmedOrders >= tier.minOrders);
         
       activeGroupBuyDoc.currentTier = reachedTier ? reachedTier.minOrders : null;
       

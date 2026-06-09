@@ -70,6 +70,18 @@ interface Product {
   related: string[];
 }
 
+type EditableProductPayload = Omit<Partial<Product>, "originalPrice" | "originalPriceText" | "depositAmount"> & {
+  originalPrice?: number | string | null;
+  originalPriceText?: string | null;
+  depositAmount?: number | string | null;
+};
+
+interface UploadedMediaItem {
+  url: string;
+  publicId?: string;
+  resourceType: "image" | "video";
+}
+
 const emptyProduct: Partial<Product> = {
   slug: "",
   name: "",
@@ -153,7 +165,7 @@ export default function AdminProductsPage() {
     setSaving(true);
 
     try {
-      const payload: any = { ...editingProduct };
+      const payload: EditableProductPayload = { ...editingProduct };
       if (payload.originalPrice === "") payload.originalPrice = null;
       if (payload.originalPriceText === "") payload.originalPriceText = null;
       if (payload.depositAmount === "" || payload.depositAmount === undefined)
@@ -285,7 +297,7 @@ export default function AdminProductsPage() {
       const result = await res.json();
 
       if (result.success && result.data) {
-        const newItems = result.data.map((item: any, i: number) => ({
+        const newItems = (result.data as UploadedMediaItem[]).map((item, i) => ({
           url: item.url,
           publicId: item.publicId,
           resourceType: item.resourceType,
