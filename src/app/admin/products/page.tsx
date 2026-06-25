@@ -196,9 +196,9 @@ export default function AdminProductsPage() {
 
       if (isEditing) {
         // PATCH existing product
-        const { slug, _id, createdAt, updatedAt, ...cleanData } = payload as Product & { createdAt?: unknown; updatedAt?: unknown };
-        void _id; void createdAt; void updatedAt; // unused — excluded intentionally
-        const res = await fetch(`/api/products/${slug}`, {
+        const { _id, createdAt, updatedAt, ...cleanData } = payload as Product & { createdAt?: unknown; updatedAt?: unknown };
+        void createdAt; void updatedAt; // unused — excluded intentionally
+        const res = await fetch(`/api/products/${_id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(cleanData),
@@ -234,14 +234,14 @@ export default function AdminProductsPage() {
     }
   }
 
-  async function handleDelete(slug: string, isActive: boolean) {
+  async function handleDelete(id: string, isActive: boolean) {
     const msg = isActive
       ? `هل أنت متأكد؟\nسيتم إخفاء المنتج من الموقع (يمكنك استعادته لاحقاً).`
       : `⚠️ المنتج معطّل بالفعل.\nهل تريد حذفه نهائياً من قاعدة البيانات؟\n\nهذا الإجراء لا يمكن التراجع عنه!`;
     if (!confirm(msg)) return;
 
     try {
-      const res = await fetch(`/api/products/${slug}`, { method: "DELETE" });
+      const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
       const json = await res.json();
       if (json.success) {
         showToast("تم الحذف بنجاح", "success");
@@ -255,9 +255,9 @@ export default function AdminProductsPage() {
     }
   }
 
-  async function handleRestore(slug: string) {
+  async function handleRestore(id: string) {
     try {
-      const res = await fetch(`/api/products/${slug}`, {
+      const res = await fetch(`/api/products/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ active: true }),
@@ -465,7 +465,7 @@ export default function AdminProductsPage() {
                           variant="outline"
                           size="sm"
                           className="text-green-600 border-green-300 hover:bg-green-50"
-                          onClick={() => handleRestore(product.slug)}
+                          onClick={() => handleRestore(product._id)}
                         >
                           استعادة
                         </Button>
@@ -473,7 +473,7 @@ export default function AdminProductsPage() {
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => handleDelete(product.slug, product.active)}
+                        onClick={() => handleDelete(product._id, product.active)}
                       >
                         {product.active ? "إخفاء" : "حذف نهائي"}
                       </Button>
@@ -504,7 +504,6 @@ export default function AdminProductsPage() {
                   <Input
                     value={editingProduct.slug || ""}
                     onChange={(e) => updateField("slug", e.target.value)}
-                    disabled={isEditing}
                     placeholder="story-khaled"
                   />
                 </div>

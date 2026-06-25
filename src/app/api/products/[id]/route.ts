@@ -6,22 +6,22 @@ import { requireAdmin } from "@/lib/requireAdmin";
 import { PRODUCT_CATEGORIES, PRODUCT_SECTIONS } from "@/lib/productCatalog";
 
 /**
- * GET /api/products/[slug]
- * Returns a single product by slug (includes inactive for admin)
+ * GET /api/products/[id]
+ * Returns a single product by id (includes inactive for admin)
  */
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
-    const { slug } = await params;
+    const { id } = await params;
 
     // Check if admin wants all (including inactive)
     const { searchParams } = new URL(request.url);
     const showAll = searchParams.get("all") === "true";
 
-    const filter: Record<string, unknown> = { slug };
+    const filter: Record<string, unknown> = { _id: id };
     if (!showAll) {
       filter.active = true;
     }
@@ -40,7 +40,7 @@ export async function GET(
       data: product,
     });
   } catch (error) {
-    console.error("GET /api/products/[slug] error:", error);
+    console.error("GET /api/products/[id] error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch product" },
       { status: 500 }
@@ -50,6 +50,7 @@ export async function GET(
 
 // ---------- Zod schema for PATCH ----------
 const PatchProductSchema = z.object({
+  slug: z.string().min(1).optional(),
   name: z.string().min(1).optional(),
   badge: z.string().min(1).optional(),
   badgeSoon: z.boolean().optional(),
@@ -95,25 +96,25 @@ const PatchProductSchema = z.object({
 });
 
 /**
- * PATCH /api/products/[slug]
+ * PATCH /api/products/[id]
  * Update a product (admin)
  */
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authError = await requireAdmin();
     if (authError) return authError;
 
     await connectDB();
-    const { slug } = await params;
+    const { id } = await params;
 
     const body = await request.json();
     const validated = PatchProductSchema.parse(body);
 
-    const product = await Product.findOneAndUpdate(
-      { slug },
+    const product = await Product.findByIdAndUpdate(
+      id,
       { $set: validated },
       { new: true, runValidators: true }
     ).lean();
@@ -144,7 +145,7 @@ export async function PATCH(
       );
     }
 
-    console.error("PATCH /api/products/[slug] error:", error);
+    console.error("PATCH /api/products/[id] error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to update product" },
       { status: 500 }
@@ -153,21 +154,21 @@ export async function PATCH(
 }
 
 /**
- * DELETE /api/products/[slug]
+ * DELETE /api/products/[id]
  * Soft-delete a product (sets active: false)
  */
 export async function DELETE(
   _request: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authError = await requireAdmin();
     if (authError) return authError;
 
     await connectDB();
-    const { slug } = await params;
+    const { id } = await params;
 
-    const product = await Product.findOne({ slug }).lean();
+    const product = await Product.findById(id).lean();
 
     if (!product) {
       return NextResponse.json(
@@ -178,8 +179,8 @@ export async function DELETE(
 
     if (product.active) {
       // Soft delete
-      const updated = await Product.findOneAndUpdate(
-        { slug },
+      const updated = await Product.findByIdAndUpdate(
+        id,
         { $set: { active: false } },
         { new: true }
       ).lean();
@@ -191,7 +192,7 @@ export async function DELETE(
       });
     } else {
       // Hard delete since it's already soft-deleted
-      await Product.findOneAndDelete({ slug });
+      await Product.findByIdAndDelete(id);
       
       return NextResponse.json({
         success: true,
@@ -200,7 +201,7 @@ export async function DELETE(
       });
     }
   } catch (error) {
-    console.error("DELETE /api/products/[slug] error:", error);
+    console.error("DELETE /api/products/[id] error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to delete product" },
       { status: 500 }

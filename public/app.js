@@ -244,6 +244,7 @@
 
   // ----- Dynamic Price & Image Update -----
   function updateDOMPrices() {
+    updateStaticWizardLinks();
     var cards = document.querySelectorAll('.product-card');
     cards.forEach(function (card) {
       if (card.classList.contains('coming-soon')) return;
@@ -251,7 +252,7 @@
       var href = card.getAttribute('href');
       if (href) {
         if (href.indexOf('#/product/') === 0) slug = href.replace('#/product/', '');
-        else if (href === '#/wizard') slug = 'custom-story';
+        else if (href === '#/wizard') slug = getWizardSlug();
       }
       if (slug && PRODUCTS[slug]) {
         var p = PRODUCTS[slug];
@@ -297,7 +298,16 @@
   function mergeApiProducts(list) {
     var merged = {};
     list.forEach(function (p) {
-      var fallback = PRODUCTS[p.slug] || {};
+      var fallback = PRODUCTS[p.slug];
+      if (!fallback) {
+        for (var key in PRODUCTS) {
+          if (PRODUCTS[key] && PRODUCTS[key].action === p.action && p.action !== 'cart') {
+            fallback = PRODUCTS[key];
+            break;
+          }
+        }
+      }
+      fallback = fallback || {};
       p.media = p.media || fallback.media || { bg: 'emerald' };
       p.features = p.features && p.features.length > 0 ? p.features : fallback.features || [];
       p.reviews = p.reviews && p.reviews.length > 0 ? p.reviews : fallback.reviews || [];
@@ -546,8 +556,26 @@
     return count;
   }
 
+  function getWizardSlug() {
+    for (var key in PRODUCTS) {
+      if (PRODUCTS[key] && PRODUCTS[key].action === 'wizard') {
+        return key;
+      }
+    }
+    return 'custom-story';
+  }
+
+  function updateStaticWizardLinks() {
+    var wizardSlug = getWizardSlug();
+    if (!wizardSlug) return;
+    var links = document.querySelectorAll('a[href="#/product/custom-story"]');
+    links.forEach(function (link) {
+      link.setAttribute('href', '#/product/' + wizardSlug);
+    });
+  }
+
   function isCustomStory(slug) {
-    return slug === 'custom-story';
+    return slug === getWizardSlug();
   }
 
   function toArabicNum(n) {
@@ -563,6 +591,12 @@
 
   // ----- Product Detail Rendering -----
   function renderProductDetail(slug) {
+    if (slug === 'custom-story' && !PRODUCTS['custom-story']) {
+      var wSlug = getWizardSlug();
+      if (wSlug && PRODUCTS[wSlug]) {
+        slug = wSlug;
+      }
+    }
     var container = document.getElementById('productDetail');
     if (!container) return;
     var product = PRODUCTS[slug];
@@ -744,7 +778,7 @@
     }
     h += '</div></section>';
     // ===== Custom Story: Relocated sections from homepage =====
-    if (slug === 'custom-story') {
+    if (product && product.action === 'wizard') {
       // Social proof
       h += '<section class="section counter-section">';
       h += '<div class="counter-card reveal">';
@@ -841,7 +875,7 @@
     setTimeout(initReveals, 100);
     initProductGallery(container);
     // Re-init zigzag videos and counter for custom-story page
-    if (slug === 'custom-story') {
+    if (product && product.action === 'wizard') {
       initZigzagVideos();
       initCounter();
     }
@@ -1261,7 +1295,7 @@
       if (!p || !p.price || p.comingSoon) return false;
       if (inCart[s]) return false;
       // Hide the wizard slug; users add custom story via the wizard, not a chip.
-      if (p.isWizard) return false;
+      if (p.action === 'wizard') return false;
       return true;
     });
 
@@ -1675,7 +1709,7 @@
     };
 
     // Include wizard/custom story data ONLY if custom-story is in the cart
-    var hasCustomStory = cart.some(function (item) { return item.slug === 'custom-story'; });
+    var hasCustomStory = cart.some(function (item) { return item.slug === getWizardSlug(); });
     var wizardData = loadWizardData();
     if (hasCustomStory && wizardData && wizardData.heroName) {
       var wizardAge = typeof wizardData.age === 'string' ? parseInt(wizardData.age, 10) : wizardData.age;
@@ -2312,17 +2346,18 @@
 
   // Add custom story to cart if not already there
   function addCustomStoryToCart() {
+    var wizardSlug = getWizardSlug();
     var existing = false;
     for (var i = 0; i < cart.length; i++) {
-      if (cart[i].slug === 'custom-story') {
+      if (cart[i].slug === wizardSlug) {
         existing = true;
         break;
       }
     }
-    if (!existing && PRODUCTS['custom-story']) {
-      var p = PRODUCTS['custom-story'];
+    if (!existing && PRODUCTS[wizardSlug]) {
+      var p = PRODUCTS[wizardSlug];
       cart.push({
-        slug: 'custom-story',
+        slug: wizardSlug,
         name: p.name,
         price: p.price,
         qty: 1
