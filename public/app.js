@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    سِراج — Client-side router + interactions (v2 — API-connected)
    ============================================================ */
 
@@ -333,7 +333,6 @@
       .then(function (data) {
         if (data.success && data.data && data.data.length > 0) {
           PRODUCTS = mergeApiProducts(data.data);
-          productsLoaded = true;
           try {
             localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify({
               ts: Date.now(),
@@ -341,19 +340,19 @@
             }));
           } catch (e) { /* quota — silent */ }
           console.log('✅ Products loaded from API (' + data.data.length + ')');
-          // Re-populate product surfaces with fresh data so order and hidden
-          // products reflect admin changes without waiting for a reload.
-          renderHomeProductsPreview();
-          populateCatalog();
+        } else {
+          console.warn('⚠️ API returned no products, using fallback products');
         }
-        updateDOMPrices();
       })
       .catch(function () {
         console.warn('⚠️ API fetch failed, using fallback products');
-        updateDOMPrices();
       })
       .finally(function () {
+        productsLoaded = true;
         productsReady = true;
+        renderHomeProductsPreview();
+        populateCatalog();
+        updateDOMPrices();
       });
   }
 
