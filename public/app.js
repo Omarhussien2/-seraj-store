@@ -60,7 +60,7 @@
       shortDesc: 'قصة بطولة وشجاعة بأسلوب تعليمي ممتع',
       longDesc: 'تابع بطلنا في مغامرة ملهمة مع القائد خالد بن الوليد — القائد اللي ما خسرش معركة في حياته. القصة بتعلّم إن الشجاعة الحقيقية مش في القوة بس، لكن في الثبات والمرونة والجرأة إنه يعمل الصح حتى لو كان صعب.',
       features: ['٢٤ صفحة ملوّنة بجودة عالية', 'غلاف مقوّى مقاوم', 'رسوم أصلية بإيد فنانين مصريين', 'بتعلّم قيمة الشجاعة والإقدام', 'مناسبة من ٤ لـ ٩ سنين'],
-      media: { type: 'book3d', image: 'assets/khaled-v2.webp', title: 'خالد بن<br/>الوليد', bg: 'emerald' },
+      media: { type: 'book3d', image: 'assets/khaled-v2.png', title: 'خالد بن<br/>الوليد', bg: 'emerald' },
       action: 'cart',
       ctaText: 'أضيف للسلة',
       reviews: [
@@ -80,7 +80,7 @@
       shortDesc: 'مغامرة ملحمية من سلسلة سباق الفتوحات',
       longDesc: 'مغامرة ملحمية من سلسلة سباق الفتوحات — قصة بطلنا اللي واجه المستحيل وقدره. رسوم أصلية بإيد فنانين مصريين بتعلّم الأطفال معاني الثبات والإرادة.',
       features: ['٢٤ صفحة ملوّنة بجودة عالية', 'غلاف مقوّى مقاوم', 'رسوم أصلية بإيد فنانين مصريين', 'بتعلّم قيمة الإرادة والثبات', 'مناسبة من ٤ لـ ٩ سنين'],
-      media: { type: 'book3d', image: 'assets/seraj.webp', title: 'بطل قهر<br/>المستحيل', bg: 'emerald' },
+      media: { type: 'book3d', image: 'assets/seraj.png', title: 'بطل قهر<br/>المستحيل', bg: 'emerald' },
       action: 'cart',
       ctaText: 'أضيف للسلة',
       reviews: [
@@ -98,7 +98,7 @@
       shortDesc: 'قصة كاملة باسم طفلك وصورته',
       longDesc: 'قصة مغامرة كاملة باسم بطلك وبتعلّم قيمة من اختيارك. سراج بيكتب القصة مخصوص ليه وبيرسمها بإيد فنانين مصريين. غلاف مقوّى وورق سميك يستحمل كل مرات القراية.',
       features: ['٢٤ صفحة ملوّنة باسم طفلك', 'غلاف مقوّى مقاوم', 'رسوم أصلية بإيد فنانين مصريين', 'باسم طفلك على الغلاف والصفحات', 'اختار القيمة اللي عايزه يتعلمها'],
-      media: { type: 'book3d', image: 'assets/seraj.webp', title: 'حكاية<br/>بطلنا', bg: 'emerald' },
+      media: { type: 'book3d', image: 'assets/seraj.png', title: 'حكاية<br/>بطلنا', bg: 'emerald' },
       action: 'wizard',
       ctaText: 'ابدأ القصة',
       reviews: [
@@ -240,6 +240,9 @@
     grid.innerHTML = slugs.map(function(slug, index) {
       return buildHomeProductCard(slug, PRODUCTS[slug], index);
     }).join('');
+    
+    void grid.offsetWidth; // Force layout recalculation
+    initReveals();
   }
 
   // ----- Dynamic Price & Image Update -----
@@ -363,7 +366,6 @@
         renderHomeProductsPreview();
         populateCatalog();
         updateDOMPrices();
-        setTimeout(initReveals, 100);
       });
   }
 
@@ -2037,19 +2039,31 @@
   var revealObserver;
   function initReveals() {
     var els = document.querySelectorAll('.page.is-active .reveal:not(.is-visible), .page.is-active .how-section');
-    if (revealObserver) revealObserver.disconnect();
-    revealObserver = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-            revealObserver.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.12, rootMargin: '0px 0px -8% 0px' }
-    );
-    els.forEach(function (el) { revealObserver.observe(el); });
+    if (!els.length) return;
+
+    if (typeof IntersectionObserver === 'undefined') {
+      els.forEach(function(el) { el.classList.add('is-visible'); });
+      return;
+    }
+
+    try {
+      if (revealObserver) revealObserver.disconnect();
+      revealObserver = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              revealObserver.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.1, rootMargin: '50px' }
+      );
+      els.forEach(function (el) { revealObserver.observe(el); });
+    } catch (e) {
+      console.warn('IntersectionObserver error, falling back to visible', e);
+      els.forEach(function(el) { el.classList.add('is-visible'); });
+    }
   }
 
   // ----- Counter -----

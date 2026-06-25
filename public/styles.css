@@ -781,6 +781,21 @@ input, textarea { font-family: inherit; }
   flex-direction: column;
 }
 .product-card:hover { transform: translateY(-6px); }
+
+.product-skeleton {
+  aspect-ratio: 0.7;
+  border: 3px solid var(--line);
+  border-radius: 26px;
+  background: linear-gradient(90deg, var(--cream-2) 25%, #fff 50%, var(--cream-2) 75%);
+  background-size: 200% 100%;
+  animation: skeletonLoading 1.5s infinite;
+  box-shadow: 0 6px 0 var(--line), 0 20px 40px rgba(0,0,0,.02);
+}
+@keyframes skeletonLoading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 .product-media {
   position: relative;
   aspect-ratio: 1.3;
