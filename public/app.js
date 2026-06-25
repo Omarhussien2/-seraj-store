@@ -60,7 +60,7 @@
       shortDesc: 'قصة بطولة وشجاعة بأسلوب تعليمي ممتع',
       longDesc: 'تابع بطلنا في مغامرة ملهمة مع القائد خالد بن الوليد — القائد اللي ما خسرش معركة في حياته. القصة بتعلّم إن الشجاعة الحقيقية مش في القوة بس، لكن في الثبات والمرونة والجرأة إنه يعمل الصح حتى لو كان صعب.',
       features: ['٢٤ صفحة ملوّنة بجودة عالية', 'غلاف مقوّى مقاوم', 'رسوم أصلية بإيد فنانين مصريين', 'بتعلّم قيمة الشجاعة والإقدام', 'مناسبة من ٤ لـ ٩ سنين'],
-      media: { type: 'book3d', image: 'assets/khaled-v2.png', title: 'خالد بن<br/>الوليد', bg: 'emerald' },
+      media: { type: 'book3d', image: 'assets/khaled-v2.webp', title: 'خالد بن<br/>الوليد', bg: 'emerald' },
       action: 'cart',
       ctaText: 'أضيف للسلة',
       reviews: [
@@ -80,7 +80,7 @@
       shortDesc: 'مغامرة ملحمية من سلسلة سباق الفتوحات',
       longDesc: 'مغامرة ملحمية من سلسلة سباق الفتوحات — قصة بطلنا اللي واجه المستحيل وقدره. رسوم أصلية بإيد فنانين مصريين بتعلّم الأطفال معاني الثبات والإرادة.',
       features: ['٢٤ صفحة ملوّنة بجودة عالية', 'غلاف مقوّى مقاوم', 'رسوم أصلية بإيد فنانين مصريين', 'بتعلّم قيمة الإرادة والثبات', 'مناسبة من ٤ لـ ٩ سنين'],
-      media: { type: 'book3d', image: 'assets/seraj.png', title: 'بطل قهر<br/>المستحيل', bg: 'emerald' },
+      media: { type: 'book3d', image: 'assets/seraj.webp', title: 'بطل قهر<br/>المستحيل', bg: 'emerald' },
       action: 'cart',
       ctaText: 'أضيف للسلة',
       reviews: [
@@ -98,7 +98,7 @@
       shortDesc: 'قصة كاملة باسم طفلك وصورته',
       longDesc: 'قصة مغامرة كاملة باسم بطلك وبتعلّم قيمة من اختيارك. سراج بيكتب القصة مخصوص ليه وبيرسمها بإيد فنانين مصريين. غلاف مقوّى وورق سميك يستحمل كل مرات القراية.',
       features: ['٢٤ صفحة ملوّنة باسم طفلك', 'غلاف مقوّى مقاوم', 'رسوم أصلية بإيد فنانين مصريين', 'باسم طفلك على الغلاف والصفحات', 'اختار القيمة اللي عايزه يتعلمها'],
-      media: { type: 'book3d', image: 'assets/seraj.png', title: 'حكاية<br/>بطلنا', bg: 'emerald' },
+      media: { type: 'book3d', image: 'assets/seraj.webp', title: 'حكاية<br/>بطلنا', bg: 'emerald' },
       action: 'wizard',
       ctaText: 'ابدأ القصة',
       reviews: [
@@ -589,7 +589,7 @@
     }
     var ogTitle = product.name + ' — سِراج';
     var ogImage = resolvePhotoUrl(product.imageUrl, product.media) ||
-      'https://seraj-store.vercel.app/assets/share-banner.jpg';
+      'https://seraj-store.vercel.app/assets/share-banner.webp';
     setMetaProp('og:title', ogTitle);
     setMetaProp('og:description', product.shortDesc || product.longDesc || '');
     setMetaProp('og:image', ogImage);
@@ -769,7 +769,7 @@
       // Step 1
       h += '<article class="zz-row reveal" style="--d:.05s">';
       h += '<div class="zz-media"><div class="zz-video-wrap">';
-      h += '<video class="zz-video" src="assets/1-.mp4" autoplay muted loop playsinline preload="auto" poster="assets/seraj.png" aria-label="الخطوة ١"></video>';
+      h += '<video class="zz-video" src="assets/1-.mp4" autoplay muted loop playsinline preload="auto" poster="assets/seraj.webp" aria-label="الخطوة ١"></video>';
       h += '</div></div>';
       h += '<div class="zz-text"><span class="zz-num">١</span>';
       h += '<h3>قول لسراج اسم بطلنا وسنه</h3>';
@@ -778,7 +778,7 @@
       // Step 2
       h += '<article class="zz-row zz-reversed reveal" style="--d:.1s">';
       h += '<div class="zz-media"><div class="zz-video-wrap">';
-      h += '<video class="zz-video" src="assets/2.mp4" autoplay muted loop playsinline preload="auto" poster="assets/seraj.png" aria-label="الخطوة ٢"></video>';
+      h += '<video class="zz-video" src="assets/2.mp4" autoplay muted loop playsinline preload="auto" poster="assets/seraj.webp" aria-label="الخطوة ٢"></video>';
       h += '</div></div>';
       h += '<div class="zz-text"><span class="zz-num">٢</span>';
       h += '<h3>سراج هيدخل ورشه السحرية يكتب ويرسم القصة مخصوص ليه</h3>';
@@ -787,7 +787,7 @@
       // Step 3
       h += '<article class="zz-row reveal" style="--d:.15s">';
       h += '<div class="zz-media"><div class="zz-video-wrap">';
-      h += '<video class="zz-video" src="assets/3.mp4" autoplay muted loop playsinline preload="auto" poster="assets/seraj.png" aria-label="الخطوة ٣"></video>';
+      h += '<video class="zz-video" src="assets/3.mp4" autoplay muted loop playsinline preload="auto" poster="assets/seraj.webp" aria-label="الخطوة ٣"></video>';
       h += '</div></div>';
       h += '<div class="zz-text"><span class="zz-num">٣</span>';
       h += '<h3>القصة هتجيلك مطبوعة بجودة عالية لحد باب البيت</h3>';
@@ -816,7 +816,7 @@
       // CTA Banner
       h += '<section class="cta-ribbon reveal">';
       h += '<div class="ribbon-inner">';
-      h += '<img src="assets/seraj.png" class="ribbon-mascot" alt="سِراج" loading="lazy"/>';
+      h += '<img src="assets/seraj.webp" class="ribbon-mascot" alt="سِراج" loading="lazy"/>';
       h += '<div class="ribbon-copy">';
       h += '<h2>مستني إيه؟ خلّي بطلنا يبدأ حكايته النهاردة!</h2>';
       h += '<p>بس ٣ خطوات صغيرة، وسِراج هيقعد يشتغل في الورشة</p>';
@@ -1056,14 +1056,14 @@
   }
 
   // ----- Catalog Page — metadata per section (tab label + hero copy + mascot image) -----
-  // To use your own section images, add files at: assets/catalog-tales.png, etc.
+  // To use your own section images, add files at: assets/catalog-tales.webp, etc.
   var CATALOG_META = {
-    'all':            { title: 'كل العوالم',           kicker: 'اكتشفي عالم سراج المتنوع',     desc: 'أكتر من قصص.. تجربة تعليمية متكاملة لبطلنا الصغير',    color: '#c9974e', img: 'assets/catagory/catalog-all.png' },
-    'tales':          { title: 'سباق الفتوحات',         kicker: 'أبطالنا الحقيقيين!',            desc: 'أبطالنا بجد! مستويات تناسب كل الأعمار مع جزء خاص لتجهيز الأب والأم لأسئلة طفلك.',   color: '#36a39a', img: 'assets/catagory/catalog-tales.png' },
-    'custom-stories': { title: 'قصة مخصوصة',  kicker: 'باسم وصورة طفلك!',          desc: 'هدية عمره ما هينساها.. قصة تفاعلية ممتعة ومطبوعة بجودة عالية بطلها طفلك!',           color: '#c9974e', img: 'assets/catagory/catalog-custom-stories.png' },
-    'play-learn':     { title: 'ألعاب سراج',      kicker: 'العب واتعلم!',         desc: 'فلاش كاردز وألعاب ترفيهية بتنمي مهارات طفلك وتخليه يكتشف العالم وهو بيضحك ومبسوط.',           color: '#e85d4c', img: 'assets/catagory/catalog-play-learn.png' },
-    'bundle':         { title: 'بوكسات ومجموعات',  kicker: 'اختيارات جاهزة للهدايا والأنشطة', desc: 'مجموعات خارج عوالم سراج تجمع قصص وأنشطة وبازل في تجربة واحدة سهلة الشراء.',      color: '#36a39a', img: 'assets/catagory/catalog-all.png' },
-    'seraj-stories':  { title: 'حكايات سراج',    kicker: 'الأرنب المسافر عبر الزمن!', desc: 'رحلات مثيرة مع آلة الزمن لاكتشاف أسرار الماضي مع الأرنب سِراج وأصحابه.',        color: '#6bbf3f', img: 'assets/catagory/catalog-seraj-stories.png' }
+    'all':            { title: 'كل العوالم',           kicker: 'اكتشفي عالم سراج المتنوع',     desc: 'أكتر من قصص.. تجربة تعليمية متكاملة لبطلنا الصغير',    color: '#c9974e', img: 'assets/catagory/catalog-all.webp' },
+    'tales':          { title: 'سباق الفتوحات',         kicker: 'أبطالنا الحقيقيين!',            desc: 'أبطالنا بجد! مستويات تناسب كل الأعمار مع جزء خاص لتجهيز الأب والأم لأسئلة طفلك.',   color: '#36a39a', img: 'assets/catagory/catalog-tales.webp' },
+    'custom-stories': { title: 'قصة مخصوصة',  kicker: 'باسم وصورة طفلك!',          desc: 'هدية عمره ما هينساها.. قصة تفاعلية ممتعة ومطبوعة بجودة عالية بطلها طفلك!',           color: '#c9974e', img: 'assets/catagory/catalog-custom-stories.webp' },
+    'play-learn':     { title: 'ألعاب سراج',      kicker: 'العب واتعلم!',         desc: 'فلاش كاردز وألعاب ترفيهية بتنمي مهارات طفلك وتخليه يكتشف العالم وهو بيضحك ومبسوط.',           color: '#e85d4c', img: 'assets/catagory/catalog-play-learn.webp' },
+    'bundle':         { title: 'بوكسات ومجموعات',  kicker: 'اختيارات جاهزة للهدايا والأنشطة', desc: 'مجموعات خارج عوالم سراج تجمع قصص وأنشطة وبازل في تجربة واحدة سهلة الشراء.',      color: '#36a39a', img: 'assets/catagory/catalog-all.webp' },
+    'seraj-stories':  { title: 'حكايات سراج',    kicker: 'الأرنب المسافر عبر الزمن!', desc: 'رحلات مثيرة مع آلة الزمن لاكتشاف أسرار الماضي مع الأرنب سِراج وأصحابه.',        color: '#6bbf3f', img: 'assets/catagory/catalog-seraj-stories.webp' }
   };
 
   // ----- Catalog Page — grid + filter tabs -----
@@ -1178,7 +1178,7 @@
         var em = document.createElement('div');
         em.id = 'catalogEmpty'; em.className = 'catalog-empty-state';
         em.innerHTML =
-          '<img src="assets/seraj.png" alt="" class="empty-mascot" loading="lazy"/>' +
+          '<img src="assets/seraj.webp" alt="" class="empty-mascot" loading="lazy"/>' +
           '<h3>القسم ده لسه فاضي!</h3>' +
           '<p>بنحضّر حاجات حلوة للقسم ده — لحد ما يجهز، شوف اقتراحاتنا:</p>' +
           '<div class="empty-actions">' +
@@ -1484,7 +1484,7 @@
     h += '<div class="insta-card reveal">';
     h += '<div class="insta-head"><span>ادفع على InstaPay — ' + toArabicNum(amountToPayNow) + ' ج.م</span></div>';
     h += '<div class="insta-body">';
-    h += '<div class="qr"><img src="assets/instapay-qr.jpeg" alt="InstaPay QR" style="width:100%;height:100%;object-fit:contain;border-radius:8px" loading="lazy"/></div>';
+    h += '<div class="qr"><img src="assets/instapay-qr.webp" alt="InstaPay QR" style="width:100%;height:100%;object-fit:contain;border-radius:8px" loading="lazy"/></div>';
     h += '<div class="insta-num"><small>Username</small><strong>' + INSTAPAY_NUMBER + '</strong><small>أو اضغط على الرابط:</small>';
     h += '<a href="' + INSTAPAY_LINK + '" target="_blank" rel="noopener" style="color:var(--seraj);font-weight:700;word-break:break-all">ipn.eg/S/' + INSTAPAY_NUMBER + '</a></div>';
     h += '</div></div>';
@@ -3591,7 +3591,7 @@
      if (coloringCart.length === 0) {
         wrap.innerHTML =
           '<div class="cb-empty-state">' +
-            '<img src="assets/seraj.png" alt="" class="empty-mascot lg" loading="lazy"/>' +
+            '<img src="assets/seraj.webp" alt="" class="empty-mascot lg" loading="lazy"/>' +
             '<h3>كشكولك لسه فاضي!</h3>' +
             '<p>اختار من مكتبتنا أي رسومات تعجب طفلك، وارجع هنا تحدد عدد الصفحات والغلاف.</p>' +
             '<div class="empty-actions">' +
@@ -3696,10 +3696,10 @@
      html += '<div class="cb-cover-section" id="cbCoverSection" style="display:none">';
      html += '  <h4>اختار غلاف الكشكول</h4>';
      html += '  <div class="cb-cover-grid" id="cbCoverGrid">';
-     html += '    <label class="cb-cover-option is-selected"><input type="radio" name="cbCover" value="cover-seraj" checked style="display:none" /><img src="assets/seraj.png" alt="سِراج" /><span>سِراج</span></label>';
-     html += '    <label class="cb-cover-option"><input type="radio" name="cbCover" value="cover-khaled" style="display:none" /><img src="assets/khaled-v2.png" alt="خالد" /><span>خالد</span></label>';
-     html += '    <label class="cb-cover-option"><input type="radio" name="cbCover" value="cover-layla" style="display:none" /><img src="assets/layla.png" alt="ليلى" /><span>ليلى</span></label>';
-     html += '    <label class="cb-cover-option"><input type="radio" name="cbCover" value="cover-zain" style="display:none" /><img src="assets/zain.png" alt="زين" /><span>زين</span></label>';
+     html += '    <label class="cb-cover-option is-selected"><input type="radio" name="cbCover" value="cover-seraj" checked style="display:none" /><img src="assets/seraj.webp" alt="سِراج" /><span>سِراج</span></label>';
+     html += '    <label class="cb-cover-option"><input type="radio" name="cbCover" value="cover-khaled" style="display:none" /><img src="assets/khaled-v2.webp" alt="خالد" /><span>خالد</span></label>';
+     html += '    <label class="cb-cover-option"><input type="radio" name="cbCover" value="cover-layla" style="display:none" /><img src="assets/layla.webp" alt="ليلى" /><span>ليلى</span></label>';
+     html += '    <label class="cb-cover-option"><input type="radio" name="cbCover" value="cover-zain" style="display:none" /><img src="assets/zain.webp" alt="زين" /><span>زين</span></label>';
      html += '  </div>';
      html += '  <div class="cb-cover-name">';
      html += '    <label>اسم الكشكول (اختياري):</label>';
@@ -3981,7 +3981,7 @@
     var input = document.getElementById('chatInput');
     var sendBtn = document.getElementById('chatSendBtn');
     var messagesDiv = document.getElementById('chatMessages');
-    var avatarSrc = 'assets/grandma-fatima-seated.png';
+    var avatarSrc = 'assets/grandma-fatima-seated.webp';
 
     // Load history from localStorage
     try {
@@ -4197,7 +4197,7 @@
   // SERAJ CHAT WIDGET (floating)
   // ═══════════════════════════════════════════════════════════
   var SC_DEFAULT_WHATSAPP = '201152806034';
-  var SC_AVATAR_SRC = 'assets/seraj.png';
+  var SC_AVATAR_SRC = 'assets/seraj.webp';
   var SC_LS_KEY = 'seraj-chat-history-v1';
   var SC_LS_FIRSTOPEN_KEY = 'seraj-chat-opened-once';
   var SC_LS_CONFIG_KEY = 'seraj-chat-config-v1';
@@ -5094,7 +5094,7 @@
         var progress = Math.min(100, Math.round((group.confirmedOrders / group.targetOrders) * 100));
         
         h += '<div class="page-head tight" style="text-align:center; padding-top:40px;">';
-        h += '<img src="assets/seraj.png" style="width:80px; margin-bottom:15px;" />';
+        h += '<img src="assets/seraj.webp" style="width:80px; margin-bottom:15px;" />';
         h += '<h1>جروب ' + group.createdByName + ' للخصم! 🎁</h1>';
         h += '<p style="color:var(--ink-mute);">' + (group.status === 'open' ? 'باقي وقت وتخلص الفرصة، شارك الرابط مع صحابك وخدوا كلكم خصم.' : 'الجروب ده اكتمل أو انتهى.') + '</p>';
         h += '</div>';

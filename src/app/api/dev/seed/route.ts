@@ -2,10 +2,15 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import SiteContent from "@/lib/models/SiteContent";
 import { DEFAULT_CONTENT } from "@/lib/seed/contentDefaults";
+import { env } from "@/env";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  if (env.NODE_ENV !== "development") {
+    return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+  }
+
   try {
     await connectDB();
     

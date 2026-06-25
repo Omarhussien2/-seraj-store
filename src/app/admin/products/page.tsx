@@ -148,6 +148,12 @@ export default function AdminProductsPage() {
   const [draggedGalleryIdx, setDraggedGalleryIdx] = useState<number | null>(null);
   const [dragOverGalleryIdx, setDragOverGalleryIdx] = useState<number | null>(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [toast, setToast] = useState<{message: string; type: "success" | "error"} | null>(null);
+
+  function showToast(message: string, type: "success" | "error" = "success") {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  }
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -199,9 +205,10 @@ export default function AdminProductsPage() {
         });
         const json = await res.json();
         if (!json.success) {
-          alert(formatApiError(json, "Failed to update product"));
+          showToast(formatApiError(json, "Failed to update product"), "error");
           return;
         }
+        showToast("تم تحديث المنتج بنجاح!", "success");
       } else {
         // POST new product
         const res = await fetch("/api/products", {
@@ -211,16 +218,17 @@ export default function AdminProductsPage() {
         });
         const json = await res.json();
         if (!json.success) {
-          alert(formatApiError(json, "Failed to create product"));
+          showToast(formatApiError(json, "Failed to create product"), "error");
           return;
         }
+        showToast("تم إنشاء المنتج بنجاح!", "success");
       }
 
       setDialogOpen(false);
       fetchProducts();
     } catch (err) {
       console.error("Save error:", err);
-      alert("حدث خطأ أثناء الحفظ");
+      showToast("حدث خطأ أثناء الحفظ", "error");
     } finally {
       setSaving(false);
     }
@@ -236,12 +244,14 @@ export default function AdminProductsPage() {
       const res = await fetch(`/api/products/${slug}`, { method: "DELETE" });
       const json = await res.json();
       if (json.success) {
+        showToast("تم الحذف بنجاح", "success");
         fetchProducts();
       } else {
-        alert(json.error || "Failed to delete product");
+        showToast(json.error || "Failed to delete product", "error");
       }
     } catch (err) {
       console.error("Delete error:", err);
+      showToast("حدث خطأ أثناء الحذف", "error");
     }
   }
 
@@ -254,12 +264,14 @@ export default function AdminProductsPage() {
       });
       const json = await res.json();
       if (json.success) {
+        showToast("تم الاستعادة بنجاح", "success");
         fetchProducts();
       } else {
-        alert(json.error || "Failed to restore product");
+        showToast(json.error || "Failed to restore product", "error");
       }
     } catch (err) {
       console.error("Restore error:", err);
+      showToast("حدث خطأ أثناء الاستعادة", "error");
     }
   }
 
@@ -288,12 +300,13 @@ export default function AdminProductsPage() {
 
       if (result.success && result.data?.[0]) {
         updateMedia("image", result.data[0].url);
+        showToast("تم رفع الصورة بنجاح", "success");
       } else {
-        alert(result.error || "فشل رفع الصورة");
+        showToast(result.error || "فشل رفع الصورة", "error");
       }
     } catch (error) {
       console.error("Media image upload error:", error);
-      alert("حدث خطأ أثناء رفع الصورة");
+      showToast("حدث خطأ أثناء رفع الصورة", "error");
     } finally {
       setUploadingMedia(false);
       e.target.value = "";
@@ -322,12 +335,13 @@ export default function AdminProductsPage() {
           sortOrder: (editingProduct.gallery?.length || 0) + i,
         }));
         updateField("gallery", [...(editingProduct.gallery || []), ...newItems]);
+        showToast("تم رفع الملفات لمعرض الصور بنجاح", "success");
       } else {
-        alert(result.error || "Upload failed");
+        showToast(result.error || "Upload failed", "error");
       }
     } catch (error) {
       console.error("Gallery upload error:", error);
-      alert("حدث خطأ أثناء رفع الملفات");
+      showToast("حدث خطأ أثناء رفع الملفات", "error");
     } finally {
       setUploadingGallery(false);
       e.target.value = ""; // Reset file input
@@ -378,6 +392,12 @@ export default function AdminProductsPage() {
         <h1 className="text-2xl font-bold">إدارة المنتجات</h1>
         <Button onClick={openCreateDialog}>+ إضافة منتج</Button>
       </div>
+
+      {toast && (
+        <div className={`fixed bottom-4 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg z-50 text-white font-medium ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+          {toast.message}
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center py-12 text-muted-foreground">جاري التحميل...</div>

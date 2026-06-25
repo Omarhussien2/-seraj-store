@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { auth } from "@/lib/auth";
+import { env } from "@/env";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://seraj-store.vercel.app";
+const SITE_URL = env.NEXT_PUBLIC_SITE_URL || "https://seraj-store.vercel.app";
 
 /**
  * Middleware: Protects /admin/* routes + adds Link headers for agent discovery.
  */
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export default auth((req) => {
+  const { pathname } = req.nextUrl;
 
   // Never intercept API routes — let them pass through directly
   if (pathname.startsWith("/api/")) {
@@ -19,14 +20,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Protect all other /admin/* routes — check for session cookie
+  // Protect all other /admin/* routes — check for valid session via auth()
   if (pathname.startsWith("/admin")) {
-    const hasSession =
-      request.cookies.has("authjs.session-token") ||
-      request.cookies.has("__Secure-authjs.session-token");
+    const hasSession = !!req.auth;
 
     if (!hasSession) {
-      const loginUrl = new URL("/admin/login", request.url);
+      const loginUrl = new URL("/admin/login", req.url);
       loginUrl.searchParams.set("callbackUrl", pathname);
       return NextResponse.redirect(loginUrl);
     }
@@ -45,7 +44,7 @@ export function middleware(request: NextRequest) {
   }
 
   return response;
-}
+});
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico|assets|sw.js|manifest.json|.*\\.html$).*)"],

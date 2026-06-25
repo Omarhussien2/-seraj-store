@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
 import { isRateLimited, getClientIp } from "@/lib/rateLimit";
+import { filetypeinfo } from "magic-bytes.js";
+import sharp from "sharp";
 
 // Configure Cloudinary from env
 cloudinary.config({
@@ -13,7 +15,7 @@ cloudinary.config({
  * POST /api/upload-child-photo
  * Public endpoint for uploading child photos from the wizard.
  * No auth required — customers use this during checkout wizard.
- * Has strict validation: max 5MB, images only.
+ * Has strict validation: max 5MB, images only, magic bytes validation, and sharp sanitization.
  */
 export async function POST(request: Request) {
   // Rate limit: 20 uploads per 10 minutes per IP
@@ -36,18 +38,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Strict file type validation — only images
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-    if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid file type. Allowed: JPEG, PNG, WebP",
-        },
-        { status: 400 }
-      );
-    }
-
     // Max 5MB for child photos
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
@@ -57,18 +47,33 @@ export async function POST(request: Request) {
       );
     }
 
-    // Convert File to base64 for Cloudinary upload
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
+
+    // Validate using magic bytes to prevent spoofing
+    const typeInfo = filetypeinfo(buffer);
+    const isValidSignature = typeInfo.some((info) =>
+      ["image/jpeg", "image/png", "image/webp"].includes(info.mime || "")
+    );
+
+    if (!isValidSignature) {
+      return NextResponse.json(
+        { success: false, error: "Invalid file signature. Allowed: JPEG, PNG, WebP" },
+        { status: 400 }
+      );
+    }
+
+    // Sanitize and resize with Sharp (removes EXIF and potentially malicious payloads)
+    const sanitizedBuffer = await sharp(buffer)
+      .resize({ width: 800, height: 800, fit: "inside", withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toBuffer();
+
+    const base64 = `data:image/webp;base64,${sanitizedBuffer.toString("base64")}`;
 
     const result = await cloudinary.uploader.upload(base64, {
       folder: "seraj/children-photos",
       resource_type: "image",
-      transformation: [
-        { width: 800, height: 800, crop: "limit" },
-        { quality: "auto:good" },
-      ],
     });
 
     return NextResponse.json(

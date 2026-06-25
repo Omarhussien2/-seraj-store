@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
+import { env } from "@/env";
 
 /**
  * NextAuth v5 configuration — single admin user, credentials compared with env vars.
@@ -19,23 +20,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        const adminEmail = process.env.ADMIN_EMAIL;
-        const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
-        const adminPassword = process.env.ADMIN_PASSWORD; // Backwards compatibility
+        const isValidPassword = await bcrypt.compare(credentials.password as string, env.ADMIN_PASSWORD_HASH);
 
-        let isValidPassword = false;
-
-        if (adminPasswordHash) {
-          isValidPassword = await bcrypt.compare(credentials.password as string, adminPasswordHash);
-        } else if (adminPassword) {
-          // Warning: using plain text password (not recommended)
-          isValidPassword = credentials.password === adminPassword;
-        }
-
-        if (credentials.email === adminEmail && isValidPassword) {
+        if (credentials.email === env.ADMIN_EMAIL && isValidPassword) {
           return {
             id: "1",
-            email: adminEmail!,
+            email: env.ADMIN_EMAIL,
             name: "Admin",
           };
         }
@@ -71,5 +61,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: env.NEXTAUTH_SECRET,
 });

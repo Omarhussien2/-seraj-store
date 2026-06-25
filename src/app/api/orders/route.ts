@@ -11,6 +11,7 @@ import {
   redeemCouponOrThrow,
   rollbackCouponRedemption,
 } from "@/lib/coupons/apply";
+import SiteContent from "@/lib/models/SiteContent";
 import { normalizeCouponCode } from "@/lib/coupons/normalize";
 import GroupBuy, { type IGroupBuy, type IGroupBuyTier } from "@/lib/models/GroupBuy";
 import { calculateGroupBuyDiscount, isGroupExpired } from "@/lib/groupBuy/engine";
@@ -158,12 +159,33 @@ export async function POST(request: Request) {
 
     for (const item of validated.items) {
       if (item.productSlug === "coloring-workbook") {
-        subtotal += item.price * item.qty;
+        if (!item.coloringDetails) {
+          return NextResponse.json(
+            { success: false, error: "تفاصيل كشكول التلوين مفقودة" },
+            { status: 400 }
+          );
+        }
+
+        // Fetch dynamic pricing from DB securely
+        const [pricePerPageDoc, coverPriceDoc] = await Promise.all([
+          SiteContent.findOne({ key: "pricePerPage" }).lean(),
+          SiteContent.findOne({ key: "coverPrice" }).lean()
+        ]);
+        
+        const pricePerPage = parseFloat((pricePerPageDoc as any)?.value || "3") || 3;
+        const coverPrice = parseFloat((coverPriceDoc as any)?.value || "20") || 20;
+
+        const pagesTotal = item.coloringDetails.itemCount * pricePerPage;
+        const calculatedPrice = item.coloringDetails.format === "book" 
+          ? pagesTotal + coverPrice 
+          : pagesTotal;
+
+        subtotal += calculatedPrice * item.qty;
         // Coloring workbook has dynamic pricing; no deposit override.
         pricedItems.push({
           productSlug: item.productSlug,
           qty: item.qty,
-          unitPrice: item.price,
+          unitPrice: calculatedPrice,
           depositAmount: null,
         });
         continue;
