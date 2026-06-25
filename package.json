@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:products": "tsx --test tests/product-catalog-contract.test.ts",
+    "test:home-products": "playwright test tests/home-products-order.spec.js",
     "seed": "npx dotenv-cli -e .env.local -- npx tsx scripts/seed.ts"
   },
   "dependencies": {

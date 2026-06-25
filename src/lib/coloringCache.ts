@@ -7,7 +7,7 @@
  * so paying the Mongo round-trip on every request is wasteful when the data
  * changes only when the admin uploads a new sheet.
  *
- * Pattern mirrors `productsCache.ts`: 60s TTL, in-memory Map keyed by the
+ * Uses a 60s TTL in-memory Map keyed by the
  * full querystring. Admin requests with `?all=true` skip the cache entirely
  * so the admin dashboard stays fresh. Mutating routes call
  * `invalidateColoringCache()` so visitors see the new state immediately on

@@ -9,11 +9,6 @@ import {
   optionalProductText,
   productSectionFilterValue,
 } from "@/lib/productCatalog";
-import {
-  getProductsCache,
-  setProductsCache,
-  invalidateProductsCache,
-} from "@/lib/productsCache";
 
 export const dynamic = "force-dynamic";
 
@@ -30,25 +25,6 @@ export async function GET(request: Request) {
     const section = searchParams.get("section");
     const series = searchParams.get("series");
     const showAll = searchParams.get("all") === "true";
-
-    // Admin "show all" requests are never cached — admins need fresh data.
-    const cacheKey = showAll
-      ? null
-      : `cat=${category || ""}|sec=${section || ""}|ser=${series || ""}`;
-
-    if (cacheKey) {
-      const hit = getProductsCache(cacheKey);
-      if (hit) {
-        return new NextResponse(hit, {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            "X-Cache": "HIT",
-            "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
-          },
-        });
-      }
-    }
 
     await connectDB();
 
@@ -77,18 +53,12 @@ export async function GET(request: Request) {
       data: products,
     });
 
-    if (cacheKey) {
-      setProductsCache(cacheKey, body);
-    }
-
     return new NextResponse(body, {
       status: 200,
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "X-Cache": cacheKey ? "MISS" : "BYPASS",
-        "Cache-Control": cacheKey
-          ? "public, s-maxage=60, stale-while-revalidate=300"
-          : "private, no-store",
+        "X-Cache": "BYPASS",
+        "Cache-Control": "private, no-store",
       },
     });
   } catch (error) {
@@ -182,7 +152,6 @@ export async function POST(request: Request) {
     };
 
     const product = await Product.create(productFields);
-    invalidateProductsCache();
 
     return NextResponse.json(
       { success: true, data: product },
