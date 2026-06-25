@@ -1,0 +1,22 @@
+# Local Vercel project link; never upload workspace-specific project bindings.
+.vercel
+
+# Local secrets; production values must come from the Vercel project env vars.
+.env.local
+.env*.local
+
+# Dependencies, build output, caches, and test artifacts.
+node_modules
+.next
+out
+coverage
+test-results
+playwright-report
+
+# Repository and local automation artifacts not needed by Vercel builds.
+.git
+claude.exe
+project-session-tracker
+
+# Workspace-only documentation; not required for the deployed runtime.
+docs
