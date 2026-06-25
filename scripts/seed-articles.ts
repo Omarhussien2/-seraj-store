@@ -226,7 +226,7 @@ function extractSources(content: string): { label: string; url?: string; note?: 
   const sources: { label: string; url?: string; note?: string }[] = [];
 
   // Truncate content at "فيديوهات" or "شكل المقالات الجاية" or next article marker
-  let cleanContent = content
+  const cleanContent = content
     .replace(/##\s*\*\*فيديوهات وروابط سوشيال في نفس الموضوع\*\*[\s\S]*?(?=##\s*\*\*المقال\s+\d+\*\*|$)/gi, "")
     .replace(/##\s*\*\*شكل المقالات الجاية\*\*[\s\S]*?(?=##\s*\*\*المقال\s+\d+\*\*|$)/gi, "");
 

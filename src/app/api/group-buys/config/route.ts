@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { requireAdmin } from "@/lib/requireAdmin";
 import { getGroupBuyConfig } from "@/lib/groupBuy/engine";
+import type { IGroupBuyConfig } from "@/lib/models/GroupBuyConfig";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -51,11 +52,11 @@ export async function PUT(request: Request) {
     if (body.defaultDurationHours) config.defaultDurationHours = body.defaultDurationHours;
     if (body.defaultTiers) config.defaultTiers = body.defaultTiers;
     
-    if (body.content) {
-      Object.keys(body.content).forEach(key => {
+    if (body.content && typeof body.content === "object") {
+      Object.keys(body.content).forEach((key) => {
         if (key in config.content) {
-          // @ts-ignore - dynamic key assignment
-          config.content[key] = body.content[key];
+          const contentKey = key as keyof IGroupBuyConfig["content"];
+          config.content[contentKey] = body.content[contentKey];
         }
       });
     }

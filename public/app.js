@@ -1001,6 +1001,7 @@
     'tales':          { title: 'سباق الفتوحات',         kicker: 'أبطالنا الحقيقيين!',            desc: 'أبطالنا بجد! مستويات تناسب كل الأعمار مع جزء خاص لتجهيز الأب والأم لأسئلة طفلك.',   color: '#36a39a', img: 'assets/catagory/catalog-tales.png' },
     'custom-stories': { title: 'قصة مخصوصة',  kicker: 'باسم وصورة طفلك!',          desc: 'هدية عمره ما هينساها.. قصة تفاعلية ممتعة ومطبوعة بجودة عالية بطلها طفلك!',           color: '#c9974e', img: 'assets/catagory/catalog-custom-stories.png' },
     'play-learn':     { title: 'ألعاب سراج',      kicker: 'العب واتعلم!',         desc: 'فلاش كاردز وألعاب ترفيهية بتنمي مهارات طفلك وتخليه يكتشف العالم وهو بيضحك ومبسوط.',           color: '#e85d4c', img: 'assets/catagory/catalog-play-learn.png' },
+    'bundle':         { title: 'بوكسات ومجموعات',  kicker: 'اختيارات جاهزة للهدايا والأنشطة', desc: 'مجموعات خارج عوالم سراج تجمع قصص وأنشطة وبازل في تجربة واحدة سهلة الشراء.',      color: '#36a39a', img: 'assets/catagory/catalog-all.png' },
     'seraj-stories':  { title: 'حكايات سراج',    kicker: 'الأرنب المسافر عبر الزمن!', desc: 'رحلات مثيرة مع آلة الزمن لاكتشاف أسرار الماضي مع الأرنب سِراج وأصحابه.',        color: '#6bbf3f', img: 'assets/catagory/catalog-seraj-stories.png' }
   };
 
@@ -1817,7 +1818,7 @@
     var currentPage = pageName || parseRoute().page;
     var shouldHide = !CHAT_WIDGET_ENABLED || CHAT_HIDDEN_PAGES.indexOf(currentPage) !== -1;
     if (shouldHide) {
-      scChatOpen = false;
+      if (typeof scState !== 'undefined' && scState) scState.open = false;
       win.hidden = true;
       btn.hidden = true;
       btn.style.display = 'none';
@@ -1825,7 +1826,7 @@
     }
 
     btn.hidden = false;
-    btn.style.display = scChatOpen ? 'none' : '';
+    btn.style.display = (typeof scState !== 'undefined' && scState && scState.open) ? 'none' : '';
   }
 
   // Valid page names for the SPA router
@@ -1839,6 +1840,7 @@
       name = 'not-found';
     }
     if (name === 'product') target = 'product';
+    if (name === 'mama-coloring') target = 'mama-world';
 
     pages.forEach(function (p) {
       var isActive = p.dataset.page === target;

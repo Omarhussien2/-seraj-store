@@ -27,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { PRODUCT_CATEGORIES, PRODUCT_SECTIONS } from "@/lib/productCatalog";
 
 // ---------- Types ----------
 interface Product {
@@ -70,13 +71,41 @@ interface Product {
   related: string[];
 }
 
+type EditableProductPayload = Omit<Partial<Product>, "originalPrice" | "originalPriceText" | "depositAmount"> & {
+  originalPrice?: number | string | null;
+  originalPriceText?: string | null;
+  depositAmount?: number | string | null;
+};
+
+interface UploadedMediaItem {
+  url: string;
+  publicId?: string;
+  resourceType: "image" | "video";
+}
+
+interface ApiErrorResponse {
+  error?: string;
+  details?: { field: string; message: string }[];
+}
+
+function formatApiError(json: ApiErrorResponse, fallback: string) {
+  const message = json.error || fallback;
+  if (!json.details?.length) return message;
+
+  const details = json.details
+    .map((detail) => `- ${detail.field || "body"}: ${detail.message}`)
+    .join("\n");
+
+  return `${message}\n${details}`;
+}
+
 const emptyProduct: Partial<Product> = {
   slug: "",
   name: "",
   badge: "",
   price: 0,
   priceText: "",
-  category: "قصص جاهزة",
+  category: PRODUCT_CATEGORIES[0],
   section: undefined,
   series: "",
   shortDesc: "",
@@ -153,7 +182,7 @@ export default function AdminProductsPage() {
     setSaving(true);
 
     try {
-      const payload: any = { ...editingProduct };
+      const payload: EditableProductPayload = { ...editingProduct };
       if (payload.originalPrice === "") payload.originalPrice = null;
       if (payload.originalPriceText === "") payload.originalPriceText = null;
       if (payload.depositAmount === "" || payload.depositAmount === undefined)
@@ -170,7 +199,7 @@ export default function AdminProductsPage() {
         });
         const json = await res.json();
         if (!json.success) {
-          alert(json.error || "Failed to update product");
+          alert(formatApiError(json, "Failed to update product"));
           return;
         }
       } else {
@@ -182,7 +211,7 @@ export default function AdminProductsPage() {
         });
         const json = await res.json();
         if (!json.success) {
-          alert(json.error || "Failed to create product");
+          alert(formatApiError(json, "Failed to create product"));
           return;
         }
       }
@@ -285,7 +314,7 @@ export default function AdminProductsPage() {
       const result = await res.json();
 
       if (result.success && result.data) {
-        const newItems = result.data.map((item: any, i: number) => ({
+        const newItems = (result.data as UploadedMediaItem[]).map((item, i) => ({
           url: item.url,
           publicId: item.publicId,
           resourceType: item.resourceType,
@@ -488,10 +517,11 @@ export default function AdminProductsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="قصص جاهزة">قصص جاهزة</SelectItem>
-                      <SelectItem value="قصص مخصصة">قصص مخصصة</SelectItem>
-                      <SelectItem value="فلاش كاردز">فلاش كاردز</SelectItem>
-                      <SelectItem value="مجموعات">مجموعات</SelectItem>
+                      {PRODUCT_CATEGORIES.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -510,10 +540,11 @@ export default function AdminProductsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">بدون قسم (مجموعات)</SelectItem>
-                      <SelectItem value="tales">🐎 سباق الفتوحات</SelectItem>
-                      <SelectItem value="seraj-stories">🐰 حكايات سراج</SelectItem>
-                      <SelectItem value="custom-stories">✨ قصة مخصوصة</SelectItem>
-                      <SelectItem value="play-learn">🧩 ألعاب سراج</SelectItem>
+                      {PRODUCT_SECTIONS.map((section) => (
+                        <SelectItem key={section} value={section}>
+                          {sectionLabelMap[section] || section}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

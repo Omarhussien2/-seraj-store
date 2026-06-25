@@ -41,6 +41,8 @@ interface GroupBuy {
   orderIds: GroupBuyOrder[];
 }
 
+type GroupBuyStatus = GroupBuy["status"];
+
 const statusLabels: Record<string, string> = {
   open: "مفتوح",
   completed: "مكتمل",
@@ -92,7 +94,7 @@ export default function AdminGroupBuysPage() {
     setPage(1);
   }, [filter]);
 
-  async function handleStatusChange(code: string, newStatus: string) {
+  async function handleStatusChange(code: string, newStatus: GroupBuyStatus) {
     try {
       const res = await fetch(`/api/group-buys/${code}`, {
         method: "PATCH",
@@ -102,7 +104,7 @@ export default function AdminGroupBuysPage() {
       const json = await res.json();
       if (json.success) {
         setGroups((prev) =>
-          prev.map((g) => (g.code === code ? { ...g, status: newStatus as any } : g))
+          prev.map((g) => (g.code === code ? { ...g, status: newStatus } : g))
         );
       }
     } catch (err) {
@@ -189,7 +191,7 @@ export default function AdminGroupBuysPage() {
                       <TableCell>
                         <Select
                           value={group.status}
-                          onValueChange={(v) => { if (v) handleStatusChange(group.code, v); }}
+                          onValueChange={(v) => { if (v) handleStatusChange(group.code, v as GroupBuyStatus); }}
                         >
                           <SelectTrigger className={`w-32 h-8 text-xs font-semibold ${statusColors[group.status] || ""}`}>
                             {statusLabels[group.status]}

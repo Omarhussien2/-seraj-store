@@ -146,7 +146,7 @@ export default function ColoringItemsAdmin() {
     setDialogOpen(true);
   };
 
-  const updateField = (field: string, value: any) => {
+  const updateField = (field: string, value: unknown) => {
     setEditingItem((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 

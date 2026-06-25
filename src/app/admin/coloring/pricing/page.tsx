@@ -66,8 +66,8 @@ export default function PricingPage() {
       setOriginal({ ...data });
       setMessage("تم حفظ الأسعار بنجاح! ✅");
       setTimeout(() => setMessage(null), 4000);
-    } catch (err: any) {
-      alert("خطأ: " + err.message);
+    } catch (err) {
+      alert("خطأ: " + (err instanceof Error ? err.message : "Unknown error"));
     } finally {
       setSaving(false);
     }

@@ -108,7 +108,7 @@ export default function TestimonialsAdmin() {
     }
   };
 
-  const updateField = (field: keyof Testimonial, value: any) => {
+  const updateField = (field: keyof Testimonial, value: string | number | boolean) => {
     setEditingTestimonial((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 

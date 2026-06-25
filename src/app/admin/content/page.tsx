@@ -5,6 +5,12 @@ import { connectDB } from "@/lib/db";
 import SiteContent from "@/lib/models/SiteContent";
 import ContentEditor from "./ContentEditor";
 
+interface ContentDocument {
+  section: string;
+  key: string;
+  value: string;
+}
+
 export default async function AdminContentPage() {
   await connectDB();
   const contents = await SiteContent.find({}).lean();
@@ -12,7 +18,7 @@ export default async function AdminContentPage() {
   // Convert DB array to grouped format
   const grouped: Record<string, Record<string, string>> = {};
   contents.forEach((doc) => {
-    const { section, key, value } = doc as any;
+    const { section, key, value } = doc as ContentDocument;
     if (!grouped[section]) grouped[section] = {};
     grouped[section][key] = value;
   });

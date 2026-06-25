@@ -15,6 +15,8 @@ interface Tier {
   discountValue: number;
 }
 
+type GroupBuyContent = Record<string, string | string[]>;
+
 export default function AdminGroupBuySettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -23,7 +25,7 @@ export default function AdminGroupBuySettings() {
   const [active, setActive] = useState(true);
   const [defaultDurationHours, setDefaultDurationHours] = useState(24);
   const [tiers, setTiers] = useState<Tier[]>([]);
-  const [content, setContent] = useState<Record<string, any>>({});
+  const [content, setContent] = useState<GroupBuyContent>({});
 
   useEffect(() => {
     fetch("/api/group-buys/config")
@@ -69,11 +71,11 @@ export default function AdminGroupBuySettings() {
     }
   }
 
-  function handleContentChange(key: string, value: any) {
+  function handleContentChange(key: string, value: string | string[]) {
     setContent(prev => ({ ...prev, [key]: value }));
   }
 
-  function updateTier(index: number, field: keyof Tier, value: any) {
+  function updateTier<K extends keyof Tier>(index: number, field: K, value: Tier[K]) {
     const newTiers = [...tiers];
     newTiers[index] = { ...newTiers[index], [field]: value };
     setTiers(newTiers);
@@ -166,7 +168,7 @@ export default function AdminGroupBuySettings() {
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">نوع الخصم</Label>
-                  <Select value={tier.discountType} onValueChange={(v: any) => updateTier(idx, "discountType", v)}>
+                  <Select value={tier.discountType} onValueChange={(v) => updateTier(idx, "discountType", v as Tier["discountType"])}>
                     <SelectTrigger className="w-40">
                       <SelectValue />
                     </SelectTrigger>
