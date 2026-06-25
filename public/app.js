@@ -183,6 +183,65 @@
     }
   }
 
+  function getOrderedProductSlugs() {
+    return Object.keys(PRODUCTS).sort(function(a, b) {
+      return (PRODUCTS[a].order || 0) - (PRODUCTS[b].order || 0);
+    });
+  }
+
+  function buildHomeProductCard(slug, product, index) {
+    var isSoon = product.comingSoon || product.action === 'none';
+    var media = product.media || { type: 'book3d', bg: 'emerald' };
+    var bg = media.bg || 'emerald';
+    var priceText = product.priceText || (toArabicNum(product.price || 0) + ' ج.م');
+    var priceHTML = product.originalPriceText
+      ? '<div class="price-group" style="display:flex;align-items:center;gap:6px"><span class="price old-price" style="text-decoration:line-through;color:var(--ink-mute);font-size:0.85em">' + product.originalPriceText + '</span><span class="price">' + priceText + '</span></div>'
+      : '<span class="price">' + priceText + '</span>';
+    var badgeClass = product.badgeSoon || isSoon ? ' soon-badge' : '';
+    var badgeHTML = product.badge
+      ? '<span class="badge' + badgeClass + '">' + escapeHtml(product.badge) + '</span>'
+      : '';
+    var soonOverlay = isSoon ? '<div class="soon-overlay">قريباً</div>' : '';
+    var ctaHTML = isSoon
+      ? '<span class="cta-mini soon-text">قريباً</span>'
+      : '<span class="cta-mini">شوفها →</span>';
+    var delay = (0.05 + (index * 0.07)).toFixed(2);
+    var inner =
+      '<div class="product-media ' + bg + '">' +
+        badgeHTML +
+        renderMedia(media, false, product.imageUrl) +
+        soonOverlay +
+      '</div>' +
+      '<div class="product-body">' +
+        '<h3>' + escapeHtml(product.name || '') + '</h3>' +
+        '<p>' + escapeHtml(product.shortDesc || product.longDesc || '') + '</p>' +
+        '<div class="product-foot">' + priceHTML + ctaHTML + '</div>' +
+      '</div>';
+
+    if (isSoon) {
+      return '<div class="product-card coming-soon reveal" data-home-product="' + slug + '" style="--d:' + delay + 's">' + inner + '</div>';
+    }
+
+    return '<a href="#/product/' + slug + '" data-link class="product-card reveal" data-home-product="' + slug + '" style="--d:' + delay + 's">' + inner + '</a>';
+  }
+
+  function renderHomeProductsPreview() {
+    var grid = document.getElementById('homeProductsGrid');
+    if (!grid) return;
+    if (!productsLoaded) return;
+
+    var slugs = getOrderedProductSlugs().filter(function(slug) {
+      var product = PRODUCTS[slug];
+      return product && product.active !== false;
+    }).slice(0, 3);
+
+    if (!slugs.length) return;
+
+    grid.innerHTML = slugs.map(function(slug, index) {
+      return buildHomeProductCard(slug, PRODUCTS[slug], index);
+    }).join('');
+  }
+
   // ----- Dynamic Price & Image Update -----
   function updateDOMPrices() {
     var cards = document.querySelectorAll('.product-card');
@@ -282,7 +341,9 @@
             }));
           } catch (e) { /* quota — silent */ }
           console.log('✅ Products loaded from API (' + data.data.length + ')');
-          // Re-populate catalog with fresh data so hidden products disappear
+          // Re-populate product surfaces with fresh data so order and hidden
+          // products reflect admin changes without waiting for a reload.
+          renderHomeProductsPreview();
           populateCatalog();
         }
         updateDOMPrices();
@@ -1055,9 +1116,7 @@
 
     // Render all product cards
     grid.innerHTML = '';
-    var sortedSlugs = Object.keys(PRODUCTS).sort(function(a, b) {
-      return (PRODUCTS[a].order || 0) - (PRODUCTS[b].order || 0);
-    });
+    var sortedSlugs = getOrderedProductSlugs();
     sortedSlugs.forEach(function(slug) {
       var p = PRODUCTS[slug];
       if (p.active === false) return;
@@ -3868,6 +3927,7 @@
     function doInitialRender() {
       if (didInitialRender) return;
       didInitialRender = true;
+      renderHomeProductsPreview();
       populateCatalog();
       handleRoute();
       initReveals();
