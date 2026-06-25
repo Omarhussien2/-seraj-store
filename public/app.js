@@ -363,6 +363,7 @@
         renderHomeProductsPreview();
         populateCatalog();
         updateDOMPrices();
+        setTimeout(initReveals, 100);
       });
   }
 

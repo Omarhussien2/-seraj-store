@@ -1,5 +1,5 @@
 // سِراج — Service Worker (offline caching)
-const CACHE_NAME = 'seraj-v10';
+const CACHE_NAME = 'seraj-v11';
 const IMAGE_CACHE_NAME = 'seraj-images-v1';
 const ASSETS_TO_CACHE = [
   '/',
@@ -7,21 +7,17 @@ const ASSETS_TO_CACHE = [
   '/app.js',
   '/styles.css',
   '/manifest.json',
-  '/assets/logo/logo.svg',
-  '/assets/logo/logo-icon.svg',
-  '/assets/sharelinkbannar.png',
-  '/assets/seraj.png',
-  '/assets/khaled-v2.png',
-  '/assets/family-photo.mp4',
-  '/assets/1-.mp4',
-  '/assets/2.mp4',
-  '/assets/3.mp4',
-  '/assets/instapay-qr.jpeg'
+  '/assets/logo/logo.webp',
+  '/assets/logo/logo-icon.png',
+  '/assets/sharelinkbannar.webp',
+  '/assets/seraj.webp',
+  '/assets/khaled-v2.webp',
+  '/assets/instapay-qr.webp'
 ];
 
 // We only use cache-first for Cloudinary because its URLs are immutable
 // (they embed a version hash, e.g. `/v1776193295/...`), so a cached copy is
-// always correct. Local images (/assets/*.png, etc.) keep using network-first
+// always correct. Local images (/assets/*.webp, etc.) keep using network-first
 // so they refresh when the server copy changes.
 function isCloudinaryImageRequest(request) {
   return request.url.includes('res.cloudinary.com');
