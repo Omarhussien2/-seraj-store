@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import { requireAdmin } from "@/lib/requireAdmin";
 import { invalidateProductsCache } from "@/lib/productsCache";
+import { PRODUCT_CATEGORIES, PRODUCT_SECTIONS } from "@/lib/productCatalog";
 
 /**
  * GET /api/products/[slug]
@@ -58,8 +59,8 @@ const PatchProductSchema = z.object({
   depositAmount: z.number().min(0).nullable().optional(),
   priceText: z.string().min(1).optional(),
   originalPriceText: z.string().nullable().optional(),
-  category: z.enum(["قصص جاهزة", "قصص مخصصة", "فلاش كاردز", "مجموعات"]).optional(),
-  section: z.enum(["tales", "seraj-stories", "custom-stories", "play-learn"]).optional().nullable(),
+  category: z.enum(PRODUCT_CATEGORIES).optional(),
+  section: z.enum(PRODUCT_SECTIONS).optional().nullable(),
   series: z.string().optional().nullable(),
   shortDesc: z.string().optional().nullable(),
   longDesc: z.string().min(1).optional(),

@@ -27,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { PRODUCT_CATEGORIES, PRODUCT_SECTIONS } from "@/lib/productCatalog";
 
 // ---------- Types ----------
 interface Product {
@@ -82,13 +83,29 @@ interface UploadedMediaItem {
   resourceType: "image" | "video";
 }
 
+interface ApiErrorResponse {
+  error?: string;
+  details?: { field: string; message: string }[];
+}
+
+function formatApiError(json: ApiErrorResponse, fallback: string) {
+  const message = json.error || fallback;
+  if (!json.details?.length) return message;
+
+  const details = json.details
+    .map((detail) => `- ${detail.field || "body"}: ${detail.message}`)
+    .join("\n");
+
+  return `${message}\n${details}`;
+}
+
 const emptyProduct: Partial<Product> = {
   slug: "",
   name: "",
   badge: "",
   price: 0,
   priceText: "",
-  category: "قصص جاهزة",
+  category: PRODUCT_CATEGORIES[0],
   section: undefined,
   series: "",
   shortDesc: "",
@@ -182,7 +199,7 @@ export default function AdminProductsPage() {
         });
         const json = await res.json();
         if (!json.success) {
-          alert(json.error || "Failed to update product");
+          alert(formatApiError(json, "Failed to update product"));
           return;
         }
       } else {
@@ -194,7 +211,7 @@ export default function AdminProductsPage() {
         });
         const json = await res.json();
         if (!json.success) {
-          alert(json.error || "Failed to create product");
+          alert(formatApiError(json, "Failed to create product"));
           return;
         }
       }
@@ -500,10 +517,11 @@ export default function AdminProductsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="قصص جاهزة">قصص جاهزة</SelectItem>
-                      <SelectItem value="قصص مخصصة">قصص مخصصة</SelectItem>
-                      <SelectItem value="فلاش كاردز">فلاش كاردز</SelectItem>
-                      <SelectItem value="مجموعات">مجموعات</SelectItem>
+                      {PRODUCT_CATEGORIES.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -522,10 +540,11 @@ export default function AdminProductsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">بدون قسم (مجموعات)</SelectItem>
-                      <SelectItem value="tales">🐎 سباق الفتوحات</SelectItem>
-                      <SelectItem value="seraj-stories">🐰 حكايات سراج</SelectItem>
-                      <SelectItem value="custom-stories">✨ قصة مخصوصة</SelectItem>
-                      <SelectItem value="play-learn">🧩 ألعاب سراج</SelectItem>
+                      {PRODUCT_SECTIONS.map((section) => (
+                        <SelectItem key={section} value={section}>
+                          {sectionLabelMap[section] || section}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

@@ -4,6 +4,12 @@ import { connectDB } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import { requireAdmin } from "@/lib/requireAdmin";
 import {
+  PRODUCT_CATEGORIES,
+  PRODUCT_SECTIONS,
+  optionalProductText,
+  productSectionFilterValue,
+} from "@/lib/productCatalog";
+import {
   getProductsCache,
   setProductsCache,
   invalidateProductsCache,
@@ -14,6 +20,7 @@ export const dynamic = "force-dynamic";
 /**
  * GET /api/products
  * Query params: ?category=قصص جاهزة&section=tales&series=سباق الفتوحات&all=true
+ * Use section=bundle, section=null, or section=none for unsectioned bundles.
  * Returns active products sorted by order (or all if ?all=true)
  */
 export async function GET(request: Request) {
@@ -52,8 +59,9 @@ export async function GET(request: Request) {
     if (category) {
       filter.category = category;
     }
-    if (section) {
-      filter.section = section;
+    const sectionFilter = productSectionFilterValue(section);
+    if (sectionFilter !== undefined) {
+      filter.section = sectionFilter;
     }
     if (series) {
       filter.series = series;
@@ -126,10 +134,10 @@ const CreateProductSchema = z.object({
   depositAmount: z.number().min(0).nullable().optional(),
   priceText: z.string().min(1),
   originalPriceText: z.string().nullable().optional(),
-  category: z.enum(["قصص جاهزة", "قصص مخصصة", "فلاش كاردز", "مجموعات"]),
-  section: z.enum(["tales", "seraj-stories", "custom-stories", "play-learn"]).optional(),
-  series: z.string().optional(),
-  shortDesc: z.string().optional(),
+  category: z.enum(PRODUCT_CATEGORIES),
+  section: z.enum(PRODUCT_SECTIONS).nullable().optional(),
+  series: z.string().nullable().optional(),
+  shortDesc: z.string().nullable().optional(),
   longDesc: z.string().min(1),
   features: z.array(z.string()),
   imageUrl: z.string().optional(),
@@ -167,7 +175,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const product = await Product.create(validated);
+    const productFields = {
+      ...validated,
+      series: optionalProductText(validated.series),
+      shortDesc: optionalProductText(validated.shortDesc),
+    };
+
+    const product = await Product.create(productFields);
     invalidateProductsCache();
 
     return NextResponse.json(

@@ -1,4 +1,5 @@
 import mongoose, { type Document, type Model } from "mongoose";
+import { PRODUCT_CATEGORIES, PRODUCT_SECTIONS } from "@/lib/productCatalog";
 
 // ---------- Review sub-schema ----------
 const ReviewSchema = new mongoose.Schema(
@@ -113,11 +114,11 @@ const ProductSchema = new mongoose.Schema<IProduct>(
     category: {
       type: String,
       required: true,
-      enum: ["قصص جاهزة", "قصص مخصصة", "فلاش كاردز", "مجموعات"],
+      enum: [...PRODUCT_CATEGORIES],
     },
     section: {
       type: String,
-      enum: ["tales", "seraj-stories", "custom-stories", "play-learn"],
+      enum: [...PRODUCT_SECTIONS],
       index: true,
     },
     series: { type: String },
