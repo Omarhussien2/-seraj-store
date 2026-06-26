@@ -31,6 +31,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let dynamicRoutes: MetadataRoute.Sitemap = [];
 
+  if (!process.env.MONGODB_URI) {
+    console.warn("⚠️ MONGODB_URI is not defined. Returning static routes only for sitemap.");
+    return staticRoutes;
+  }
+
   try {
     await connectDB();
 

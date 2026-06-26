@@ -57,3 +57,6 @@ public/assets/assets/
 
 # Data files (generated CSV — too large for git)
 data/*.csv
+
+.vercel
+.env*.local
