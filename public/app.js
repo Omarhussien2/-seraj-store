@@ -241,8 +241,15 @@
       return buildHomeProductCard(slug, PRODUCTS[slug], index);
     }).join('');
     
-    void grid.offsetWidth; // Force layout recalculation
-    initReveals();
+    // CRITICAL: Immediately make product cards visible.
+    // Do NOT rely on IntersectionObserver for the product grid — it is the
+    // most important content on the page and must render instantly. Previous
+    // bugs were caused by initReveals() running before the page had
+    // .is-active, leaving cards at opacity:0 forever.
+    var cards = grid.querySelectorAll('.reveal');
+    for (var i = 0; i < cards.length; i++) {
+      cards[i].classList.add('is-visible');
+    }
   }
 
   // ----- Dynamic Price & Image Update -----
