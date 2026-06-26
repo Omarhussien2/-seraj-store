@@ -3358,6 +3358,56 @@
       return (Date.now() - ts) < PWA_DISMISS_MS;
     } catch (e) { return false; }
   }
+  // ----- Init -----
+  window.addEventListener('DOMContentLoaded', function () {
+    loadCart();
+    loadAppliedCoupon();
+    updateCartBadge();
+
+    var hasCachedProducts = hydrateProductsFromCache();
+    fetchProducts();
+    fetchConfig();
+    fetchSiteContent();
+    fetchTestimonials();
+    if (!location.hash) location.hash = '#/home';
+
+    var didInitialRender = false;
+    function doInitialRender() {
+      if (didInitialRender) return;
+      didInitialRender = true;
+      renderHomeProductsPreview();
+      populateCatalog();
+      handleRoute();
+      initReveals();
+      initCounter();
+      initZigzagVideos();
+    }
+
+    if (hasCachedProducts) {
+      doInitialRender();
+      updateDOMPrices();
+    } else {
+      var waitForProducts = setInterval(function () {
+        if (productsReady) {
+          clearInterval(waitForProducts);
+          doInitialRender();
+        }
+      }, 50);
+      setTimeout(function () {
+        clearInterval(waitForProducts);
+        if (!productsReady) {
+          productsReady = true;
+        }
+        doInitialRender();
+      }, 2000);
+    }
+  });
+
+  if (document.readyState !== 'loading') {
+    initHeroVideo();
+  } else {
+    document.addEventListener('DOMContentLoaded', initHeroVideo);
+  }
 
   function isIosSafari() {
     var ua = navigator.userAgent || '';
