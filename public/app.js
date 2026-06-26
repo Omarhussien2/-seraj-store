@@ -2047,18 +2047,19 @@
     }
 
     try {
-      if (revealObserver) revealObserver.disconnect();
-      revealObserver = new IntersectionObserver(
-        function (entries) {
-          entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('is-visible');
-              revealObserver.unobserve(entry.target);
-            }
-          });
-        },
-        { threshold: 0.1, rootMargin: '50px' }
-      );
+      if (!revealObserver) {
+        revealObserver = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                revealObserver.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.1, rootMargin: '50px' }
+        );
+      }
       els.forEach(function (el) { revealObserver.observe(el); });
     } catch (e) {
       console.warn('IntersectionObserver error, falling back to visible', e);
