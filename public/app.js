@@ -227,28 +227,32 @@
 
   function renderHomeProductsPreview() {
     var grid = document.getElementById('homeProductsGrid');
-    if (!grid) return;
-    if (!productsLoaded) return;
+    if (!grid) {
+      console.log('DEBUG [renderHomeProductsPreview]: grid not found');
+      return;
+    }
+    if (!productsLoaded) {
+      console.log('DEBUG [renderHomeProductsPreview]: productsLoaded is false');
+      return;
+    }
 
     var slugs = getOrderedProductSlugs().filter(function(slug) {
       var product = PRODUCTS[slug];
       return product && product.active !== false;
     }).slice(0, 3);
 
+    console.log('DEBUG [renderHomeProductsPreview]: slugs =', slugs);
     if (!slugs.length) return;
 
     grid.innerHTML = slugs.map(function(slug, index) {
       return buildHomeProductCard(slug, PRODUCTS[slug], index);
     }).join('');
     
-    // CRITICAL: Immediately make product cards visible.
-    // Do NOT rely on IntersectionObserver for the product grid — it is the
-    // most important content on the page and must render instantly. Previous
-    // bugs were caused by initReveals() running before the page had
-    // .is-active, leaving cards at opacity:0 forever.
     var cards = grid.querySelectorAll('.reveal');
+    console.log('DEBUG [renderHomeProductsPreview]: found cards count =', cards.length);
     for (var i = 0; i < cards.length; i++) {
       cards[i].classList.add('is-visible');
+      console.log('DEBUG [renderHomeProductsPreview]: added is-visible to card', cards[i].getAttribute('data-home-product'), 'classList =', Array.from(cards[i].classList));
     }
   }
 
