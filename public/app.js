@@ -396,6 +396,7 @@
         console.warn('⚠️ Config fetch failed, using fallback values');
         showFreeShipBanner();
       });
+  }
 
   // ----- Cart State -----
   // Each item: { slug, name, price, qty }
