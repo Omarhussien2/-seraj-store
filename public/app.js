@@ -706,7 +706,10 @@
     } else if (product.action === 'wizard') {
       h += '<a href="#/wizard" data-link class="btn btn-primary btn-xl">' + product.ctaText + ' <svg viewBox="0 0 24 24" width="22" height="22"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a>';
     } else if (product.action === 'cart') {
-      h += '<button class="btn btn-primary btn-xl" data-add-cart="' + slug + '">' + product.ctaText + ' <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/></svg></button>';
+      h += '<div class="pd-actions">';
+      h += '<button class="btn btn-buy-now btn-xl" data-buy-now="' + slug + '">اشتري الآن <svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
+      h += '<button class="btn btn-add-cart btn-xl" data-add-cart="' + slug + '">' + product.ctaText + ' <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg></button>';
+      h += '</div>';
       if (GROUP_BUY_CONFIG && GROUP_BUY_CONFIG.active) {
         var gbText = (GROUP_BUY_CONFIG.content && GROUP_BUY_CONFIG.content.ctaButton) ? GROUP_BUY_CONFIG.content.ctaButton : "اشتري مع صحابك!";
         var gbSubText = (GROUP_BUY_CONFIG.content && GROUP_BUY_CONFIG.content.ctaSubtext) ? GROUP_BUY_CONFIG.content.ctaSubtext : "وخدوا خصم مباشر";
@@ -811,8 +814,8 @@
       h += '</header>';
       // Step 1
       h += '<article class="zz-row reveal" style="--d:.05s">';
-      h += '<div class="zz-media"><div class="zz-video-wrap">';
-      h += '<video class="zz-video" src="assets/1-.mp4" autoplay muted loop playsinline preload="auto" poster="assets/seraj.webp" aria-label="الخطوة ١"></video>';
+      h += '<div class="zz-media"><div class="showcase-img-wrap">';
+      h += '<img class="showcase-img" src="assets/catagory/catalog-custom-stories.webp" alt="الخطوة ١ - أدخل اسم طفلك" loading="lazy" decoding="async">';
       h += '</div></div>';
       h += '<div class="zz-text"><span class="zz-num">١</span>';
       h += '<h3>قول لسراج اسم بطلنا وسنه</h3>';
@@ -820,8 +823,8 @@
       h += '</div></article>';
       // Step 2
       h += '<article class="zz-row zz-reversed reveal" style="--d:.1s">';
-      h += '<div class="zz-media"><div class="zz-video-wrap">';
-      h += '<video class="zz-video" src="assets/2.mp4" autoplay muted loop playsinline preload="auto" poster="assets/seraj.webp" aria-label="الخطوة ٢"></video>';
+      h += '<div class="zz-media"><div class="showcase-img-wrap">';
+      h += '<img class="showcase-img" src="assets/seraj.webp" alt="الخطوة ٢ - سراج يكتب القصة" loading="lazy" decoding="async">';
       h += '</div></div>';
       h += '<div class="zz-text"><span class="zz-num">٢</span>';
       h += '<h3>سراج هيدخل ورشه السحرية يكتب ويرسم القصة مخصوص ليه</h3>';
@@ -829,8 +832,8 @@
       h += '</div></article>';
       // Step 3
       h += '<article class="zz-row reveal" style="--d:.15s">';
-      h += '<div class="zz-media"><div class="zz-video-wrap">';
-      h += '<video class="zz-video" src="assets/3.mp4" autoplay muted loop playsinline preload="auto" poster="assets/seraj.webp" aria-label="الخطوة ٣"></video>';
+      h += '<div class="zz-media"><div class="showcase-img-wrap">';
+      h += '<img class="showcase-img" src="assets/layla.webp" alt="الخطوة ٣ - القصة مطبوعة" loading="lazy" decoding="async">';
       h += '</div></div>';
       h += '<div class="zz-text"><span class="zz-num">٣</span>';
       h += '<h3>القصة هتجيلك مطبوعة بجودة عالية لحد باب البيت</h3>';
@@ -3139,30 +3142,9 @@
     video.addEventListener('error', function () { wrap.classList.remove('is-playing'); });
   }
 
-  // ----- Zig-Zag Section Videos: Lazy-load -----
+  // ----- Zig-Zag Section: Videos removed for performance, using static images -----
   function initZigzagVideos() {
-    var wraps = document.querySelectorAll('.zz-video-wrap');
-    if (!wraps.length) return;
-
-    var observer = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (entry) {
-          var wrap = entry.target;
-          var video = wrap.querySelector('video');
-          if (!video) return;
-          if (entry.isIntersecting) {
-            if (video.readyState === 0) video.load();
-            video.play().catch(function () { });
-            wrap.classList.add('is-playing');
-          } else {
-            video.pause();
-            wrap.classList.remove('is-playing');
-          }
-        });
-      },
-      { threshold: 0.25 }
-    );
-    wraps.forEach(function (w) { observer.observe(w); });
+    // No-op: zigzag videos replaced with static images for mobile performance
   }
 
   // ----- Add to Cart handler -----
@@ -3208,6 +3190,41 @@
     if (location.hash.indexOf('#/cart') === 0) {
       renderCartPage();
     }
+  });
+
+  // ----- Buy Now handler: Add to cart + go to checkout -----
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-buy-now]');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    var slug = btn.dataset.buyNow;
+    if (!slug) return;
+
+    var product = PRODUCTS[slug];
+    if (!product) return;
+
+    // Add to cart if not already there
+    var found = false;
+    for (var i = 0; i < cart.length; i++) {
+      if (cart[i].slug === slug) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      cart.push({
+        slug: slug,
+        name: product.name,
+        price: product.price || 0,
+        qty: 1
+      });
+      saveCart();
+      updateCartBadge();
+    }
+
+    // Navigate to checkout
+    location.hash = '#/checkout';
   });
 
   // ----- Preview → Checkout: ensure custom story is in cart -----
