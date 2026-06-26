@@ -13,8 +13,7 @@ import {
 } from "@/lib/coupons/apply";
 import SiteContent from "@/lib/models/SiteContent";
 import { normalizeCouponCode } from "@/lib/coupons/normalize";
-import GroupBuy, { type IGroupBuy, type IGroupBuyTier } from "@/lib/models/GroupBuy";
-import { calculateGroupBuyDiscount, isGroupExpired } from "@/lib/groupBuy/engine";
+
 import { getOrCreatePaymentSettings, toPublic as toPaymentPublic } from "@/lib/paymentSettings";
 import { computeDeposit } from "@/lib/depositCalc";
 import { apiCache } from "@/lib/apiCache";
@@ -26,20 +25,11 @@ export const runtime = "nodejs";
 const statsCache = apiCache("stats");
 
 // ---------- Zod validation schemas ----------
-const ColoringDetailsSchema = z.object({
-  itemCount: z.number().int().min(1).max(50),
-  format: z.enum(["sheets", "book"]),
-  coverImage: z.string().optional(),
-  coverTitle: z.string().optional(),
-  items: z.array(z.string()).min(1),
-});
-
 const OrderItemSchema = z.object({
   productSlug: z.string().min(1),
   name: z.string().min(1),
   price: z.number().min(0),
   qty: z.number().int().min(1).default(1),
-  coloringDetails: ColoringDetailsSchema.optional(),
 });
 
 const CustomStorySchema = z.object({
@@ -65,7 +55,6 @@ const CreateOrderSchema = z.object({
   paymentMethod: z.enum(["instapay"]).default("instapay"),
   paymentMode: z.enum(["full", "deposit"]).default("full"),
   couponCode: z.string().min(1).max(64).optional(),
-  groupBuyCode: z.string().min(1).max(64).optional(),
   customStory: CustomStorySchema.optional(),
   customerName: z.string().min(1, "اسم العميل مطلوب"),
   customerPhone: z
@@ -158,38 +147,7 @@ export async function POST(request: Request) {
     }[] = [];
 
     for (const item of validated.items) {
-      if (item.productSlug === "coloring-workbook") {
-        if (!item.coloringDetails) {
-          return NextResponse.json(
-            { success: false, error: "تفاصيل كشكول التلوين مفقودة" },
-            { status: 400 }
-          );
-        }
 
-        // Fetch dynamic pricing from DB securely
-        const [pricePerPageDoc, coverPriceDoc] = await Promise.all([
-          SiteContent.findOne({ key: "pricePerPage" }).lean(),
-          SiteContent.findOne({ key: "coverPrice" }).lean()
-        ]);
-        
-        const pricePerPage = parseFloat((pricePerPageDoc as any)?.value || "3") || 3;
-        const coverPrice = parseFloat((coverPriceDoc as any)?.value || "20") || 20;
-
-        const pagesTotal = item.coloringDetails.itemCount * pricePerPage;
-        const calculatedPrice = item.coloringDetails.format === "book" 
-          ? pagesTotal + coverPrice 
-          : pagesTotal;
-
-        subtotal += calculatedPrice * item.qty;
-        // Coloring workbook has dynamic pricing; no deposit override.
-        pricedItems.push({
-          productSlug: item.productSlug,
-          qty: item.qty,
-          unitPrice: calculatedPrice,
-          depositAmount: null,
-        });
-        continue;
-      }
 
       const productInfo = productMap.get(item.productSlug);
       if (productInfo === undefined) {
@@ -212,45 +170,9 @@ export async function POST(request: Request) {
     let discountTotal = 0;
     let discounts = { shipping: 0, subtotal: 0, products: 0 };
     let coupon: { code: string; couponId: mongoose.Types.ObjectId } | undefined;
-    let groupBuyResult: { code: string; discountApplied: boolean; discountAmount: number; } | undefined;
     let totalAfterDiscount = subtotal + shippingFee;
-    let activeGroupBuyDoc: IGroupBuy | null = null;
 
-    if (validated.groupBuyCode) {
-      const code = validated.groupBuyCode.toUpperCase();
-      activeGroupBuyDoc = await GroupBuy.findOne({ code });
-      
-      if (!activeGroupBuyDoc) {
-        return NextResponse.json({ success: false, error: "كود الجروب غير صحيح" }, { status: 400 });
-      }
-      
-      if (isGroupExpired(activeGroupBuyDoc)) {
-        return NextResponse.json({ success: false, error: "الجروب ده انتهت مدته" }, { status: 400 });
-      }
-      
-      if (activeGroupBuyDoc.status !== "open") {
-        return NextResponse.json({ success: false, error: "الجروب ده مش متاح حالياً" }, { status: 400 });
-      }
-
-      const targetTier = activeGroupBuyDoc.tiers.find(
-        (tier: IGroupBuyTier) => tier.minOrders === activeGroupBuyDoc?.targetOrders
-      );
-      if (targetTier) {
-        const { discountAmount, discountType } = calculateGroupBuyDiscount(targetTier, subtotal, shippingFee);
-        
-        discountTotal += discountAmount;
-        if (discountType === "free_shipping") discounts.shipping += discountAmount;
-        else discounts.subtotal += discountAmount;
-        
-        totalAfterDiscount -= discountAmount;
-        
-        groupBuyResult = {
-          code,
-          discountApplied: true,
-          discountAmount
-        };
-      }
-    } else if (validated.couponCode) {
+    if (validated.couponCode) {
       try {
         const applied = await applyCouponOrThrow({
           code: validated.couponCode,
@@ -327,7 +249,6 @@ export async function POST(request: Request) {
         discountTotal,
         discounts,
         coupon,
-        groupBuy: groupBuyResult,
         deposit,
         remaining: Math.max(0, totalAfterDiscount - deposit),
         paymentMethod: validated.paymentMethod,
@@ -362,23 +283,7 @@ export async function POST(request: Request) {
       throw e;
     }
 
-    if (activeGroupBuyDoc) {
-      activeGroupBuyDoc.orderIds.push(order._id);
-      activeGroupBuyDoc.confirmedOrders += 1;
-      
-      const reachedTier = activeGroupBuyDoc.tiers
-        .slice()
-        .reverse()
-        .find((tier: IGroupBuyTier) => activeGroupBuyDoc.confirmedOrders >= tier.minOrders);
-        
-      activeGroupBuyDoc.currentTier = reachedTier ? reachedTier.minOrders : null;
-      
-      if (activeGroupBuyDoc.confirmedOrders >= activeGroupBuyDoc.targetOrders) {
-        activeGroupBuyDoc.status = "completed";
-      }
-      
-      await activeGroupBuyDoc.save();
-    }
+
     statsCache.invalidate();
 
     return NextResponse.json(
@@ -392,8 +297,7 @@ export async function POST(request: Request) {
           shippingFee: order.shippingFee,
           discountTotal: order.discountTotal,
           discounts: order.discounts,
-          couponCode: order.coupon?.code,
-          groupBuyCode: order.groupBuy?.code,
+           couponCode: order.coupon?.code,
           deposit: order.deposit,
           remaining: order.remaining,
           paymentMode: order.paymentMode,

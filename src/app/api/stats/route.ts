@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Order from "@/lib/models/Order";
-import ColoringItem from "@/lib/models/ColoringItem";
+
 import { requireAdmin } from "@/lib/requireAdmin";
 import { apiCache } from "@/lib/apiCache";
 
@@ -54,7 +54,7 @@ export async function GET(request: Request) {
     const prev30End = last30;
     const oldPendingCutoff = new Date(now.getTime() - day);
 
-    const [orderStatsResult, topColoringItems] = await Promise.all([
+    const [orderStatsResult] = await Promise.all([
       Order.aggregate([
       {
         $facet: {
@@ -148,12 +148,7 @@ export async function GET(request: Request) {
         },
       },
     ]),
-      ColoringItem.find({ active: true })
-        .sort({ savedCount: -1, printCount: -1 })
-        .limit(5)
-        .select("slug title thumbnail savedCount printCount categorySlug")
-        .lean(),
-    ]);
+  ]);
 
     const stats = orderStatsResult[0];
 
@@ -171,7 +166,6 @@ export async function GET(request: Request) {
         depositPendingRemaining: stats.depositPending[0]?.remaining || 0,
         oldPendingOrdersCount: stats.oldPendingOrders[0]?.count || 0,
         recentOrders: stats.recentOrders || [],
-        topColoringItems: topColoringItems || [],
       },
     });
 

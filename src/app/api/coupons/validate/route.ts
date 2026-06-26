@@ -43,18 +43,6 @@ export async function POST(request: Request) {
     let subtotal = 0;
     const pricedItems: { productSlug: string; qty: number; unitPrice: number }[] = [];
     for (const item of validated.items) {
-      if (item.productSlug === "coloring-workbook") {
-        if (item.price == null) {
-          return NextResponse.json(
-            { success: false, error: "Missing dynamic price for coloring-workbook" },
-            { status: 400 }
-          );
-        }
-        subtotal += item.price * item.qty;
-        pricedItems.push({ productSlug: item.productSlug, qty: item.qty, unitPrice: item.price });
-        continue;
-      }
-
       const price = productMap.get(item.productSlug);
       if (price === undefined) {
         return NextResponse.json(

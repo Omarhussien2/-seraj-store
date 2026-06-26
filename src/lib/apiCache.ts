@@ -1,7 +1,6 @@
 /**
  * Generic in-memory TTL cache for public GET API responses.
  *
- * Same pattern as coloringCache.ts but domain-agnostic.
  * Each serverless function instance gets its own Map — acceptable because the
  * Vercel Edge Cache (via Cache-Control headers) provides cross-instance caching.
  *

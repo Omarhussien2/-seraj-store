@@ -2,7 +2,6 @@ import { type MetadataRoute } from "next";
 import { connectDB } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import Article from "@/lib/models/Article";
-import ColoringCategory from "@/lib/models/ColoringCategory";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://seraj-store.vercel.app";
@@ -24,7 +23,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/#/products`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
     { url: `${BASE_URL}/#/wizard`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
     { url: `${BASE_URL}/#/mama-world`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
-    { url: `${BASE_URL}/#/coloring`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
     { url: `${BASE_URL}/#/fas7a-helwa`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
     { url: `${BASE_URL}/#/about`, lastModified: now, changeFrequency: "monthly", priority: 0.4 },
   ];
@@ -39,16 +37,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     await connectDB();
 
-    const [products, articles, categories] = await Promise.all([
+    const [products, articles] = await Promise.all([
       Product.find({ active: true })
         .select("slug updatedAt")
         .lean()
         .catch(() => []),
       Article.find({ active: true })
-        .select("slug updatedAt")
-        .lean()
-        .catch(() => []),
-      ColoringCategory.find({ active: true, itemCount: { $gt: 0 } })
         .select("slug updatedAt")
         .lean()
         .catch(() => []),
@@ -68,14 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
-    const categoryRoutes: MetadataRoute.Sitemap = categories.map((c) => ({
-      url: `${BASE_URL}/#/coloring/${c.slug}`,
-      lastModified: c.updatedAt || now,
-      changeFrequency: "weekly" as const,
-      priority: 0.5,
-    }));
-
-    dynamicRoutes = [...productRoutes, ...articleRoutes, ...categoryRoutes];
+    dynamicRoutes = [...productRoutes, ...articleRoutes];
   } catch {
     // DB unavailable — return static routes only.
   }

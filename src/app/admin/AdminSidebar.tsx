@@ -11,12 +11,9 @@ const navItems = [
   { href: "/admin/products", label: "المنتجات", icon: "📚" },
   { href: "/admin/payment-settings", label: "الدفع والعربون", icon: "💳" },
   { href: "/admin/coupons", label: "الكوبونات", icon: "🏷️" },
-  { href: "/admin/group-buys", label: "جروبات الخصم", icon: "👥" },
-  { href: "/admin/coloring", label: "كشكول التلوين", icon: "🎨" },
   { href: "/admin/articles", label: "المقالات", icon: "📝" },
   { href: "/admin/stories", label: "القصص", icon: "📖" },
   { href: "/admin/content", label: "المحتوى", icon: "✏️" },
-  { href: "/admin/chat-settings", label: "الشات (سِراج)", icon: "💭" },
   { href: "/admin/testimonials", label: "الآراء", icon: "💬" },
   { href: "/admin/places", label: "الأماكن", icon: "🎡" },
 ];

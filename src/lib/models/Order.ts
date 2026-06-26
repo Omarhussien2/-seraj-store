@@ -1,27 +1,5 @@
 import mongoose, { type Document, type Model } from "mongoose";
 
-// ---------- ColoringDetails sub-schema (for coloring print orders) ----------
-const ColoringDetailsSchema = new mongoose.Schema(
-  {
-    items: [{ type: mongoose.Schema.Types.ObjectId, ref: "ColoringItem" }], // IDs of chosen ColoringItems
-    itemCount: { type: Number, required: true, min: 1 },
-    format: {
-      type: String,
-      required: true,
-      enum: ["sheets", "book"],
-      default: "sheets",
-    },
-    coverImage: { type: String },     // Cover key e.g. 'cover-seraj' (format=book only)
-    coverTitle: { type: String },     // Custom title written on cover
-    printStatus: {
-      type: String,
-      default: "pending",
-      enum: ["pending", "downloading", "printing", "packed"],
-    },
-  },
-  { _id: false }
-);
-
 // ---------- OrderItem sub-schema ----------
 const OrderItemSchema = new mongoose.Schema(
   {
@@ -29,7 +7,6 @@ const OrderItemSchema = new mongoose.Schema(
     name: { type: String, required: true },
     price: { type: Number, required: true, min: 0 },
     qty: { type: Number, required: true, min: 1, default: 1 },
-    coloringDetails: { type: ColoringDetailsSchema }, // populated only for productSlug="coloring-print"
   },
   { _id: false }
 );
@@ -53,15 +30,6 @@ const CustomStorySchema = new mongoose.Schema(
 );
 
 // ---------- Order schema ----------
-export interface IColoringDetails {
-  items: mongoose.Types.ObjectId[];
-  itemCount: number;
-  format: "sheets" | "book";
-  coverImage?: string;
-  coverTitle?: string;
-  printStatus: "pending" | "downloading" | "printing" | "packed";
-}
-
 export interface IOrder extends Document {
   orderNumber: string;
   items: {
@@ -69,7 +37,6 @@ export interface IOrder extends Document {
     name: string;
     price: number;
     qty: number;
-    coloringDetails?: IColoringDetails;
   }[];
   total: number;
   subtotal: number;
@@ -84,11 +51,7 @@ export interface IOrder extends Document {
     code: string;
     couponId: mongoose.Types.ObjectId;
   };
-  groupBuy?: {
-    code: string;
-    discountApplied: boolean;
-    discountAmount: number;
-  };
+
   deposit: number;
   remaining: number;
   paymentMethod: string;
@@ -136,12 +99,7 @@ const OrderSchema = new mongoose.Schema<IOrder>(
       couponId: { type: mongoose.Schema.Types.ObjectId, ref: "Coupon" },
       _id: false,
     },
-    groupBuy: {
-      code: { type: String, trim: true },
-      discountApplied: { type: Boolean },
-      discountAmount: { type: Number, min: 0 },
-      _id: false,
-    },
+
     deposit: { type: Number, required: true, min: 0, default: 0 },
     remaining: { type: Number, required: true, min: 0 },
     paymentMethod: {

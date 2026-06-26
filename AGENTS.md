@@ -7,8 +7,7 @@ editing, reviewing, testing, or documenting this repository.
 
 - Customer frontend is a static Arabic RTL SPA in `public/` using vanilla
   JavaScript, not React.
-- `public/app.js` owns hash routing, products, cart, checkout, wizard, group
-  buys, and localStorage state.
+- `public/app.js` owns hash routing, products, cart, checkout, wizard, and localStorage state.
 - `public/index.html` owns the page shells and modals.
 - `public/styles.css` owns the public design system and responsive behavior.
 - Backend API routes live under `src/app/api/`.
@@ -31,10 +30,8 @@ Use `seraj-store-guard` as the default review pass after meaningful changes.
 
 ## Public SPA Invariants
 
-- Preserve hash routes such as `#/home`, `#/products`, `#/cart`, `#/checkout`,
-  and `#/group-buy/:code`.
-- Preserve localStorage keys: `seraj-cart`, `seraj-wizard`, and
-  `seraj-group-buy`.
+- Preserve hash routes such as `#/home`, `#/products`, `#/cart`, and `#/checkout`.
+- Preserve localStorage keys: `seraj-cart` and `seraj-wizard`.
 - Prefer delegated event listeners for dynamic or late-rendered DOM.
 - New non-submit buttons should use `type="button"`.
 - Modals should close through their close button, backdrop when appropriate,

@@ -22,14 +22,13 @@ const SECTION_LABELS: Record<string, string> = {
   wizard: "🧙 معالج القصة",
   general: "⚙️ نصوص عامة",
   pages: "📄 الصفحات الثابتة",
-  "coloring-pricing": "🎨 أسعار التلوين",
 };
 
 // Order for tabs display
 const SECTION_ORDER = [
   "hero", "products", "showcase", "counter", "how", "values",
   "testimonials", "ribbon", "about", "mama", "footer", "wizard",
-  "general", "pages", "coloring-pricing",
+  "general", "pages",
 ];
 
 // Human-readable labels for each key, grouped by section
@@ -137,12 +136,6 @@ const KEY_LABELS: Record<string, string> = {
   "returns.title": "سياسة الاسترجاع: العنوان",
   "returns.content": "سياسة الاسترجاع: المحتوى",
 
-  // Coloring Pricing
-  "coloring_price_per_page": "سعر الصفحة الواحدة (ج.م)",
-  "coloring_cover_price": "سعر الغلاف (ج.م)",
-  "coloring_min_pages": "أقل عدد صفحات",
-  "coloring_max_pages": "أقصى عدد صفحات",
-  "coloring_free_shipping_min": "شحن مجاني فوق (ج.م)",
 };
 
 // Short single-line fields
@@ -153,7 +146,6 @@ const SHORT_KEYS = new Set([
   "nav.mama", "nav.products", "nav.about",
   "footer.col1_title", "footer.col2_title", "footer.col3_title",
   "footer.whatsapp", "footer.email", "footer.instagram",
-  "coloring_price_per_page", "coloring_cover_price", "coloring_min_pages", "coloring_max_pages", "coloring_free_shipping_min",
 ]);
 
 // Section-level grouping hints for visual separators
@@ -229,7 +221,7 @@ export default function ContentEditor({ initialData }: { initialData: Record<str
     const label = KEY_LABELS[key] || key;
     const isShort = SHORT_KEYS.has(key);
     const isHtml = key.includes("title") || key.includes("subtitle") || key.includes("heading") || key.includes("marquee") || section === "showcase" && key.includes(".desc");
-    const isNumeric = key.startsWith("coloring_");
+    const isNumeric = false;
 
     return (
       <div key={key} className="space-y-1.5">

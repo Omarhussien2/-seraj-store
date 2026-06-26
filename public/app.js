@@ -20,11 +20,7 @@
   var appliedCoupon = null;
   var CHECKOUT_CONTINUE_TEXT = 'كمل تسوق';
   var CHECKOUT_DELIVERY_TEXT = 'عادةً الطلب بيوصل خلال 5 إلى 7 أيام عمل.';
-  var CHAT_WIDGET_ENABLED = true;
-  var CHAT_HIDDEN_PAGES = ['checkout', 'success', 'wizard', 'preview'];
-  var GROUP_BUY_CONFIG = null;
-  var ACTIVE_GROUP_BUY_CODE = null;
-  try { ACTIVE_GROUP_BUY_CODE = localStorage.getItem('seraj-group-buy'); } catch(e){}
+
   var DEPOSIT_ENABLED = true;       // overridden by /api/config
   var DEPOSIT_PERCENT = 60;          // overridden by /api/config
   var paymentMode = 'full';          // 'full' | 'deposit' (chosen on checkout page)
@@ -389,60 +385,17 @@
           if (typeof data.data.freeShippingAbove === 'number') FREE_SHIPPING_ABOVE = data.data.freeShippingAbove;
           if (data.data.checkoutContinueShoppingText) CHECKOUT_CONTINUE_TEXT = data.data.checkoutContinueShoppingText;
           if (data.data.checkoutDeliveryEstimateText) CHECKOUT_DELIVERY_TEXT = data.data.checkoutDeliveryEstimateText;
-          if (typeof data.data.chatWidgetEnabled === 'boolean') CHAT_WIDGET_ENABLED = data.data.chatWidgetEnabled;
+
           if (typeof data.data.depositEnabled === 'boolean') DEPOSIT_ENABLED = data.data.depositEnabled;
           if (typeof data.data.depositPercent === 'number') DEPOSIT_PERCENT = data.data.depositPercent;
-          if (typeof data.data.chatWidgetHiddenPages === 'string') {
-            CHAT_HIDDEN_PAGES = data.data.chatWidgetHiddenPages.split(',').map(function (p) { return p.trim(); }).filter(Boolean);
-          }
           showFreeShipBanner();
-          updateSerajChatVisibility();
           console.log('✅ Config loaded from API');
-          // Fetch group buy config (runs in parallel, doesn't block main config)
-          fetchGroupBuyConfig();
         }
       })
       .catch(function () {
         console.warn('⚠️ Config fetch failed, using fallback values');
         showFreeShipBanner();
-        // Still try to load group buy config even if main config fails
-        fetchGroupBuyConfig();
       });
-  }
-
-  function fetchGroupBuyConfig() {
-    fetch('/api/group-buys/config')
-      .then(function(r) { return r.json(); })
-      .then(function(gb) {
-        if (gb.success) {
-          GROUP_BUY_CONFIG = gb.data;
-          console.log('\u2705 Group buy config loaded:', GROUP_BUY_CONFIG.active ? 'ACTIVE' : 'DISABLED');
-          injectGroupBuyCTA();
-        }
-      })
-      .catch(function() {
-        console.warn('\u26a0\ufe0f Group buy config fetch failed');
-      });
-  }
-
-  function injectGroupBuyCTA() {
-    if (!GROUP_BUY_CONFIG || !GROUP_BUY_CONFIG.active) return;
-    var container = document.getElementById('productDetail');
-    if (!container) return;
-    if (container.querySelector('.gb-cta-injected')) return;
-    var addBtn = container.querySelector('[data-add-cart]');
-    if (!addBtn) return;
-    var slug = addBtn.getAttribute('data-add-cart');
-    var gbText = (GROUP_BUY_CONFIG.content && GROUP_BUY_CONFIG.content.ctaButton) || '\u0627\u0634\u062a\u0631\u064a \u0645\u0639 \u0635\u062d\u0627\u0628\u0643!';
-    var gbSubText = (GROUP_BUY_CONFIG.content && GROUP_BUY_CONFIG.content.ctaSubtext) || '\u0648\u062e\u062f\u0648\u0627 \u062e\u0635\u0645 \u0645\u0628\u0627\u0634\u0631';
-    var gbBtn = document.createElement('button');
-    gbBtn.type = 'button';
-    gbBtn.className = 'btn btn-secondary btn-xl gb-cta-injected';
-    gbBtn.setAttribute('data-group-buy-product', slug);
-    gbBtn.style.cssText = 'margin-top:10px; background-color:#ffeb3b; color:#000; border-color:#fbc02d; font-weight:bold; width:100%;';
-    gbBtn.innerHTML = gbText + ' <small style="display:block; font-size:0.7em; font-weight:normal;">' + gbSubText + '</small>';
-    addBtn.parentNode.insertBefore(gbBtn, addBtn.nextSibling);
-  }
 
   // ----- Cart State -----
   // Each item: { slug, name, price, qty }
@@ -710,13 +663,7 @@
       h += '<button class="btn btn-buy-now btn-xl" data-buy-now="' + slug + '">اشتري الآن <svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
       h += '<button class="btn btn-add-cart btn-xl" data-add-cart="' + slug + '">' + product.ctaText + ' <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg></button>';
       h += '</div>';
-      if (GROUP_BUY_CONFIG && GROUP_BUY_CONFIG.active) {
-        var gbText = (GROUP_BUY_CONFIG.content && GROUP_BUY_CONFIG.content.ctaButton) ? GROUP_BUY_CONFIG.content.ctaButton : "اشتري مع صحابك!";
-        var gbSubText = (GROUP_BUY_CONFIG.content && GROUP_BUY_CONFIG.content.ctaSubtext) ? GROUP_BUY_CONFIG.content.ctaSubtext : "وخدوا خصم مباشر";
-        h += '<button type="button" class="btn btn-secondary btn-xl" data-group-buy-product="' + slug + '" style="margin-top:10px; background-color:#ffeb3b; color:#000; border-color:#fbc02d; font-weight:bold;">';
-        h += gbText + ' <small style="display:block; font-size:0.7em; font-weight:normal;">' + gbSubText + '</small>';
-        h += '</button>';
-      }
+
     }
     h += '</div></div></div>';
 
@@ -873,16 +820,67 @@
     }
 
     // Related
-    if (product.related && product.related.length) {
-      h += '<section class="section pd-related-section"><div class="section-head"><span class="kicker">هيعجب بطلنا كمان</span><h2>منتجات مقترحة</h2></div><div class="products-grid">';
-      for (var p = 0; p < product.related.length; p++) {
-        var rs = product.related[p], rp = PRODUCTS[rs];
-        if (!rp) continue;
+    var relatedSlugs = (product.related || []).slice();
+    // Fill up to 4 items from other active products if manually defined list is short
+    if (relatedSlugs.length < 4) {
+      var allSlugs = Object.keys(PRODUCTS);
+      for (var sIdx = 0; sIdx < allSlugs.length; sIdx++) {
+        var potentialSlug = allSlugs[sIdx];
+        if (potentialSlug !== slug && 
+            PRODUCTS[potentialSlug].active !== false && 
+            relatedSlugs.indexOf(potentialSlug) === -1) {
+          relatedSlugs.push(potentialSlug);
+          if (relatedSlugs.length >= 4) break;
+        }
+      }
+    }
+
+    var hasRelated = false;
+    for (var rIdx = 0; rIdx < relatedSlugs.length; rIdx++) {
+      var checkRp = PRODUCTS[relatedSlugs[rIdx]];
+      if (checkRp && checkRp.active !== false && relatedSlugs[rIdx] !== slug) {
+        hasRelated = true;
+        break;
+      }
+    }
+
+    if (hasRelated) {
+      h += '<section class="section pd-related-section">';
+      h += '  <div class="section-head">';
+      h += '    <span class="kicker">هيعجب بطلنا كمان</span>';
+      h += '    <h2>منتجات مقترحة</h2>';
+      h += '  </div>';
+      h += '  <div class="pd-related-strip">';
+      h += '    <div class="pd-related-scroll">';
+      
+      for (var p = 0; p < relatedSlugs.length; p++) {
+        var rs = relatedSlugs[p], rp = PRODUCTS[rs];
+        if (!rp || rp.active === false || rs === slug) continue;
         var href = rp.action === 'wizard' ? '#/wizard' : '#/product/' + rs;
         var rpPrice = rp.priceText || (toArabicNum(rp.price) + ' ج.م');
-        h += '<a href="' + href + '" data-link class="product-card"><div class="product-media ' + rp.media.bg + '">' + renderMedia(rp.media, false, rp.imageUrl) + '</div><div class="product-body"><h3>' + rp.name + '</h3><div class="product-foot"><span class="price">' + rpPrice + '</span><span class="cta-mini">شوفها →</span></div></div></a>';
+        var bgClass = rp.media.bg === 'emerald' ? 'emerald-bg' : rp.media.bg === 'sand' ? 'sand-bg' : 'teal-bg';
+        
+        h += '<div class="pd-related-card">';
+        h += '  <a href="' + href + '" data-link class="pd-related-img-wrap ' + bgClass + '">';
+        h += '    ' + renderMedia(rp.media, false, rp.imageUrl);
+        h += '  </a>';
+        h += '  <div class="pd-related-info">';
+        h += '    <a href="' + href + '" data-link><h3>' + rp.name + '</h3></a>';
+        h += '    <div class="pd-related-foot">';
+        h += '      <span class="price">' + rpPrice + '</span>';
+        if (rp.action === 'wizard') {
+          h += '      <a href="#/wizard" data-link class="btn-quick-add" title="ابدأ القصة"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>';
+        } else {
+          h += '      <button type="button" class="btn-quick-add" onclick="window.quickAddRelated(\'' + rs + '\')" title="ضيف للسلة"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg></button>';
+        }
+        h += '    </div>';
+        h += '  </div>';
+        h += '</div>';
       }
-      h += '</div></section>';
+      
+      h += '    </div>';
+      h += '  </div>';
+      h += '</section>';
     }
     container.innerHTML = h;
     setTimeout(initReveals, 100);
@@ -1365,28 +1363,11 @@
 
     cart.forEach(function (item) {
       var product = PRODUCTS[item.slug];
-      if (!product && item.slug !== 'coloring-workbook') return;
+      if (!product) return;
       var lineTotal = item.price * item.qty;
       total += lineTotal;
 
-      // Coloring workbook — show special card
-      if (item.slug === 'coloring-workbook' && item.coloringDetails) {
-        var cd = item.coloringDetails;
-        h += '<div class="cart-item cart-item-workbook">';
-        h += '<div class="cart-item-media emerald-bg"><svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></div>';
-        h += '<div class="cart-item-info">';
-        h += '<h3>' + item.name + '</h3>';
-        h += '<div class="cart-workbook-details">';
-        h += '<span class="cwd-tag">' + (cd.format === 'book' ? '📚 كشكول بغلاف' : '📄 ورق مطبوع') + '</span>';
-        h += '<span class="cwd-tag">' + toArabicNum(cd.itemCount) + ' رسمة</span>';
-        if (cd.coverTitle) h += '<span class="cwd-tag">✏️ ' + cd.coverTitle + '</span>';
-        h += '</div>';
-        h += '<span class="price">' + toArabicNum(item.price) + ' ج.م</span>';
-        h += '</div>';
-        h += '<button class="cart-remove" data-remove-cart="' + item.slug + '" title="شيلي">✕</button>';
-        h += '</div>';
-        return;
-      }
+
 
       var bgClass = product.media.bg === 'emerald' ? 'emerald-bg' : product.media.bg === 'sand' ? 'sand-bg' : 'teal-bg';
       h += '<div class="cart-item">';
@@ -1477,9 +1458,7 @@
     if (currentCoupon) {
       h += '<div class="cart-summary-row coupon-discount-row"><span>كوبون ' + currentCoupon.code + '</span><span>- ' + toArabicNum(discount) + ' ج.م</span></div>';
     }
-    if (ACTIVE_GROUP_BUY_CODE && !currentCoupon) {
-      h += '<div class="cart-summary-row coupon-discount-row"><span>جروب ' + ACTIVE_GROUP_BUY_CODE + '</span><span style="font-size:12px; color:var(--seraj)">(خصم مباشر هيتطبق)</span></div>';
-    }
+
     h += '<div class="cart-summary-row total"><span>الإجمالي</span><span>' + toArabicNum(grandTotal) + ' ج.م</span></div>';
     h += '</div>';
     if (CHECKOUT_DELIVERY_TEXT) {
@@ -1706,16 +1685,11 @@
           price: item.price,
           qty: item.qty
         };
-        // Include coloring details for workbook items
-        if (item.slug === 'coloring-workbook' && item.coloringDetails) {
-          orderItem.coloringDetails = item.coloringDetails;
-        }
         return orderItem;
       }),
       total: grandTotal,
       shippingFee: shipping,
       couponCode: currentCoupon ? currentCoupon.code : undefined,
-      groupBuyCode: (!currentCoupon && ACTIVE_GROUP_BUY_CODE) ? ACTIVE_GROUP_BUY_CODE : undefined,
       deposit: depositValue,
       paymentMode: depositValue > 0 ? 'deposit' : 'full',
       paymentMethod: 'instapay'
@@ -1828,8 +1802,6 @@
           whatsappEl.href = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(baseMsg);
         }
       }
-      localStorage.removeItem('seraj-group-buy');
-      ACTIVE_GROUP_BUY_CODE = null;
     } catch (e) { /* silent */ }
   }
 
@@ -1935,7 +1907,7 @@
   }
 
   // Valid page names for the SPA router
-  var validPages = ['home', 'products', 'about', 'wizard', 'preview', 'checkout', 'success', 'cart', 'product', 'mama-world', 'article', 'faq', 'shipping', 'returns', 'mama-coloring', 'coloring-book', 'group-buy'];
+  var validPages = ['home', 'products', 'about', 'wizard', 'preview', 'checkout', 'success', 'cart', 'product', 'mama-world', 'article', 'faq', 'shipping', 'returns'];
 
   function showPage(name, sub) {
     var target = name;
@@ -1944,8 +1916,7 @@
       target = 'not-found';
       name = 'not-found';
     }
-    if (name === 'product') target = 'product';
-    if (name === 'mama-coloring') target = 'mama-world';
+
 
     pages.forEach(function (p) {
       var isActive = p.dataset.page === target;
@@ -1953,12 +1924,7 @@
     });
 
     bottomTabs.forEach(function (a) {
-      // mama-coloring shouldn't necessarily highlight mama-world but maybe we want it to?
-      if (a.dataset.tab === 'mama-world' && (name === 'mama-coloring' || name === 'coloring-book')) {
-         a.classList.add('is-active');
-      } else {
-         a.classList.toggle('is-active', a.dataset.tab === name);
-      }
+      a.classList.toggle('is-active', a.dataset.tab === name);
     });
 
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -1973,8 +1939,6 @@
       'checkout': 'سراج | إتمام الطلب',
       'mama-world': 'سراج | عالم ماما وبابا',
       'article': 'سراج | عالم ماما وبابا', // could be dynamic
-      'mama-coloring': 'سراج | أنشطة وتلوين مجاني',
-      'coloring-book': 'سراج | كشكولي المطبوع',
       'faq': 'سراج | الأسئلة الشائعة',
       'shipping': 'سراج | سياسة الشحن',
       'returns': 'سراج | سياسة الاسترجاع'
@@ -1983,7 +1947,6 @@
 
 
     if (name === 'product') renderProductDetail(sub);
-    if (name === 'group-buy') renderGroupBuyPage(sub);
     if (name === 'cart') renderCartPage();
     if (name === 'checkout') renderCheckoutPage();
     if (name === 'wizard') setupWizard();
@@ -1993,26 +1956,13 @@
     }
     if (name === 'mama-world') initMamaWorld();
     if (name === 'article') renderArticleDetail(sub);
-    if (name === 'mama-coloring') {
-      // Redirect to mama-world with coloring tab activated
-      initMamaWorld();
-      var coloringTab = document.querySelector('[data-mama-tab="coloring"]');
-      var coloringPanel = document.querySelector('[data-mama-panel="coloring"]');
-      if (coloringTab && coloringPanel) {
-        document.querySelectorAll('.mama-tab').forEach(function (t) { t.classList.remove('is-active'); });
-        document.querySelectorAll('.mama-panel').forEach(function (p) { p.classList.remove('is-active'); });
-        coloringTab.classList.add('is-active');
-        coloringPanel.classList.add('is-active');
-        renderColoringCatalog();
-      }
-    }
-    if (name === 'coloring-book') renderColoringBook();
+
     if (name === 'preview') {
       var heroName = state.heroName || 'بطلنا';
       var el = document.getElementById('previewName');
       if (el) el.textContent = heroName;
     }
-    updateSerajChatVisibility(name);
+
   }
 
   function handleRoute() {
@@ -3357,1560 +3307,27 @@
   }
 
   // ---------------------------------------------------------
-  // MAMA COLORING & WORKBOOK
+  // QUICK ADD RELATED PRODUCT
   // ---------------------------------------------------------
-  var COLORING_CART_KEY = 'seraj-coloring-cart';
-  var coloringCart = [];
-  var coloringState = {
-    page: 1,
-    limit: 20,
-    search: '',
-    category: '',
-    difficulty: '',
-    ageRange: '',
-    hasMore: true,
-    loading: false,
-    pricePerPage: 3, // fallback, will be fetched from SiteContent
-    coverPrice: 20   // fallback, will be fetched from SiteContent
-  };
-
-  function loadColoringCart() {
-    try {
-      var saved = localStorage.getItem(COLORING_CART_KEY);
-      if (saved) {
-        coloringCart = JSON.parse(saved);
-        if (!Array.isArray(coloringCart)) coloringCart = [];
-      }
-    } catch (e) { coloringCart = []; }
-    updateColoringFab();
-  }
-
-  function saveColoringCart() {
-    localStorage.setItem(COLORING_CART_KEY, JSON.stringify(coloringCart));
-    updateColoringFab();
-  }
-
-  function updateColoringFab() {
-    var bar = document.getElementById('coloringWorkbookBar');
-    var countEl = document.getElementById('cwbCount');
-    if (!bar || !countEl) return;
-    
-    if (coloringCart.length > 0) {
-      bar.style.display = 'flex';
-      countEl.textContent = toArabicNum(coloringCart.length);
-    } else {
-      bar.style.display = 'none';
+  window.quickAddRelated = function(slug) {
+    var found = false;
+    for (var i = 0; i < cart.length; i++) {
+      if (cart[i].slug === slug) { cart[i].qty++; found = true; break; }
     }
-  }
-
-  function fetchColoringItems(append) {
-    if (coloringState.loading) return;
-    coloringState.loading = true;
-    
-    var loader = document.getElementById('coloringLoading');
-    var loadMoreBtn = document.getElementById('coloringLoadMore');
-    var grid = document.getElementById('coloringGrid');
-    
-    if (!append) {
-       grid.innerHTML = '';
-       if(loader) loader.style.display = 'block';
-       if(loadMoreBtn) loadMoreBtn.style.display = 'none';
-    } else {
-       if(loadMoreBtn) {
-         loadMoreBtn.disabled = true;
-         loadMoreBtn.textContent = 'جاري التحميل...';
-       }
+    if (!found) {
+      var product = PRODUCTS[slug];
+      if (!product) return;
+      cart.push({ slug: slug, name: product.name, price: product.price || 0, qty: 1 });
     }
-
-    var params = new URLSearchParams();
-    params.set('page', coloringState.page);
-    params.set('limit', coloringState.limit);
-    if (coloringState.search) params.set('q', coloringState.search);
-    if (coloringState.category) params.set('category', coloringState.category);
-    if (coloringState.difficulty) params.set('difficulty', coloringState.difficulty);
-    if (coloringState.ageRange) params.set('age', coloringState.ageRange);
-
-    fetch('/api/coloring/items?' + params.toString())
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-         coloringState.loading = false;
-         if(loader) loader.style.display = 'none';
-         if(loadMoreBtn) {
-           loadMoreBtn.disabled = false;
-           loadMoreBtn.textContent = 'عرض المزيد ↓';
-         }
-
-         if (data.success) {
-           var items = data.data || [];
-           coloringState.hasMore = data.pagination && data.pagination.page < data.pagination.pages;
-           
-           if (!append && items.length === 0) {
-              grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--ink-mute);">مفيش رسومات هنا، جرب بحث أو قسم تاني.</div>';
-              if(loadMoreBtn) loadMoreBtn.style.display = 'none';
-              return;
-           }
-
-            items.forEach(function(item) {
-              var isAdded = coloringCart.some(function(c) { return c._id === item._id; });
-              var card = document.createElement('div');
-              card.className = 'coloring-card';
-              var sourceAttr = item.sourceUrl ? ' data-source="' + item.sourceUrl.replace(/"/g, '&quot;') + '"' : '';
-              card.innerHTML = 
-                '<div class="coloring-img-wrap">' +
-                  '<img src="' + item.thumbnail + '" alt="' + item.title + '" loading="lazy" />' +
-                  '<button class="coloring-heart ' + (isAdded ? 'is-loved' : '') + '" data-action="toggle" data-id="' + item._id + '" data-img="' + item.thumbnail + '" data-title="' + item.title + '" title="' + (isAdded ? 'شيلي من الكشكول' : 'ضيفي للكشكول') + '">' +
-                    '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="' + (isAdded ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2"/></svg>' +
-                  '</button>' +
-                '</div>' +
-                '<div class="coloring-body">' +
-                  '<h3 class="coloring-title">' + item.title + '</h3>' +
-                  '<div class="coloring-actions">' +
-                    '<button class="coloring-btn-add ' + (isAdded ? 'is-added' : '') + '" data-action="toggle" data-id="' + item._id + '" data-img="' + item.thumbnail + '" data-title="' + item.title + '">' +
-                       (isAdded ? '✓ في الكشكول' : '+ ضيفي للكشكول') +
-                    '</button>' +
-                    '<button class="coloring-btn-share" data-action="share" data-title="' + item.title + '"' + sourceAttr + '>' +
-                      '🔗 مشاركة' +
-                    '</button>' +
-                  '</div>' +
-                '</div>';
-              grid.appendChild(card);
-            });
-
-           if (coloringState.hasMore) {
-             if(loadMoreBtn) loadMoreBtn.style.display = 'block';
-           } else {
-             if(loadMoreBtn) loadMoreBtn.style.display = 'none';
-           }
-         }
-      })
-      .catch(function(err) {
-         coloringState.loading = false;
-         if(loader) loader.style.display = 'none';
-         if(loadMoreBtn) loadMoreBtn.disabled = false;
-         console.error('Fetch Coloring Error:', err);
-      });
-  }
-
-  function fetchColoringCategories() {
-    var tabsWrap = document.getElementById('coloringTabs');
-    if (!tabsWrap) return;
-    
-    // Always start with "All"
-    fetch('/api/coloring/categories')
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        if (data.success && data.data) {
-           var html = '<button class="chip ' + (!coloringState.category ? 'is-active' : '') + '" data-val="">كل الأقسام</button>';
-           data.data.forEach(function(cat) {
-             html += '<button class="chip ' + (coloringState.category === cat.slug ? 'is-active' : '') + '" data-val="' + cat.slug + '">' + cat.nameAr + '</button>';
-           });
-           tabsWrap.innerHTML = html;
-        }
-      });
-  }
-
-  function fetchColoringPricing() {
-    fetch('/api/coloring/pricing')
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        if (data.success && data.data) {
-           coloringState.pricePerPage = parseFloat(data.data.pricePerPage) || 3;
-           coloringState.coverPrice = parseFloat(data.data.coverPrice) || 20;
-        }
-      });
-  }
-
-  function renderColoringCatalog() {
-    fetchColoringCategories();
-    fetchColoringPricing();
-    
-    coloringState.page = 1;
-    coloringState.hasMore = true;
-    
-    var searchInput = document.getElementById('coloringSearch');
-    if (searchInput) searchInput.value = coloringState.search;
-    
-    fetchColoringItems(false);
-  }
-
-  function attachColoringListeners() {
-    // Top Tabs Event
-    var tabsWrap = document.getElementById('coloringTabs');
-    if (tabsWrap) {
-      tabsWrap.addEventListener('click', function(e) {
-        if (e.target.classList.contains('chip')) {
-          tabsWrap.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('is-active'); });
-          e.target.classList.add('is-active');
-          coloringState.category = e.target.dataset.val;
-          coloringState.page = 1;
-          fetchColoringItems(false);
-        }
-      });
-    }
-
-    // Difficulty Event
-    var diffWrap = document.getElementById('coloringDifficulty');
-    if (diffWrap) {
-      diffWrap.addEventListener('click', function(e) {
-        if (e.target.classList.contains('chip')) {
-          diffWrap.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('is-active'); });
-          e.target.classList.add('is-active');
-          coloringState.difficulty = e.target.dataset.val;
-          coloringState.page = 1;
-          fetchColoringItems(false);
-        }
-      });
-    }
-
-    // Age Range Event
-    var ageWrap = document.getElementById('coloringAge');
-    if (ageWrap) {
-      ageWrap.addEventListener('click', function(e) {
-        if (e.target.classList.contains('chip')) {
-          ageWrap.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('is-active'); });
-          e.target.classList.add('is-active');
-          coloringState.ageRange = e.target.dataset.val;
-          coloringState.page = 1;
-          fetchColoringItems(false);
-        }
-      });
-    }
-
-    // Search Event
-    var searchInput = document.getElementById('coloringSearch');
-    if (searchInput) {
-      var timeout = null;
-      searchInput.addEventListener('input', function(e) {
-        clearTimeout(timeout);
-        timeout = setTimeout(function() {
-          coloringState.search = e.target.value.trim();
-          coloringState.page = 1;
-          fetchColoringItems(false);
-        }, 500);
-      });
-    }
-
-    // Load More Event
-    var loadMore = document.getElementById('coloringLoadMore');
-    if (loadMore) {
-      loadMore.addEventListener('click', function() {
-        if (coloringState.hasMore && !coloringState.loading) {
-          coloringState.page++;
-          fetchColoringItems(true);
-        }
-      });
-    }
-
-    // Grid Event Delegate (toggle + share)
-    var grid = document.getElementById('coloringGrid');
-    if (grid) {
-      grid.addEventListener('click', function(e) {
-        // Share button
-        var shareBtn = e.target.closest('[data-action="share"]');
-        if (shareBtn) {
-          var shareTitle = shareBtn.dataset.title || 'رسومة تلوين من سِراج';
-          var shareUrl = shareBtn.dataset.source || window.location.href;
-          if (navigator.share) {
-            navigator.share({ title: shareTitle, url: shareUrl }).catch(function(){});
-          } else {
-            navigator.clipboard.writeText(shareUrl).then(function() {
-              showToast('تم نسخ الرابط ✓');
-            }).catch(function() {
-              showToast('مفيش دعم للمشاركة على المتصفح ده');
-            });
-          }
-          return;
-        }
-
-        // Toggle add/remove — works for both heart and text button
-        var btn = e.target.closest('[data-action="toggle"]');
-        if (!btn) return;
-        
-        var id = btn.dataset.id;
-        var img = btn.dataset.img;
-        var title = btn.dataset.title;
-        var card = btn.closest('.coloring-card');
-        
-        var index = coloringCart.findIndex(function(c) { return c._id === id; });
-        if (index > -1) {
-           coloringCart.splice(index, 1);
-           // Update all toggle buttons in this card
-           if (card) {
-             var hearts = card.querySelectorAll('.coloring-heart');
-             var addBtns = card.querySelectorAll('.coloring-btn-add');
-             hearts.forEach(function(h) { h.classList.remove('is-loved'); h.querySelector('path').setAttribute('fill','none'); h.title = 'ضيفي للكشكول'; });
-             addBtns.forEach(function(b) { b.classList.remove('is-added'); b.textContent = '+ ضيفي للكشكول'; });
-           }
-           showToast('اتشالت من الكشكول');
-        } else {
-           coloringCart.push({ _id: id, thumbnail: img, title: title });
-           if (card) {
-             var hearts2 = card.querySelectorAll('.coloring-heart');
-             var addBtns2 = card.querySelectorAll('.coloring-btn-add');
-             hearts2.forEach(function(h) { h.classList.add('is-loved'); h.querySelector('path').setAttribute('fill','currentColor'); h.title = 'شيلي من الكشكول'; });
-             addBtns2.forEach(function(b) { b.classList.add('is-added'); b.textContent = '✓ في الكشكول'; });
-           }
-           showToast('اتضافت للكشكول ✓');
-        }
-        saveColoringCart();
-      });
-    }
-  }
-
-  function renderColoringBook() {
-     var wrap = document.getElementById('coloringBookContent');
-     if (!wrap) return;
-
-     // Check for shared workbook in URL
-     var loadFromUrl = function() {
-       try {
-         var hash = window.location.hash || '';
-         var match = hash.match(/[\?&]w=([^&]+)/);
-         if (match) {
-           var decoded = JSON.parse(atob(decodeURIComponent(match[1])));
-           if (Array.isArray(decoded) && decoded.length > 0) {
-             // Merge shared items into cart (don't overwrite existing)
-             decoded.forEach(function(shared) {
-               var exists = coloringCart.some(function(c) { return c._id === (shared._id || shared); });
-               if (!exists) {
-                 coloringCart.push(typeof shared === 'string' ? { _id: shared, thumbnail: '', title: 'رسومة' } : shared);
-               }
-             });
-             saveColoringCart();
-           }
-         }
-       } catch(e) {}
-     };
-     loadFromUrl();
-
-     if (coloringCart.length === 0) {
-        wrap.innerHTML =
-          '<div class="cb-empty-state">' +
-            '<img src="assets/seraj.webp" alt="" class="empty-mascot lg" loading="lazy"/>' +
-            '<h3>كشكولك لسه فاضي!</h3>' +
-            '<p>اختار من مكتبتنا أي رسومات تعجب طفلك، وارجع هنا تحدد عدد الصفحات والغلاف.</p>' +
-            '<div class="empty-actions">' +
-              '<a href="#/mama-coloring" data-link class="btn btn-primary btn-xl">تصفّح الرسومات</a>' +
-              '<a href="#/product/coloring-workbook" data-link class="btn btn-secondary">اعرف أكتر عن الكشكول</a>' +
-            '</div>' +
-          '</div>';
-        return;
-     }
-
-      var totalPages = coloringCart.length;
-
-      // Min/max pages validation
-      var minPages = parseInt(SITE_CONTENT['coloring_min_pages']) || 5;
-      var maxPages = parseInt(SITE_CONTENT['coloring_max_pages']) || 50;
-      var pagesWarning = '';
-      if (totalPages < minPages) {
-        pagesWarning = '<div class="cb-warning">⚠️ الحد الأدنى ' + toArabicNum(minPages) + ' رسومات — اختار ' + toArabicNum(minPages - totalPages) + ' كمان</div>';
-      } else if (totalPages > maxPages) {
-        pagesWarning = '<div class="cb-warning">⚠️ الحد الأقصى ' + toArabicNum(maxPages) + ' رسمة — شيلي ' + toArabicNum(totalPages - maxPages) + '</div>';
-      }
-
-      var pricePer = SITE_CONTENT['pricePerPage'];
-     if (!pricePer) pricePer = coloringState.pricePerPage;
-     else pricePer = parseFloat(pricePer);
-
-     var coverPriceVal = SITE_CONTENT['coverPrice'];
-     if (!coverPriceVal) coverPriceVal = coloringState.coverPrice || 20;
-     else coverPriceVal = parseFloat(coverPriceVal);
-
-     var html = '<div class="cb-page-wrap">';
-     
-      // Progress strip — clear visual cue for "you have X of min Y pages".
-      var progressTarget = Math.max(minPages, totalPages);
-      var progressPct = Math.min(100, Math.round((totalPages / progressTarget) * 100));
-      var progressClass = totalPages < minPages ? 'cb-progress-low' :
-        (totalPages > maxPages ? 'cb-progress-over' : 'cb-progress-ok');
-      html += '<div class="cb-progress ' + progressClass + '">';
-      html += '  <div class="cb-progress-head">';
-      html += '    <strong>' + toArabicNum(totalPages) + ' / ' + toArabicNum(minPages) + '+ رسومة</strong>';
-      html += '    <a href="#/mama-coloring" data-link class="cb-add-more">+ ضيف رسومة</a>';
-      html += '  </div>';
-      html += '  <div class="cb-progress-bar"><span style="width:' + progressPct + '%"></span></div>';
-      html += '</div>';
-
-      // Pages warning
-      html += pagesWarning;
-     
-     // Left: Items Grid
-     html += '<div class="cb-items-wrap">';
-     if (coloringCart.length > 1) {
-       html += '<p class="cb-reorder-hint">اسحب الرسومة من المقبض ⠿ — أو استخدم ▲▼ — لتغيير ترتيب الصفحات في الكشكول.</p>';
-     }
-     html += '<div class="cb-items-list">';
-     coloringCart.forEach(function(item, idx) {
-        html +=
-          '<div class="cb-item-card" data-id="' + item._id + '" data-index="' + idx + '" draggable="true">' +
-            '<span class="cb-item-handle" aria-label="اسحب لإعادة الترتيب" title="اسحب لإعادة الترتيب">⠿</span>' +
-            '<span class="cb-item-order">' + toArabicNum(idx + 1) + '</span>' +
-            '<img src="' + item.thumbnail + '" alt="' + item.title + '" class="cb-item-img" loading="lazy" />' +
-            '<span class="cb-item-title">' + item.title + '</span>' +
-            '<div class="cb-item-actions">' +
-              '<button class="cb-item-move" data-id="' + item._id + '" data-dir="up" aria-label="حرّك لفوق"' + (idx === 0 ? ' disabled' : '') + '>▲</button>' +
-              '<button class="cb-item-move" data-id="' + item._id + '" data-dir="down" aria-label="حرّك لتحت"' + (idx === coloringCart.length - 1 ? ' disabled' : '') + '>▼</button>' +
-            '</div>' +
-            '<button class="cb-item-remove" data-id="' + item._id + '">✕ شيل</button>' +
-          '</div>';
-     });
-     html += '</div>';
-
-     // Share workbook link
-     html += '<div class="cb-share-bar">';
-     html += '  <button class="btn btn-outline" id="cbShareLink">🔗 شارك كشكولك (ابعته لنفسك على واتساب)</button>';
-     html += '</div>';
-     html += '</div>'; // end cb-items-wrap
-
-     // Right: Summary Panel with format options
-     html += '<div class="cb-summary-panel">';
-
-     // Format selection
-     html += '<h3 class="cb-panel-title">اختار الشكل</h3>';
-     html += '<div class="cb-format-options">';
-     html += '  <label class="cb-format-card is-selected">';
-     html += '    <input type="radio" name="cbFormat" value="sheets" checked style="display:none" />';
-     html += '    <div class="cb-format-icon">📄</div>';
-     html += '    <div class="cb-format-info">';
-     html += '      <strong>ورق مطبوع</strong>';
-     html += '      <span>أوراق تلوين مفردة</span>';
-     html += '    </div>';
-     html += '  </label>';
-     html += '  <label class="cb-format-card">';
-     html += '    <input type="radio" name="cbFormat" value="book" style="display:none" />';
-     html += '    <div class="cb-format-icon">📚</div>';
-     html += '    <div class="cb-format-info">';
-     html += '      <strong>كشكول بغلاف مخصص</strong>';
-     html += '      <span>+ ' + toArabicNum(coverPriceVal) + ' ج.م للغلاف</span>';
-     html += '    </div>';
-     html += '  </label>';
-     html += '</div>';
-
-     // Cover selection (hidden by default, shows when "book" is selected)
-     html += '<div class="cb-cover-section" id="cbCoverSection" style="display:none">';
-     html += '  <h4>اختار غلاف الكشكول</h4>';
-     html += '  <div class="cb-cover-grid" id="cbCoverGrid">';
-     html += '    <label class="cb-cover-option is-selected"><input type="radio" name="cbCover" value="cover-seraj" checked style="display:none" /><img src="assets/seraj.webp" alt="سِراج" /><span>سِراج</span></label>';
-     html += '    <label class="cb-cover-option"><input type="radio" name="cbCover" value="cover-khaled" style="display:none" /><img src="assets/khaled-v2.webp" alt="خالد" /><span>خالد</span></label>';
-     html += '    <label class="cb-cover-option"><input type="radio" name="cbCover" value="cover-layla" style="display:none" /><img src="assets/layla.webp" alt="ليلى" /><span>ليلى</span></label>';
-     html += '    <label class="cb-cover-option"><input type="radio" name="cbCover" value="cover-zain" style="display:none" /><img src="assets/zain.webp" alt="زين" /><span>زين</span></label>';
-     html += '  </div>';
-     html += '  <div class="cb-cover-name">';
-     html += '    <label>اسم الكشكول (اختياري):</label>';
-     html += '    <input type="text" id="cbCoverTitle" placeholder="مثلاً: كشكول يوسف للتلوين" maxlength="40" />';
-     html += '  </div>';
-     html += '</div>';
-
-     // Price breakdown
-     html += '<div class="cb-price-breakdown">';
-     html += '  <div class="cb-summary-row"><span>عدد الرسومات</span><strong>' + toArabicNum(totalPages) + '</strong></div>';
-     html += '  <div class="cb-summary-row"><span>سعر الورقة</span><strong>' + toArabicNum(pricePer) + ' ج.م</strong></div>';
-     html += '  <div class="cb-summary-row"><span>الأوراق</span><strong>' + toArabicNum(totalPages * pricePer) + ' ج.م</strong></div>';
-     html += '  <div class="cb-summary-row cb-cover-price-row" id="cbCoverPriceRow" style="display:none"><span>غلاف مخصص</span><strong>+' + toArabicNum(coverPriceVal) + ' ج.م</strong></div>';
-     html += '  <div class="cb-summary-total" id="cbTotalRow"><span>الإجمالي</span><span id="cbTotalPrice">' + toArabicNum(totalPages * pricePer) + ' ج.م</span></div>';
-     html += '</div>';
-
-      html += '<p style="font-size:12px;color:var(--ink-mute);text-align:center;margin-top:12px;line-height:1.6;">شامل الطباعة والتغليف — مصاريف الشحن بتتحسب عند الطلب</p>';
-      var canCheckout = totalPages >= minPages && totalPages <= maxPages;
-      html += '<button class="btn btn-primary cb-checkout-btn' + (canCheckout ? '' : ' is-disabled') + '" id="btnColoringCheckout"' + (canCheckout ? '' : ' disabled') + '>' + (canCheckout ? 'أضيف للسلة 🛒' : 'اختار ' + toArabicNum(minPages) + ' رسومات على الأقل') + '</button>';
-     html += '</div>'; // end summary panel
-
-     html += '</div>'; // end cb-page-wrap
-     wrap.innerHTML = html;
-
-     // --- Event listeners ---
-
-     // Format toggle (sheets / book)
-     wrap.querySelectorAll('input[name="cbFormat"]').forEach(function(radio) {
-       radio.addEventListener('change', function() {
-         // Update visual selection
-         wrap.querySelectorAll('.cb-format-card').forEach(function(c) { c.classList.remove('is-selected'); });
-         radio.closest('.cb-format-card').classList.add('is-selected');
-         var isBook = radio.value === 'book';
-         document.getElementById('cbCoverSection').style.display = isBook ? 'block' : 'none';
-         document.getElementById('cbCoverPriceRow').style.display = isBook ? 'flex' : 'none';
-         updateBookPrice();
-       });
-     });
-
-     // Cover selection
-     wrap.querySelectorAll('input[name="cbCover"]').forEach(function(radio) {
-       radio.addEventListener('change', function() {
-         wrap.querySelectorAll('.cb-cover-option').forEach(function(c) { c.classList.remove('is-selected'); });
-         radio.closest('.cb-cover-option').classList.add('is-selected');
-       });
-     });
-
-     function updateBookPrice() {
-       var format = wrap.querySelector('input[name="cbFormat"]:checked').value;
-       var pagesTotal = totalPages * pricePer;
-       var total = format === 'book' ? pagesTotal + coverPriceVal : pagesTotal;
-       var totalEl = document.getElementById('cbTotalPrice');
-       if (totalEl) totalEl.textContent = toArabicNum(total) + ' ج.م';
-       return total;
-     }
-
-     // Remove items
-     wrap.querySelectorAll('.cb-item-remove').forEach(function(btn) {
-       btn.addEventListener('click', function(e) {
-          var id = e.target.dataset.id;
-          var index = coloringCart.findIndex(function(c) { return c._id === id; });
-          if (index > -1) {
-             coloringCart.splice(index, 1);
-             saveColoringCart();
-             renderColoringBook();
-          }
-       });
-     });
-
-     // Reorder via ▲▼ (keyboard/touch-friendly fallback for HTML5 DnD).
-     wrap.querySelectorAll('.cb-item-move').forEach(function(btn) {
-       btn.addEventListener('click', function(e) {
-         e.stopPropagation();
-         if (btn.disabled) return;
-         var id = btn.dataset.id;
-         var dir = btn.dataset.dir;
-         var index = coloringCart.findIndex(function(c) { return c._id === id; });
-         if (index < 0) return;
-         var target = dir === 'up' ? index - 1 : index + 1;
-         if (target < 0 || target >= coloringCart.length) return;
-         var moved = coloringCart.splice(index, 1)[0];
-         coloringCart.splice(target, 0, moved);
-         saveColoringCart();
-         renderColoringBook();
-       });
-     });
-
-     // HTML5 drag-and-drop reorder. We track the dragged card's original
-     // index, paint a drop ring on whichever card is currently under the
-     // pointer, and on drop splice the array and re-render. The ▲▼ buttons
-     // above are the equivalent keyboard/touch path so this stays optional.
-     var draggedIdx = null;
-     wrap.querySelectorAll('.cb-item-card').forEach(function(card) {
-       card.addEventListener('dragstart', function(e) {
-         draggedIdx = parseInt(card.dataset.index, 10);
-         card.classList.add('cb-item-dragging');
-         if (e.dataTransfer) {
-           e.dataTransfer.effectAllowed = 'move';
-           // Required for Firefox to actually start the drag.
-           try { e.dataTransfer.setData('text/plain', String(draggedIdx)); } catch (_) {}
-         }
-       });
-       card.addEventListener('dragend', function() {
-         card.classList.remove('cb-item-dragging');
-         wrap.querySelectorAll('.cb-item-drop-target').forEach(function(c) {
-           c.classList.remove('cb-item-drop-target');
-         });
-         draggedIdx = null;
-       });
-       card.addEventListener('dragover', function(e) {
-         if (draggedIdx === null) return;
-         e.preventDefault();
-         if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-         var thisIdx = parseInt(card.dataset.index, 10);
-         if (thisIdx === draggedIdx) return;
-         wrap.querySelectorAll('.cb-item-drop-target').forEach(function(c) {
-           if (c !== card) c.classList.remove('cb-item-drop-target');
-         });
-         card.classList.add('cb-item-drop-target');
-       });
-       card.addEventListener('dragleave', function() {
-         card.classList.remove('cb-item-drop-target');
-       });
-       card.addEventListener('drop', function(e) {
-         e.preventDefault();
-         if (draggedIdx === null) return;
-         var targetIdx = parseInt(card.dataset.index, 10);
-         if (isNaN(draggedIdx) || isNaN(targetIdx) || draggedIdx === targetIdx) return;
-         // Standard "drop onto target = take target's rendered slot" semantics:
-         // after splicing the source out, inserting at the target's ORIGINAL
-         // index places the dragged card exactly where the target was painted
-         // (the target shifts to fill the source's old slot). Behavior is
-         // consistent with the ▲▼ buttons (which use index+1 for "down").
-         var moved = coloringCart.splice(draggedIdx, 1)[0];
-         coloringCart.splice(targetIdx, 0, moved);
-         saveColoringCart();
-         renderColoringBook();
-       });
-     });
-
-     // Share workbook link
-     var shareBtn = document.getElementById('cbShareLink');
-     if (shareBtn) {
-       shareBtn.addEventListener('click', function() {
-         var ids = coloringCart.map(function(c) { return { _id: c._id, thumbnail: c.thumbnail, title: c.title }; });
-         var encoded = encodeURIComponent(btoa(JSON.stringify(ids)));
-         var shareUrl = window.location.origin + '/#/coloring-book?w=' + encoded;
-         if (navigator.share) {
-           navigator.share({ title: 'كشكول ألوان من سِراج', url: shareUrl }).catch(function(){});
-         } else {
-           navigator.clipboard.writeText(shareUrl).then(function() {
-             showToast('تم نسخ رابط الكشكول ✓ ابعته لنفسك على واتساب');
-           });
-         }
-       });
-     }
-
-     // Checkout btn
-     var coBtn = document.getElementById('btnColoringCheckout');
-     if (coBtn) {
-          coBtn.addEventListener('click', function() {
-            var format = wrap.querySelector('input[name="cbFormat"]:checked').value;
-            var coverTitle = '';
-            var coverImg = '';
-            if (format === 'book') {
-              var coverInput = document.getElementById('cbCoverTitle');
-              coverTitle = coverInput ? coverInput.value.trim() : '';
-              var selectedCover = wrap.querySelector('input[name="cbCover"]:checked');
-              coverImg = selectedCover ? selectedCover.value : '';
-            }
-
-            var pagesTotal = totalPages * pricePer;
-            var total = format === 'book' ? pagesTotal + coverPriceVal : pagesTotal;
-            var itemName = format === 'book'
-              ? 'كشكول ألوان سِراج (' + toArabicNum(totalPages) + ' ورقة)' + (coverTitle ? ' — ' + coverTitle : '')
-              : 'ورق تلوين مطبوع (' + toArabicNum(totalPages) + ' ورقة)';
-
-            var workbookItem = {
-              slug: 'coloring-workbook',
-              name: itemName,
-              price: total,
-              qty: 1,
-              media: { type: 'book3d', bg: 'emerald' },
-              coloringDetails: {
-                itemCount: totalPages,
-                format: format,
-                coverTitle: coverTitle,
-                coverImage: coverImg,
-                items: coloringCart.map(function(c) { return c._id; })
-              }
-            };
-            
-            // Remove existing coloring workbook in cart if any, then add new
-            var existingIdx = cart.findIndex(function(c) { return c.slug === 'coloring-workbook'; });
-            if (existingIdx > -1) cart.splice(existingIdx, 1);
-            
-            cart.push(workbookItem);
-            saveCart();
-            updateCartBadge();
-            showToast('اتضاف للسلة ✓');
-            window.location.hash = '#/cart';
-        });
-     }
-  }
-
-
-  // ----- Init -----
-  window.addEventListener('DOMContentLoaded', function () {
-    loadColoringCart();
-    attachColoringListeners();
-    loadCart();
-    loadAppliedCoupon();
+    saveCart();
     updateCartBadge();
-    // Hydrate products from localStorage FIRST so returning visitors render
-    // real product images immediately — no mockup → photo flicker on refresh.
-    // The network fetch still runs in the background and refreshes the cache.
-    var hasCachedProducts = hydrateProductsFromCache();
-    fetchProducts();
-    fetchConfig();
-    fetchSiteContent();
-    fetchTestimonials();
-    if (!location.hash) location.hash = '#/home';
-
-    var didInitialRender = false;
-    function doInitialRender() {
-      if (didInitialRender) return;
-      didInitialRender = true;
-      renderHomeProductsPreview();
-      populateCatalog();
-      handleRoute();
-      initReveals();
-      initCounter();
-      initZigzagVideos();
+    showToast(PRODUCTS[slug].name + ' اتضاف للسلة ✦');
+    if (location.hash.indexOf('#/product/') === 0) {
+      renderProductDetail(location.hash.substring(10));
+    } else if (location.hash.indexOf('#/cart') === 0) {
+      renderCartPage();
     }
-
-    if (hasCachedProducts) {
-      // We already have product data — render straight away with real images.
-      doInitialRender();
-      // Swap the static HTML mockups on the home page with cached photo URLs
-      // synchronously (before the network request resolves) so returning
-      // visitors never see the mockup → photo flicker on refresh.
-      updateDOMPrices();
-    } else {
-      // First-time visitors: wait briefly for the API before the first render
-      // to avoid a fallback-data flash. 2s safety timeout still applies.
-      var waitForProducts = setInterval(function () {
-        if (productsReady) {
-          clearInterval(waitForProducts);
-          doInitialRender();
-        }
-      }, 50);
-      setTimeout(function () {
-        clearInterval(waitForProducts);
-        if (!productsReady) {
-          productsReady = true;
-        }
-        doInitialRender();
-      }, 2000);
-    }
-  });
-
-  if (document.readyState !== 'loading') {
-    initHeroVideo();
-  } else {
-    document.addEventListener('DOMContentLoaded', initHeroVideo);
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // CHAT — Mama Zainab Bot
-  // ═══════════════════════════════════════════════════════════
-  var chatInited = false;
-  var chatHistory = [];
-  var chatSending = false;
-
-  function initChat() {
-    if (chatInited) return;
-    chatInited = true;
-
-    var input = document.getElementById('chatInput');
-    var sendBtn = document.getElementById('chatSendBtn');
-    var messagesDiv = document.getElementById('chatMessages');
-    var avatarSrc = 'assets/grandma-fatima-seated.webp';
-
-    // Load history from localStorage
-    try {
-      var saved = localStorage.getItem('seraj-chat-history');
-      if (saved) {
-        chatHistory = JSON.parse(saved);
-        // Render saved messages
-        for (var i = 0; i < chatHistory.length; i++) {
-          if (chatHistory[i].role === 'user') {
-            appendUserMsg(chatHistory[i].content);
-          } else if (chatHistory[i].role === 'assistant') {
-            appendBotMsg(chatHistory[i].content);
-          }
-        }
-      }
-    } catch (e) {}
-
-    // Suggestion chips
-    document.querySelectorAll('[data-mama-panel="ask-zainab"] .chip[data-q]').forEach(function (chip) {
-      chip.addEventListener('click', function () {
-        var q = chip.getAttribute('data-q');
-        if (q && !chatSending) {
-          input.value = q;
-          sendChatMessage();
-        }
-      });
-    });
-
-    // Send button
-    sendBtn.addEventListener('click', function () {
-      if (!chatSending) sendChatMessage();
-    });
-
-    // Enter key
-    input.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' && !chatSending) {
-        e.preventDefault();
-        sendChatMessage();
-      }
-    });
-
-    function sendChatMessage() {
-      var msg = input.value.trim();
-      if (!msg || chatSending) return;
-      input.value = '';
-      chatSending = true;
-      sendBtn.disabled = true;
-
-      // Show user message
-      appendUserMsg(msg);
-      chatHistory.push({ role: 'user', content: msg });
-      saveHistory();
-
-      // Show typing indicator
-      var typingEl = document.createElement('div');
-      typingEl.className = 'chat-typing';
-      typingEl.innerHTML = '<img src="' + avatarSrc + '" alt="..." class="chat-avatar-sm"/><div class="chat-typing-dots"><span></span><span></span><span></span></div>';
-      messagesDiv.appendChild(typingEl);
-      scrollMessages();
-
-      // Call API with streaming
-      fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: msg, history: chatHistory.slice(-10) })
-      })
-      .then(function (res) {
-        if (!res.ok) {
-          return res.json().then(function (err) {
-            throw new Error(err.error || 'حصلت مشكلة');
-          });
-        }
-        return readStream(res, typingEl);
-      })
-      .then(function (fullText) {
-        if (typingEl.parentNode) typingEl.remove();
-        var text = fullText || 'جرب تاني يا قمر 😊';
-        appendBotMsg(text);
-        chatHistory.push({ role: 'assistant', content: text });
-        saveHistory();
-      })
-      .catch(function (err) {
-        if (typingEl.parentNode) typingEl.remove();
-        appendError(err.message || 'حصلت مشكلة — جرب تاني');
-      })
-      .finally(function () {
-        chatSending = false;
-        sendBtn.disabled = false;
-        input.focus();
-      });
-    }
-
-    function readStream(res, typingEl) {
-      return new Promise(function (resolve, reject) {
-        var reader = res.body.getReader();
-        var decoder = new TextDecoder();
-        var fullText = '';
-        var botEl = null;
-        var botText = null;
-        var buffer = '';
-
-        // Remove typing, create bot message element
-        function ensureBotEl() {
-          if (botEl) return;
-          if (typingEl.parentNode) typingEl.remove();
-          botEl = document.createElement('div');
-          botEl.className = 'chat-msg-bot';
-          botEl.innerHTML = '<img src="' + avatarSrc + '" alt="الجدة زينب" class="chat-avatar-sm"/><div class="chat-msg-text"></div>';
-          messagesDiv.appendChild(botEl);
-          botText = botEl.querySelector('.chat-msg-text');
-        }
-
-        function pump() {
-          reader.read().then(function (result) {
-            if (result.done) {
-              resolve(fullText);
-              return;
-            }
-
-            buffer += decoder.decode(result.value, { stream: true });
-            var lines = buffer.split('\n');
-            buffer = lines.pop() || '';
-
-            for (var i = 0; i < lines.length; i++) {
-              var line = lines[i].trim();
-              if (!line || !line.startsWith('data: ')) continue;
-              var data = line.slice(6);
-              if (data === '[DONE]') {
-                resolve(fullText);
-                return;
-              }
-              try {
-                var parsed = JSON.parse(data);
-                if (parsed.content) {
-                  ensureBotEl();
-                  fullText += parsed.content;
-                  botText.textContent = fullText;
-                  scrollMessages();
-                }
-              } catch (e) {}
-            }
-
-            pump();
-          }).catch(reject);
-        }
-
-        pump();
-      });
-    }
-
-    function appendUserMsg(text) {
-      var el = document.createElement('div');
-      el.className = 'chat-msg-user';
-      el.innerHTML = '<div class="chat-msg-text">' + escapeHtml(text) + '</div>';
-      messagesDiv.appendChild(el);
-      scrollMessages();
-    }
-
-    function appendBotMsg(text) {
-      var el = document.createElement('div');
-      el.className = 'chat-msg-bot';
-      el.innerHTML = '<img src="' + avatarSrc + '" alt="الجدة زينب" class="chat-avatar-sm"/><div class="chat-msg-text">' + escapeHtml(text) + '</div>';
-      messagesDiv.appendChild(el);
-      scrollMessages();
-    }
-
-    function appendError(text) {
-      var el = document.createElement('div');
-      el.className = 'chat-error';
-      el.textContent = text;
-      messagesDiv.appendChild(el);
-      scrollMessages();
-    }
-
-    function scrollMessages() {
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    }
-
-    function saveHistory() {
-      try {
-        // Keep last 50 messages only
-        var toSave = chatHistory.slice(-50);
-        localStorage.setItem('seraj-chat-history', JSON.stringify(toSave));
-      } catch (e) {}
-    }
-  }
-
-  // Init chat when the ask-zainab panel is shown
-  function maybeInitChat() {
-    var panel = document.querySelector('[data-mama-panel="ask-zainab"]');
-    if (panel && panel.classList.contains('is-active')) {
-      initChat();
-    }
-  }
-
-  // Patch into mama tab clicks
-  document.addEventListener('click', function (e) {
-    var tab = e.target.closest('[data-mama-tab="ask-zainab"]');
-    if (tab) {
-      setTimeout(maybeInitChat, 100);
-    }
-  });
-
-  // Also init if we're already on the panel (deep link)
-  setTimeout(function () {
-    var panel = document.querySelector('[data-mama-panel="ask-zainab"]');
-    if (panel && panel.classList.contains('is-active')) {
-      initChat();
-    }
-  }, 500);
-
-  // ═══════════════════════════════════════════════════════════
-  // SERAJ CHAT WIDGET (floating)
-  // ═══════════════════════════════════════════════════════════
-  var SC_DEFAULT_WHATSAPP = '201152806034';
-  var SC_AVATAR_SRC = 'assets/seraj.webp';
-  var SC_LS_KEY = 'seraj-chat-history-v1';
-  var SC_LS_FIRSTOPEN_KEY = 'seraj-chat-opened-once';
-  var SC_LS_CONFIG_KEY = 'seraj-chat-config-v1';
-  var SC_MAX_HISTORY = 50;
-  var SC_SLOW_TIMEOUT_MS = 5000;
-  var SC_DEFAULT_PULSE_FIRST_DELAY_MS = 5000;
-  var SC_DEFAULT_PULSE_INTERVAL_MS = 30000;
-  var SC_DEFAULT_THEME = '#6bbf3f';
-  var SC_DEFAULT_CONFIG = {
-    enabled: true,
-    whatsappNumber: SC_DEFAULT_WHATSAPP,
-    welcomeTitle: 'أهلاً بيك في سِراج! 👋',
-    welcomeSubtitle: 'أنا مساعدك الذكي. اسألني عن المنتجات والأسعار أو اطلب مباشرة. إيه اللي محتاجه؟',
-    chips: [
-      { label: 'المنتجات والأسعار', question: 'إيه المنتجات والأسعار؟' },
-      { label: 'القصة المخصصة',   question: 'عايز أطلب القصة المخصصة' },
-      { label: 'قصة خالد',         question: 'عايز أطلب قصة خالد بن الوليد' },
-      { label: 'الشحن والتوصيل',  question: 'الشحن بكام وبيوصل إمتى؟' }
-    ],
-    routesMode: 'all',
-    routesList: [],
-    pulseEnabled: true,
-    pulseFirstDelayMs: SC_DEFAULT_PULSE_FIRST_DELAY_MS,
-    pulseIntervalMs: SC_DEFAULT_PULSE_INTERVAL_MS,
-    themeColor: SC_DEFAULT_THEME
   };
-  var scConfig = SC_DEFAULT_CONFIG;
-
-  var scState = {
-    open: false,
-    sending: false,
-    history: [],
-    inited: false,
-    everOpened: false,
-    pulseTimer: null,
-    lastFocusedBeforeOpen: null
-  };
-
-  function scLoadHistory() {
-    try {
-      var raw = localStorage.getItem(SC_LS_KEY);
-      if (!raw) return [];
-      var arr = JSON.parse(raw);
-      if (!Array.isArray(arr)) return [];
-      return arr.filter(function (m) {
-        return m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string';
-      });
-    } catch (e) { return []; }
-  }
-  function scSaveHistory() {
-    try {
-      var trimmed = scState.history.slice(-SC_MAX_HISTORY);
-      localStorage.setItem(SC_LS_KEY, JSON.stringify(trimmed));
-    } catch (e) {}
-  }
-  function scClearStorage() {
-    try { localStorage.removeItem(SC_LS_KEY); } catch (e) {}
-  }
-  function scMarkOpened() {
-    try { localStorage.setItem(SC_LS_FIRSTOPEN_KEY, '1'); } catch (e) {}
-    scState.everOpened = true;
-  }
-  function scWasOpenedBefore() {
-    try { return localStorage.getItem(SC_LS_FIRSTOPEN_KEY) === '1'; } catch (e) { return false; }
-  }
-
-  function scWaText(prefix) {
-    var msg = prefix || 'مرحباً، كنت بتكلم سِراج وأحتاج مساعدة';
-    var num = (scConfig && scConfig.whatsappNumber) || SC_DEFAULT_WHATSAPP;
-    return 'https://wa.me/' + num + '?text=' + encodeURIComponent(msg);
-  }
-
-  function scLoadCachedConfig() {
-    try {
-      var raw = localStorage.getItem(SC_LS_CONFIG_KEY);
-      if (!raw) return null;
-      var parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === 'object') return parsed;
-    } catch (e) {}
-    return null;
-  }
-  function scSaveCachedConfig(cfg) {
-    try { localStorage.setItem(SC_LS_CONFIG_KEY, JSON.stringify(cfg)); } catch (e) {}
-  }
-  function scNormalizeConfig(raw) {
-    if (!raw || typeof raw !== 'object') return SC_DEFAULT_CONFIG;
-    var chips = Array.isArray(raw.chips) ? raw.chips.filter(function (c) {
-      return c && typeof c.label === 'string' && typeof c.question === 'string'
-        && c.label.trim() && c.question.trim();
-    }) : [];
-    var routesMode = raw.routesMode === 'whitelist' || raw.routesMode === 'blacklist' ? raw.routesMode : 'all';
-    var routesList = Array.isArray(raw.routesList)
-      ? raw.routesList.filter(function (p) { return typeof p === 'string' && p.trim(); }).map(function (p) { return p.trim(); })
-      : [];
-    var theme = (typeof raw.themeColor === 'string' && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(raw.themeColor))
-      ? raw.themeColor : SC_DEFAULT_THEME;
-    return {
-      enabled: raw.enabled !== false,
-      whatsappNumber: (raw.whatsappNumber || SC_DEFAULT_WHATSAPP).toString(),
-      welcomeTitle: raw.welcomeTitle || SC_DEFAULT_CONFIG.welcomeTitle,
-      welcomeSubtitle: raw.welcomeSubtitle || SC_DEFAULT_CONFIG.welcomeSubtitle,
-      chips: chips.length ? chips : SC_DEFAULT_CONFIG.chips,
-      routesMode: routesMode,
-      routesList: routesList,
-      pulseEnabled: raw.pulseEnabled !== false,
-      pulseFirstDelayMs: typeof raw.pulseFirstDelayMs === 'number' ? raw.pulseFirstDelayMs : SC_DEFAULT_PULSE_FIRST_DELAY_MS,
-      pulseIntervalMs: typeof raw.pulseIntervalMs === 'number' ? raw.pulseIntervalMs : SC_DEFAULT_PULSE_INTERVAL_MS,
-      themeColor: theme
-    };
-  }
-
-  function scPathAllowedByRoutes() {
-    var mode = (scConfig && scConfig.routesMode) || 'all';
-    var list = (scConfig && scConfig.routesList) || [];
-    if (mode === 'all' || !list.length) return true;
-    var path = (location.pathname || '/').toLowerCase();
-    var hit = list.some(function (p) {
-      var pat = p.toLowerCase();
-      if (!pat) return false;
-      if (pat === '/' && path === '/') return true;
-      return path === pat || path.indexOf(pat.replace(/\/$/, '') + '/') === 0 || path === pat.replace(/\/$/, '');
-    });
-    return mode === 'whitelist' ? hit : !hit;
-  }
-
-  function applyChatTheme() {
-    try {
-      var c = (scConfig && scConfig.themeColor) || SC_DEFAULT_THEME;
-      document.documentElement.style.setProperty('--sc-theme', c);
-    } catch (e) {}
-  }
-  function scFetchConfig() {
-    return fetch('/api/chat-config', { credentials: 'same-origin' })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (body) {
-        if (body && body.success && body.data) return scNormalizeConfig(body.data);
-        return null;
-      })
-      .catch(function () { return null; });
-  }
-
-  function scUpdateVh() {
-    var h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    document.documentElement.style.setProperty('--sc-vh', h + 'px');
-  }
-
-  function applyChatConfigVisibility(fab, win) {
-    var visible = !!scConfig.enabled && scPathAllowedByRoutes();
-    if (!visible) {
-      if (fab) fab.style.display = 'none';
-      if (win) win.hidden = true;
-      // If the chat was already open when we got told to hide it (e.g. config
-      // refresh disables the widget mid-session, or the user navigates to a
-      // route excluded by routesList), make sure we don't leave the body
-      // scroll-locked. On mobile body.sc-modal-open sets overflow:hidden +
-      // touch-action:none, which would trap the user with no visible way to
-      // close the chat.
-      if (scState.open) {
-        try { document.body.classList.remove('sc-modal-open'); } catch (e) {}
-        scState.open = false;
-        if (fab) fab.classList.remove('is-open');
-      }
-    } else if (fab) {
-      fab.style.display = '';
-    }
-  }
-
-  function renderChips(chipsBar, input, isSendingRef) {
-    if (!chipsBar) return;
-    // Remove all existing dynamic chips except the WhatsApp anchor (sc-wa-chip)
-    var waChip = chipsBar.querySelector('.sc-wa-chip');
-    chipsBar.querySelectorAll('button[data-q]').forEach(function (b) { b.remove(); });
-    var chips = (scConfig && scConfig.chips) || [];
-    chips.forEach(function (c) {
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.setAttribute('data-q', c.question);
-      btn.textContent = c.label;
-      btn.addEventListener('click', function () {
-        if (isSendingRef.value) return;
-        input.value = c.question;
-        // scSend is closed-over in init scope; dispatch via a custom event
-        chipsBar.dispatchEvent(new CustomEvent('sc:chip-send'));
-      });
-      // Insert before the WA anchor so it remains last
-      if (waChip) chipsBar.insertBefore(btn, waChip);
-      else chipsBar.appendChild(btn);
-    });
-    // Update WA chip href with configured number
-    if (waChip) {
-      var num = (scConfig && scConfig.whatsappNumber) || SC_DEFAULT_WHATSAPP;
-      var preset = encodeURIComponent('مرحباً، عايز أسأل عن سِراج');
-      waChip.setAttribute('href', 'https://wa.me/' + num + '?text=' + preset);
-    }
-  }
-
-  function initSerajChat() {
-    if (scState.inited) return;
-    scState.inited = true;
-
-    var fab = document.getElementById('serajChatBtn');
-    var win = document.getElementById('serajChatWindow');
-    var closeBtn = document.getElementById('serajChatClose');
-    var clearBtn = document.getElementById('serajChatClear');
-    var input = document.getElementById('serajChatInput');
-    var sendBtn = document.getElementById('serajChatSend');
-    var msgs = document.getElementById('serajChatMessages');
-    var WHATSAPP = '201152806034';
-    var chipsBar = document.getElementById('serajChatChips');
-    var scrollDownBtn = document.getElementById('serajChatScrollDown');
-    if (!fab || !win || !closeBtn || !input || !sendBtn || !msgs) return;
-
-    // Hydrate config from cache immediately, then refresh from API in the background.
-    var cached = scLoadCachedConfig();
-    if (cached) scConfig = scNormalizeConfig(cached);
-    applyChatTheme();
-    applyChatConfigVisibility(fab, win);
-
-    // Re-evaluate route visibility on SPA navigation (popstate, pushState wraps below).
-    window.addEventListener('popstate', function () { applyChatConfigVisibility(fab, win); });
-    window.addEventListener('hashchange', function () { applyChatConfigVisibility(fab, win); });
-    try {
-      var origPushState = history.pushState;
-      history.pushState = function () {
-        var ret = origPushState.apply(this, arguments);
-        try { applyChatConfigVisibility(fab, win); } catch (e) {}
-        return ret;
-      };
-      var origReplaceState = history.replaceState;
-      history.replaceState = function () {
-        var ret = origReplaceState.apply(this, arguments);
-        try { applyChatConfigVisibility(fab, win); } catch (e) {}
-        return ret;
-      };
-    } catch (e) {}
-
-    var sendingRef = { value: false };
-    Object.defineProperty(sendingRef, 'value', {
-      get: function () { return scState.sending; }
-    });
-    scFetchConfig().then(function (cfg) {
-      if (!cfg) return;
-      scConfig = cfg;
-      scSaveCachedConfig(cfg);
-      applyChatTheme();
-      applyChatConfigVisibility(fab, win);
-      renderChips(chipsBar, input, sendingRef);
-      // If welcome is currently shown, re-render to reflect new copy.
-      var welcome = msgs.querySelector('.sc-welcome');
-      if (welcome) {
-        welcome.remove();
-        renderWelcome();
-      }
-    });
-
-    scState.everOpened = scWasOpenedBefore();
-    scState.history = scLoadHistory();
-    scUpdateVh();
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', scUpdateVh);
-      window.visualViewport.addEventListener('scroll', scUpdateVh);
-    }
-    window.addEventListener('resize', scUpdateVh);
-
-    // ---------- Pulse FAB until first open ----------
-    function startPulseLoop() {
-      if (scState.everOpened) return;
-      if (!scConfig.pulseEnabled) return;
-      var firstDelay = typeof scConfig.pulseFirstDelayMs === 'number'
-        ? scConfig.pulseFirstDelayMs : SC_DEFAULT_PULSE_FIRST_DELAY_MS;
-      var interval = typeof scConfig.pulseIntervalMs === 'number'
-        ? scConfig.pulseIntervalMs : SC_DEFAULT_PULSE_INTERVAL_MS;
-      setTimeout(function () { triggerPulse(); }, firstDelay);
-      scState.pulseTimer = setInterval(triggerPulse, interval);
-    }
-    function stopPulseLoop() {
-      if (scState.pulseTimer) { clearInterval(scState.pulseTimer); scState.pulseTimer = null; }
-      fab.classList.remove('sc-pulse');
-    }
-    function triggerPulse() {
-      if (scState.open || scState.everOpened) { stopPulseLoop(); return; }
-      // restart animation
-      fab.classList.remove('sc-pulse');
-      // force reflow then re-add
-      void fab.offsetWidth;
-      fab.classList.add('sc-pulse');
-      setTimeout(function () { fab.classList.remove('sc-pulse'); }, 1500);
-    }
-    startPulseLoop();
-
-    // ---------- Open / close ----------
-    function openChat() {
-      if (scState.open) return;
-      scState.open = true;
-      scState.lastFocusedBeforeOpen = document.activeElement;
-      win.hidden = false;
-      win.classList.remove('is-closing');
-      fab.classList.add('is-open');
-      fab.setAttribute('aria-expanded', 'true');
-      stopPulseLoop();
-      scMarkOpened();
-      document.body.classList.add('sc-modal-open');
-
-      // Render: replay history if any, else show welcome
-      if (msgs.children.length === 0) {
-        if (scState.history.length > 0) {
-          replayHistory();
-        } else {
-          renderWelcome();
-        }
-      }
-
-      requestAnimationFrame(function () {
-        scScroll(true);
-        setTimeout(function () { input.focus(); }, 50);
-      });
-    }
-
-    function closeChat() {
-      if (!scState.open) return;
-      scState.open = false;
-      fab.classList.remove('is-open');
-      fab.setAttribute('aria-expanded', 'false');
-      win.classList.add('is-closing');
-      document.body.classList.remove('sc-modal-open');
-      setTimeout(function () {
-        win.hidden = true;
-        win.classList.remove('is-closing');
-        if (scState.lastFocusedBeforeOpen && scState.lastFocusedBeforeOpen.focus) {
-          try { scState.lastFocusedBeforeOpen.focus(); } catch (e) {}
-        }
-      }, 200);
-    }
-
-    fab.addEventListener('click', function () {
-      if (scState.open) { closeChat(); } else { openChat(); }
-    });
-    closeBtn.addEventListener('click', closeChat);
-
-    // ---------- Clear chat ----------
-    if (clearBtn) {
-      clearBtn.addEventListener('click', function () {
-        if (!confirm('مسح كل المحادثة؟')) return;
-        scState.history = [];
-        scClearStorage();
-        msgs.innerHTML = '';
-        if (chipsBar) chipsBar.classList.remove('sc-collapsed');
-        renderWelcome();
-        scScroll();
-        input.focus();
-      });
-    }
-
-    // ---------- Keyboard: Enter to send, Escape to close, focus trap ----------
-    input.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' && !scState.sending) { e.preventDefault(); scSend(); }
-    });
-    document.addEventListener('keydown', function (e) {
-      if (!scState.open) return;
-      if (e.key === 'Escape') { e.preventDefault(); closeChat(); return; }
-      if (e.key === 'Tab') scTrapFocus(e);
-    });
-    function scTrapFocus(e) {
-      var focusables = win.querySelectorAll(
-        'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])'
-      );
-      if (!focusables.length) return;
-      var first = focusables[0];
-      var last  = focusables[focusables.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-    }
-
-    // ---------- Send button + chips ----------
-    sendBtn.addEventListener('click', function () { if (!scState.sending) scSend(); });
-    if (chipsBar) {
-      chipsBar.addEventListener('sc:chip-send', function () {
-        if (!scState.sending) scSend();
-      });
-      // Static chips that ship with the HTML still work (data-q attribute)
-      chipsBar.querySelectorAll('button[data-q]').forEach(function (chip) {
-        chip.addEventListener('click', function () {
-          if (scState.sending) return;
-          input.value = chip.getAttribute('data-q') || '';
-          scSend();
-        });
-      });
-    }
-
-    // ---------- Scroll-to-bottom ----------
-    if (scrollDownBtn) scrollDownBtn.hidden = false;  // controlled by .is-visible class now
-    msgs.addEventListener('scroll', updateScrollDown);
-    if (scrollDownBtn) {
-      scrollDownBtn.addEventListener('click', function () { scScroll(true); });
-    }
-
-    function updateScrollDown() {
-      if (!scrollDownBtn) return;
-      var distFromBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight;
-      scrollDownBtn.classList.toggle('is-visible', distFromBottom > 100);
-    }
-
-    function scScroll(force) {
-      if (!force) {
-        var distFromBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight;
-        if (distFromBottom > 200) return;
-      }
-      msgs.scrollTop = msgs.scrollHeight;
-      if (scrollDownBtn) scrollDownBtn.classList.remove('is-visible');
-    }
-
-    // ---------- Renderers ----------
-    function renderWelcome() {
-      var card = document.createElement('div');
-      card.className = 'sc-welcome';
-      var titleEl = document.createElement('h4');
-      titleEl.textContent = (scConfig && scConfig.welcomeTitle) || SC_DEFAULT_CONFIG.welcomeTitle;
-      var subEl = document.createElement('p');
-      subEl.textContent = (scConfig && scConfig.welcomeSubtitle) || SC_DEFAULT_CONFIG.welcomeSubtitle;
-      var avatarWrap = document.createElement('div');
-      avatarWrap.className = 'sc-welcome-avatar';
-      avatarWrap.innerHTML = '<img src="' + SC_AVATAR_SRC + '" alt="">';
-      card.appendChild(avatarWrap);
-      card.appendChild(titleEl);
-      card.appendChild(subEl);
-      msgs.appendChild(card);
-    }
-
-    function replayHistory() {
-      scState.history.forEach(function (m) {
-        if (m.role === 'user') appendScUser(m.content, true);
-        else if (m.role === 'assistant') appendScBot(m.content, true);
-      });
-      // After first user message, hide chips
-      var hasUserMsg = scState.history.some(function (m) { return m.role === 'user'; });
-      if (hasUserMsg && chipsBar) chipsBar.classList.add('sc-collapsed');
-    }
-
-    function avatarHTML() {
-      return '<div class="sc-msg-avatar" aria-hidden="true"><img src="' + SC_AVATAR_SRC + '" alt=""></div>';
-    }
-
-    function appendScUser(text, skipScroll) {
-      var row = document.createElement('div');
-      row.className = 'sc-msg-row sc-row-user';
-      var bubble = document.createElement('div');
-      bubble.className = 'sc-msg sc-msg-user';
-      bubble.textContent = text;
-      row.appendChild(bubble);
-      msgs.appendChild(row);
-      if (chipsBar) chipsBar.classList.add('sc-collapsed');
-      if (!skipScroll) scScroll(true);
-    }
-
-    function appendScBot(text, skipScroll) {
-      var row = document.createElement('div');
-      row.className = 'sc-msg-row sc-row-bot';
-      row.innerHTML = avatarHTML();
-      var bubble = document.createElement('div');
-      bubble.className = 'sc-msg sc-msg-bot';
-      bubble.textContent = text;
-      row.appendChild(bubble);
-      msgs.appendChild(row);
-      if (!skipScroll) scScroll();
-    }
-
-    function appendScError(text) {
-      var box = document.createElement('div');
-      box.className = 'sc-msg-error';
-      var head = document.createElement('div');
-      head.className = 'sc-msg-error-head';
-      head.innerHTML =
-        '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
-        '<circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>' +
-        '<span></span>';
-      head.querySelector('span').textContent = text;
-      box.appendChild(head);
-      var waLink = document.createElement('a');
-      waLink.className = 'sc-wa-link';
-      waLink.href = scWaText('مرحباً، كنت بتكلم سِراج وحصلت مشكلة وأحتاج مساعدة');
-      waLink.target = '_blank';
-      waLink.rel = 'noopener';
-      waLink.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17.5 14.3c-.3-.15-1.8-.9-2.1-1-.28-.1-.48-.15-.68.15-.2.3-.78 1-.95 1.2-.18.2-.35.22-.65.08-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.65-2.05-.18-.3-.02-.46.13-.6.13-.14.3-.35.44-.52.15-.18.2-.3.3-.5.1-.2.05-.38-.03-.53-.08-.15-.68-1.63-.93-2.23-.24-.58-.5-.5-.68-.5h-.58c-.2 0-.53.08-.8.38s-1.05 1.03-1.05 2.5c0 1.47 1.07 2.9 1.22 3.1.15.2 2.13 3.25 5.15 4.55.72.3 1.28.48 1.72.62.72.23 1.38.2 1.9.12.58-.08 1.8-.73 2.05-1.43.25-.7.25-1.3.18-1.43-.08-.13-.28-.2-.58-.35z"/></svg> تواصل واتساب';
-      box.appendChild(waLink);
-      msgs.appendChild(box);
-      scScroll(true);
-    }
-
-    function makeTypingRow() {
-      var row = document.createElement('div');
-      row.className = 'sc-typing-row';
-      row.innerHTML = avatarHTML() + '<div class="sc-typing"><span></span><span></span><span></span></div>';
-      return row;
-    }
-
-    function scSend() {
-      var msg = input.value.trim();
-      if (!msg || scState.sending) return;
-      input.value = '';
-      scState.sending = true;
-      sendBtn.disabled = true;
-
-      // Hide welcome card on first send
-      var welcome = msgs.querySelector('.sc-welcome');
-      if (welcome) welcome.remove();
-
-      appendScUser(msg);
-      scState.history.push({ role: 'user', content: msg });
-      scSaveHistory();
-
-      var typingEl = makeTypingRow();
-      msgs.appendChild(typingEl);
-      scScroll(true);
-
-      // Slow-API hint after 5s
-      var slowHint = null;
-      var slowTimer = setTimeout(function () {
-        if (!scState.sending) return;
-        slowHint = document.createElement('div');
-        slowHint.className = 'sc-slow-hint';
-        slowHint.textContent = 'سِراج بيفكر... ⏳';
-        msgs.appendChild(slowHint);
-        scScroll();
-      }, SC_SLOW_TIMEOUT_MS);
-
-      function clearSlow() {
-        clearTimeout(slowTimer);
-        if (slowHint && slowHint.parentNode) slowHint.remove();
-      }
-
-      fetch('/api/chat-seraj', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: msg, history: scState.history.slice(-10) })
-      })
-      .then(function (res) {
-        if (!res.ok) return res.json().then(function (e) { throw new Error(e.error || 'حصلت مشكلة'); });
-        return scReadStream(res, typingEl);
-      })
-      .then(function (text) {
-        clearSlow();
-        if (typingEl.parentNode) typingEl.remove();
-        var full = text || 'حاول تاني يا فندم 🌱';
-        // The streamed bot row might already be appended; if not, render now.
-        var lastRow = msgs.lastElementChild;
-        if (!lastRow || !lastRow.classList.contains('sc-row-bot')) {
-          appendScBot(full);
-        }
-        scState.history.push({ role: 'assistant', content: full });
-        scSaveHistory();
-      })
-      .catch(function (err) {
-        clearSlow();
-        if (typingEl.parentNode) typingEl.remove();
-        appendScError(err.message || 'حصلت مشكلة — حاول تاني');
-      })
-      .finally(function () {
-        scState.sending = false;
-        sendBtn.disabled = false;
-        input.focus();
-      });
-    }
-
-    function scReadStream(res, typingEl) {
-      return new Promise(function (resolve, reject) {
-        var reader = res.body.getReader();
-        var decoder = new TextDecoder();
-        var fullText = '';
-        var botRow = null;
-        var botBubble = null;
-        var buffer = '';
-
-        function ensureBotRow() {
-          if (botRow) return;
-          if (typingEl.parentNode) typingEl.remove();
-          botRow = document.createElement('div');
-          botRow.className = 'sc-msg-row sc-row-bot';
-          botRow.innerHTML = avatarHTML();
-          botBubble = document.createElement('div');
-          botBubble.className = 'sc-msg sc-msg-bot';
-          botRow.appendChild(botBubble);
-          msgs.appendChild(botRow);
-        }
-
-        function pump() {
-          reader.read().then(function (r) {
-            if (r.done) { resolve(fullText); return; }
-            buffer += decoder.decode(r.value, { stream: true });
-            var lines = buffer.split('\n');
-            buffer = lines.pop() || '';
-            for (var i = 0; i < lines.length; i++) {
-              var line = lines[i].trim();
-              if (!line || !line.startsWith('data: ')) continue;
-              var data = line.slice(6);
-              if (data === '[DONE]') { resolve(fullText); return; }
-              try {
-                var parsed = JSON.parse(data);
-                if (parsed.content) {
-                  ensureBotRow();
-                  fullText += parsed.content;
-                  botBubble.textContent = fullText;
-                  scScroll();
-                }
-              } catch (e) {}
-            }
-            pump();
-          }).catch(reject);
-        }
-        pump();
-      });
-    }
-  }
-
-  if (document.readyState !== 'loading') {
-    initSerajChat();
-  } else {
-    document.addEventListener('DOMContentLoaded', initSerajChat);
-  }
 
   // ═══════════════════════════════════════════════════════════
   // PWA INSTALL BANNER
@@ -5038,203 +3455,6 @@
       window.open(waUrl, '_blank');
     }
   };
-  // =========================================================
-  // GROUP BUY SYSTEM LOGIC
-  // =========================================================
-  function setModalOpen(modal, isOpen) {
-    if (!modal) return;
-    modal.style.display = isOpen ? 'flex' : 'none';
-  }
 
-  window.openGroupBuyModal = function(productSlug) {
-    if (!GROUP_BUY_CONFIG) return;
-    var modal = document.getElementById('groupBuyModal');
-    var tiersContainer = document.getElementById('gbTiersContainer');
-    if (!modal || !tiersContainer) return;
-    modal.dataset.productSlug = productSlug;
-    
-    // Fill tiers
-    var tiersHtml = '';
-    var tiers = GROUP_BUY_CONFIG.defaultTiers || [];
-    tiers.forEach(function(t) {
-      var val = t.discountType === 'percent' ? toArabicNum(t.discountValue) + '%' :
-                t.discountType === 'fixed' ? toArabicNum(t.discountValue) + ' ج.م' : 'شحن مجاني';
-      tiersHtml += '<div style="display:flex; justify-content:space-between; align-items:center; padding: 10px; border: 1px solid var(--line); border-radius:8px; margin-bottom:8px;">';
-      tiersHtml += '<span><strong style="color:var(--seraj); font-size:16px;">' + val + ' خصم</strong></span>';
-      tiersHtml += '<span>لما تجمعوا <strong>' + toArabicNum(t.minOrders) + ' طلبات</strong></span>';
-      tiersHtml += '</div>';
-    });
-    tiersContainer.innerHTML = tiersHtml;
-    
-    setModalOpen(modal, true);
-  };
-
-  function closeGroupBuyModal() {
-    var modal = document.getElementById('groupBuyModal');
-    if (modal) delete modal.dataset.productSlug;
-    setModalOpen(modal, false);
-  }
-
-  document.addEventListener('click', function(e) {
-    var target = e.target;
-    var groupBuyBtn = target && target.closest ? target.closest('[data-group-buy-product]') : null;
-    if (groupBuyBtn) {
-      e.preventDefault();
-      window.openGroupBuyModal(groupBuyBtn.getAttribute('data-group-buy-product'));
-      return;
-    }
-
-    var createGroupBtn = target && target.closest ? target.closest('#createGroupBuyBtn') : null;
-    if (createGroupBtn) {
-      e.preventDefault();
-      var createModal = document.getElementById('groupBuyModal');
-      var productSlug = createModal ? createModal.dataset.productSlug : '';
-      if (productSlug) submitCreateGroupBuy(productSlug);
-      return;
-    }
-
-    var joinGroupBtn = target && target.closest ? target.closest('[data-join-group-buy]') : null;
-    if (joinGroupBtn) {
-      e.preventDefault();
-      window.joinAndBuy(joinGroupBtn.getAttribute('data-join-group-buy'));
-      return;
-    }
-
-    var modal = document.getElementById('groupBuyModal');
-    if (!modal || modal.style.display === 'none') return;
-
-    var closeBtn = target && target.closest ? target.closest('#closeGroupBuyModal') : null;
-    if (closeBtn) {
-      e.preventDefault();
-      closeGroupBuyModal();
-      return;
-    }
-
-    if (e.target === modal) {
-      closeGroupBuyModal();
-    }
-  });
-
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeGroupBuyModal();
-  });
-
-  function submitCreateGroupBuy(productSlug) {
-    var nameInput = document.getElementById('gbCreatorName');
-    var name = nameInput ? nameInput.value.trim() : '';
-    if (!name) {
-      showToast('أدخل اسمك الأول عشان صحابك يعرفوك!');
-      return;
-    }
-    
-    var btn = document.getElementById('createGroupBuyBtn');
-    btn.disabled = true;
-    btn.textContent = 'جاري الإنشاء...';
-    
-    fetch('/api/group-buys', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        createdByName: name,
-        targetOrders: GROUP_BUY_CONFIG.defaultTiers[GROUP_BUY_CONFIG.defaultTiers.length - 1].minOrders
-      })
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(res) {
-      if(res.success) {
-        closeGroupBuyModal();
-        ACTIVE_GROUP_BUY_CODE = res.data.code;
-        localStorage.setItem('seraj-group-buy', res.data.code);
-        
-        // Add item to cart
-        var p = PRODUCTS[productSlug];
-        if (p) {
-          cart.push({ slug: productSlug, name: p.name, price: p.price, qty: 1 });
-          saveCart();
-        }
-        
-        // Redirect to group page
-        window.location.hash = '#/group-buy/' + res.data.code;
-      } else {
-        showToast(res.error || 'حدث خطأ');
-      }
-    })
-    .catch(function() { showToast('مشكلة في الاتصال بالانترنت'); })
-    .finally(function() {
-      btn.disabled = false;
-      btn.textContent = 'يلا نعمل الجروب ✨';
-    });
-  }
-
-  window.renderGroupBuyPage = function(code) {
-    var container = document.getElementById('groupBuyPage');
-    if (!container) return;
-    container.innerHTML = '<div style="padding:60px 20px; text-align:center;"><div class="outings-spinner" style="margin:0 auto 20px;"></div><p>بنحمل تفاصيل الجروب...</p></div>';
-    
-    if (!code) {
-      container.innerHTML = '<div style="padding:60px 20px; text-align:center;"><h2>الكود غير صحيح</h2></div>';
-      return;
-    }
-    
-    fetch('/api/group-buys/' + code)
-      .then(function(r) { return r.json(); })
-      .then(function(res) {
-        if (!res.success) {
-          container.innerHTML = '<div style="padding:60px 20px; text-align:center;"><h2>' + (res.error || 'الجروب غير متاح') + '</h2><a href="#/products" data-link class="btn btn-primary" style="margin-top:20px;">شوف المنتجات المتاحة</a></div>';
-          return;
-        }
-        
-        var group = res.data;
-        var h = '';
-        var progress = Math.min(100, Math.round((group.confirmedOrders / group.targetOrders) * 100));
-        
-        h += '<div class="page-head tight" style="text-align:center; padding-top:40px;">';
-        h += '<img src="assets/seraj.webp" style="width:80px; margin-bottom:15px;" />';
-        h += '<h1>جروب ' + group.createdByName + ' للخصم! 🎁</h1>';
-        h += '<p style="color:var(--ink-mute);">' + (group.status === 'open' ? 'باقي وقت وتخلص الفرصة، شارك الرابط مع صحابك وخدوا كلكم خصم.' : 'الجروب ده اكتمل أو انتهى.') + '</p>';
-        h += '</div>';
-        
-        h += '<div class="wrapper" style="max-width:500px; margin: 0 auto; padding-bottom:60px;">';
-        
-        h += '<div style="background:#fff; border:2px solid var(--line); border-radius:12px; padding:20px; margin-bottom:20px; text-align:center;">';
-        h += '<h2 style="font-size:24px; color:var(--seraj); letter-spacing:2px; margin-bottom:10px;">' + group.code + '</h2>';
-        h += '<div style="margin-bottom:15px;">';
-        h += '<div style="height:12px; background:var(--cream-2); border-radius:6px; overflow:hidden; margin-bottom:8px;">';
-        h += '<div style="height:100%; width:' + progress + '%; background:var(--seraj); border-radius:6px;"></div>';
-        h += '</div>';
-        h += '<strong style="font-size:14px;">' + toArabicNum(group.confirmedOrders) + ' من ' + toArabicNum(group.targetOrders) + ' طلبات</strong>';
-        h += '</div>';
-        
-        if (group.status === 'open') {
-          h += '<button type="button" class="btn btn-primary btn-xl btn-fullrow" data-join-group-buy="' + escapeHtml(group.code) + '" style="margin-bottom:10px;">';
-          h += 'اشتري ضمن الجروب (تطبيق الخصم)';
-          h += '</button>';
-          
-          var shareUrl = window.location.origin + '/#/group-buy/' + group.code;
-          var msg = encodeURIComponent("تعالى نشتري من سِراج وناخد خصم! ادخل على جروبي من هنا: " + shareUrl);
-          h += '<a href="https://wa.me/?text=' + msg + '" target="_blank" class="btn btn-secondary btn-fullrow" style="background:#25D366; color:#fff; border-color:#25D366;">';
-          h += 'ابعته لصحابك على واتساب 💬';
-          h += '</a>';
-        } else {
-          h += '<div style="padding:15px; background:var(--cream-2); border-radius:8px; font-weight:bold;">هذا الجروب غير متاح للمشاركة حالياً.</div>';
-          h += '<a href="#/products" data-link class="btn btn-primary btn-fullrow" style="margin-top:10px;">تسوق منتجات سِراج</a>';
-        }
-        
-        h += '</div>';
-        h += '</div>';
-        
-        container.innerHTML = h;
-      })
-      .catch(function() {
-        container.innerHTML = '<div style="padding:60px 20px; text-align:center;"><h2>مشكلة في الاتصال</h2></div>';
-      });
-  };
-
-  window.joinAndBuy = function(code) {
-    ACTIVE_GROUP_BUY_CODE = code;
-    localStorage.setItem('seraj-group-buy', code);
-    showToast('تم حفظ الكود.. هيتطبق في صفحة الدفع ✦');
-    window.location.hash = '#/products';
-  };
 
 })();

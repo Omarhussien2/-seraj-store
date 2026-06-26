@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import SiteContent from "@/lib/models/SiteContent";
 import { getOrCreatePaymentSettings, toPublic as toPaymentPublic } from "@/lib/paymentSettings";
-import { getOrCreateChatSettings, toPublic as toChatPublic } from "@/lib/chatSettings";
 import { apiCache } from "@/lib/apiCache";
 
 export const dynamic = "force-dynamic";
@@ -32,8 +31,6 @@ export async function GET(request: Request) {
   let freeShippingAbove = parseInt(process.env.NEXT_PUBLIC_FREE_SHIPPING_ABOVE || "0", 10);
   let checkoutContinueShoppingText = "كمل تسوق";
   let checkoutDeliveryEstimateText = "عادةً الطلب بيوصل خلال 5 إلى 7 أيام عمل.";
-  let chatWidgetEnabled = true;
-  let chatWidgetHiddenPages = "";
   let depositEnabled = true;
   let depositPercent = 60;
 
@@ -57,14 +54,7 @@ export async function GET(request: Request) {
       if (s.key === "checkout_delivery_estimate_text") checkoutDeliveryEstimateText = s.value;
     }
 
-    try {
-      const chat = toChatPublic(await getOrCreateChatSettings());
-      chatWidgetEnabled = chat.enabled;
-      chatWidgetHiddenPages =
-        chat.routesMode === "blacklist" ? chat.routesList.join(",") : "";
-    } catch {
-      // chat settings unavailable — keep defaults
-    }
+
 
     try {
       const payment = toPaymentPublic(await getOrCreatePaymentSettings());
@@ -88,8 +78,6 @@ export async function GET(request: Request) {
       freeShippingAbove,
       checkoutContinueShoppingText,
       checkoutDeliveryEstimateText,
-      chatWidgetEnabled,
-      chatWidgetHiddenPages,
       depositEnabled,
       depositPercent,
     },
