@@ -1430,10 +1430,11 @@
     // Order summary
     h += '<div class="checkout-summary">';
     h += '<h3 style="font-size:18px;margin-bottom:16px;">ملخص الطلب</h3>';
-    cart.forEach(function (item) {
+    cart.forEach(function (item, idx) {
       var product = PRODUCTS[item.slug];
       var bgClass = product && product.media ? (product.media.bg === 'emerald' ? 'emerald-bg' : product.media.bg === 'sand' ? 'sand-bg' : 'teal-bg') : '';
-      h += '<div class="cart-item" style="margin-bottom:8px">';
+      h += '<div class="cart-item" style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">';
+      h += '<div style="display:flex; align-items:center; gap:12px;">';
       if (product && product.media) {
         h += '<div class="cart-item-media ' + bgClass + '" style="width:48px;height:48px;min-width:48px">' + renderCartMedia(product.media, product.imageUrl) + '</div>';
       }
@@ -1442,6 +1443,8 @@
       h += '</h3>';
       h += '<span class="price" style="font-size:16px">' + toArabicNum(item.price * item.qty) + ' ج.م</span>';
       h += '</div></div>';
+      h += '<button type="button" class="btn btn-ghost" style="padding:4px 8px; color:var(--ember); font-size:18px; line-height:1;" onclick="window.removeCheckoutItem(' + idx + ')" aria-label="حذف المنتج">✕</button>';
+      h += '</div>';
     });
     h += '<div class="cart-summary" style="margin-top:12px">';
     h += '<div class="cart-summary-row"><span>المجموع الفرعي</span><span>' + toArabicNum(total) + ' ج.م</span></div>';
@@ -1459,15 +1462,19 @@
     if (CHECKOUT_DELIVERY_TEXT) {
       h += '<p class="checkout-delivery-note">' + escapeHtml(CHECKOUT_DELIVERY_TEXT) + '</p>';
     }
-    h += '<div class="coupon-box">';
-    h += '<label class="field"><span>كود الخصم</span>';
+    h += '<details class="coupon-box" style="margin-bottom:12px; border:1px solid var(--line); border-radius:8px; padding:12px; background:var(--cream-2); cursor:pointer;">';
+    h += '<summary style="font-weight:bold; color:var(--seraj); display:flex; justify-content:space-between; align-items:center; list-style:none;">';
+    h += '<span>معاك كود خصم؟</span><span>▼</span>';
+    h += '</summary>';
+    h += '<div style="margin-top:12px; cursor:auto;">';
+    h += '<label class="field">';
     h += '<div class="coupon-inline">';
     h += '<input type="text" id="couponCode" placeholder="SERAJ10" value="' + (currentCoupon ? currentCoupon.code : '') + '" dir="ltr"/>';
     h += '<button type="button" id="applyCouponBtn" class="btn btn-ghost">تطبيق</button>';
     if (currentCoupon) h += '<button type="button" id="removeCouponBtn" class="coupon-remove">إزالة</button>';
     h += '</div></label>';
     h += '<p id="couponStatus" class="' + (currentCoupon ? 'coupon-status ok' : 'coupon-status') + '">' + (currentCoupon ? 'تم تطبيق الخصم بنجاح ✦' : 'اكتبي الكود واضغطي تطبيق قبل تأكيد الطلب.') + '</p>';
-    h += '</div></div>';
+    h += '</div></details></div>';
 
     // Payment mode picker — full vs deposit. The full-payment option is the
     // visible default; the deposit option is a small link below so customers
@@ -1504,9 +1511,15 @@
     h += '<div class="insta-card reveal">';
     h += '<div class="insta-head"><span>ادفع على InstaPay — ' + toArabicNum(amountToPayNow) + ' ج.م</span></div>';
     h += '<div class="insta-body">';
-    h += '<div class="qr"><img src="assets/instapay-qr.webp" alt="InstaPay QR" style="width:100%;height:100%;object-fit:contain;border-radius:8px" loading="lazy"/></div>';
-    h += '<div class="insta-num"><small>Username</small><strong>' + INSTAPAY_NUMBER + '</strong><small>أو اضغط على الرابط:</small>';
-    h += '<a href="' + INSTAPAY_LINK + '" target="_blank" rel="noopener" style="color:var(--seraj);font-weight:700;word-break:break-all">ipn.eg/S/' + INSTAPAY_NUMBER + '</a></div>';
+    h += '<p style="font-size:14px; margin-bottom:12px; color:var(--ink-mute); text-align:center;">عشان يوصلك المنتج بأسرع وقت، يرجى الدفع عبر انستا باي بالضغط على الرابط التالي:</p>';
+    h += '<div style="text-align:center; margin-bottom:16px;">';
+    h += '<a href="' + INSTAPAY_LINK + '" target="_blank" rel="noopener" class="btn btn-primary" style="background:#005c4a; border-color:#005c4a; text-decoration:none; display:inline-block; padding:10px 24px;">اضغط هنا للدفع ➔</a>';
+    h += '</div>';
+    h += '<details style="text-align:center; cursor:pointer; background:var(--cream-1); padding:12px; border-radius:8px;">';
+    h += '<summary style="font-size:14px; color:var(--seraj); font-weight:bold; list-style:none;">أو اضغط هنا لعمل Scan للـ QR Code ▼</summary>';
+    h += '<div class="qr" style="margin-top:12px; display:inline-block; max-width:200px;"><img src="assets/instapay-qr.webp" alt="InstaPay QR" style="width:100%; height:auto; object-fit:contain; border-radius:8px" loading="lazy"/></div>';
+    h += '<div class="insta-num" style="margin-top:8px;"><small>Username</small><strong>' + INSTAPAY_NUMBER + '</strong></div>';
+    h += '</details>';
     h += '</div></div>';
 
     // Customer form
@@ -3486,6 +3499,15 @@
   // =========================================================
   // NATIVE SHARE LOGIC
   // =========================================================
+  window.removeCheckoutItem = function(index) {
+    if (index >= 0 && index < cart.length) {
+      cart.splice(index, 1);
+      saveCart();
+      updateCartBadge();
+      renderCheckoutPage();
+    }
+  };
+
   window.shareProduct = function(slug, name) {
     var url = window.location.origin + '/#/product/' + slug;
     var text = 'شوف المنتج ده من سِراج: ' + name;
