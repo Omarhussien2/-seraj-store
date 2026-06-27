@@ -1505,10 +1505,10 @@
 
     // InstaPay card — compact rectangular box
     h += '<div class="insta-card reveal" style="border:1.5px solid #6c3287; background:#faf5ff; border-radius:12px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:20px; box-shadow:0 2px 8px rgba(108, 50, 135, 0.05);">';
-    h += '<div style="display:flex; flex-direction:column; gap:4px;">';
+    h += '<div style="display:flex; flex-direction:column; gap:6px;">';
     h += '<img src="https://www.instapay.eg/assets/images/logo.svg" alt="InstaPay" style="height:20px; object-fit:contain; margin-bottom:4px;" onerror="this.outerHTML=\'<strong style=\\\'color:#6c3287; font-size:15px;\\\'>InstaPay</strong>\'" />';
     h += '<p style="margin:0; font-size:12px; color:var(--ink-mute);">المبلغ المطلوب: <strong style="color:var(--ink); font-size:13px;">' + toArabicNum(amountToPayNow) + ' ج.م</strong></p>';
-    h += '<div style="font-size:12px; font-weight:bold; color:#6c3287; user-select:all; display:flex; align-items:center; gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> ' + INSTAPAY_NUMBER + '</div>';
+    h += '<div style="font-size:12px; font-weight:bold; color:#6c3287; cursor:pointer; display:inline-flex; align-items:center; gap:4px; padding:4px 8px; background:rgba(108,50,135,0.08); border-radius:6px; transition:all 0.2s;" onclick="navigator.clipboard.writeText(\'' + INSTAPAY_NUMBER + '\').then(()=>alert(\'تم نسخ رقم انستا باي بنجاح\'))" title="انسخ الرقم"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> <span style="user-select:all;">' + INSTAPAY_NUMBER + '</span></div>';
     h += '</div>';
     h += '<a href="' + INSTAPAY_LINK + '" target="_blank" rel="noopener" class="btn" style="background:#6c3287; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; font-size:14px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; flex-shrink:0; box-shadow:0 4px 12px rgba(108, 50, 135, 0.2); transition:all 0.2s;">';
     h += '<span>ادفع الآن</span> <span style="font-size:16px;">➔</span></a>';
@@ -1523,9 +1523,9 @@
     h += '<label class="field"><span>رقم الموبايل (واتساب) <small style="color:var(--ember)">*</small></span>';
     h += '<div style="position:relative">';
     h += '<span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--ink-mute);font-weight:600;pointer-events:none">🇪🇬</span>';
-    h += '<input type="tel" id="custPhone" required pattern="01[0-9]{9}" placeholder="01xxxxxxxxx" autocomplete="tel" dir="ltr" style="text-align:left;padding-left:48px"/></label>';
-    h += '</div>';
-    h += '<label class="field"><span>العنوان <small style="color:var(--ember)">*</small></span>';
+    h += '<input type="tel" id="custPhone" required pattern="01[0-9]{9}" placeholder="01xxxxxxxxx" autocomplete="tel" dir="ltr" style="text-align:left;padding-left:48px"/>';
+    h += '</div></label>';
+    h += '<label class="field" style="margin-top:16px;"><span>العنوان <small style="color:var(--ember)">*</small></span>';
     h += '<textarea id="custAddress" required placeholder="العنوان بالتفصيل: المدينة، المنطقة، الشارع..." rows="2"></textarea></label>';
     h += '<label class="field"><span>ملاحظات <small style="color:var(--ink-mute)">(اختياري)</small></span>';
     h += '<textarea id="custNotes" placeholder="أي ملاحظات تانية..." rows="2"></textarea></label>';
