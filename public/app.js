@@ -1613,6 +1613,7 @@
     var pct = Math.max(0, Math.min(100, Number(DEPOSIT_PERCENT) || 0));
     var total = 0;
     cart.forEach(function (item) {
+      if (!isCustomStory(item.slug)) return; // Only calculate deposit for custom stories
       var qty = Math.max(1, Number(item.qty) || 1);
       var unit = Math.max(0, Number(item.price) || 0);
       var product = PRODUCTS[item.slug];

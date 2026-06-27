@@ -131,11 +131,14 @@ export async function POST(request: Request) {
 
     const slugs = validated.items.map((i) => i.productSlug);
     const products = await Product.find({ slug: { $in: slugs }, active: true })
-      .select("slug price depositAmount")
+      .select("slug price depositAmount action")
       .lean();
 
     const productMap = new Map(
-      products.map((p) => [p.slug, { price: p.price, depositAmount: p.depositAmount ?? null }])
+      products.map((p) => [
+        p.slug,
+        { price: p.price, depositAmount: p.depositAmount ?? null, action: p.action },
+      ])
     );
 
     let subtotal = 0;
@@ -144,6 +147,7 @@ export async function POST(request: Request) {
       qty: number;
       unitPrice: number;
       depositAmount?: number | null;
+      isCustom?: boolean;
     }[] = [];
 
     for (const item of validated.items) {
@@ -163,6 +167,7 @@ export async function POST(request: Request) {
         qty: item.qty,
         unitPrice: productInfo.price,
         depositAmount: productInfo.depositAmount,
+        isCustom: productInfo.action === "wizard",
       });
     }
 

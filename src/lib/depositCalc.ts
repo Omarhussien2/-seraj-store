@@ -13,6 +13,7 @@ export type DepositLineInput = {
   qty: number;
   unitPrice: number;
   depositAmount?: number | null; // per-unit deposit override (from product.depositAmount)
+  isCustom?: boolean; // True if this is a custom story product
 };
 
 export type DepositSettings = {
@@ -31,6 +32,10 @@ export function computeDeposit(
   let total = 0;
 
   for (const item of items) {
+    // Only calculate deposit for custom stories (either by isCustom flag or slug)
+    const isCustom = item.isCustom || item.productSlug === "custom-story";
+    if (!isCustom) continue;
+
     const qty = Math.max(1, Number(item.qty) || 1);
     const unitPrice = Math.max(0, Number(item.unitPrice) || 0);
     const override =
@@ -52,7 +57,7 @@ export function computeDeposit(
 
 /**
  * True if at least one item in the cart has a deposit available
- * (either an override or the global percent is > 0).
+ * (either an override or the global percent is > 0) and is a custom story.
  */
 export function hasDepositOption(
   items: DepositLineInput[],
@@ -62,6 +67,10 @@ export function hasDepositOption(
   if (!Array.isArray(items) || items.length === 0) return false;
 
   for (const item of items) {
+    // Only allow deposit for custom stories
+    const isCustom = item.isCustom || item.productSlug === "custom-story";
+    if (!isCustom) continue;
+
     const unitPrice = Math.max(0, Number(item.unitPrice) || 0);
     if (unitPrice <= 0) continue;
     const override =
