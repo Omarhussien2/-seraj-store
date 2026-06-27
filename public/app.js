@@ -731,13 +731,7 @@
       h += '<script type="application/json" data-gallery-types>' + JSON.stringify(allGalleryItems.map(function(item) { return item.isVideo ? 'video' : 'image'; })) + '</script>';
       h += '</section>';
     }
-    // Reviews
-    h += '<section class="section pd-reviews-section"><div class="section-head"><span class="kicker">آراء العائلات</span><h2>اللي جربوا المنتج ده</h2></div><div class="testimonials-grid">';
-    for (var r = 0; r < product.reviews.length; r++) {
-      var rev = product.reviews[r];
-      h += '<figure class="t-card"><blockquote>"' + rev.text + '"</blockquote><figcaption><span class="avatar" style="--c:' + rev.color + '">' + rev.initial + '</span><div><strong>' + rev.name + '</strong><small>' + rev.place + '</small></div></figcaption></figure>';
-    }
-    h += '</div></section>';
+    // Reviews section removed.
     // ===== Custom Story: Relocated sections from homepage =====
     if (product && product.action === 'wizard') {
       // Social proof
