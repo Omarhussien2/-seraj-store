@@ -1503,21 +1503,16 @@
     }
     h += '</div>';
 
-    // InstaPay card — amount shown depends on the chosen payment mode
-    h += '<div class="insta-card reveal" style="border:1px solid var(--line); border-radius:12px; overflow:hidden;">';
-    h += '<div class="insta-head" style="background:var(--cream-2); padding:12px 16px; font-weight:bold; color:var(--seraj-dark); text-align:center; border-bottom:1px solid var(--line);"><span>ادفع على InstaPay — ' + toArabicNum(amountToPayNow) + ' ج.م</span></div>';
-    h += '<div class="insta-body" style="padding:20px 16px;">';
-    h += '<p style="font-size:13px; line-height:1.5; margin-bottom:16px; color:var(--ink); text-align:center;">لتأكيد طلبك وتجهيزه فوراً، يرجى الدفع عبر انستا باي</p>';
-    h += '<div style="text-align:center; margin-bottom:16px;">';
-    h += '<a href="' + INSTAPAY_LINK + '" target="_blank" rel="noopener" class="btn btn-primary" style="background:#005c4a; border-color:#005c4a; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:12px 24px; border-radius:50px; font-weight:bold; width:100%; max-width:280px; box-shadow:0 4px 12px rgba(0,92,74,0.2);"><span>ادفع الآن عبر التطبيق</span><span style="font-size:16px;">➔</span></a>';
+    // InstaPay card — compact rectangular box
+    h += '<div class="insta-card reveal" style="border:1.5px solid #6c3287; background:#faf5ff; border-radius:12px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:20px; box-shadow:0 2px 8px rgba(108, 50, 135, 0.05);">';
+    h += '<div style="display:flex; flex-direction:column; gap:4px;">';
+    h += '<img src="https://www.instapay.eg/assets/images/logo.svg" alt="InstaPay" style="height:20px; object-fit:contain; margin-bottom:4px;" onerror="this.outerHTML=\'<strong style=\\\'color:#6c3287; font-size:15px;\\\'>InstaPay</strong>\'" />';
+    h += '<p style="margin:0; font-size:12px; color:var(--ink-mute);">المبلغ المطلوب: <strong style="color:var(--ink); font-size:13px;">' + toArabicNum(amountToPayNow) + ' ج.م</strong></p>';
+    h += '<div style="font-size:12px; font-weight:bold; color:#6c3287; user-select:all; display:flex; align-items:center; gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> ' + INSTAPAY_NUMBER + '</div>';
     h += '</div>';
-    h += '<details style="text-align:center; cursor:pointer;">';
-    h += '<summary style="font-size:13px; color:var(--ink-mute); list-style:none; display:inline-flex; align-items:center; gap:6px; border:1px dashed var(--line); padding:6px 16px; border-radius:20px; transition:all 0.2s;"><span>أو اعرض الـ QR Code للسكان</span><span style="font-size:10px;">▼</span></summary>';
-    h += '<div class="qr" style="margin-top:16px; display:inline-block; width:160px; max-width:100%; background:#fff; padding:12px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05); border:1px solid var(--line);">';
-    h += '<img src="assets/instapay-qr.webp" alt="InstaPay QR" style="width:100%; height:auto; object-fit:contain; border-radius:8px; display:block;" loading="lazy"/>';
-    h += '<div style="margin-top:8px; font-size:12px; color:var(--ink); font-weight:600; text-align:center; border-top:1px solid var(--line); padding-top:8px;">' + INSTAPAY_NUMBER + '</div>';
-    h += '</div></details>';
-    h += '</div></div>';
+    h += '<a href="' + INSTAPAY_LINK + '" target="_blank" rel="noopener" class="btn" style="background:#6c3287; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; font-size:14px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; flex-shrink:0; box-shadow:0 4px 12px rgba(108, 50, 135, 0.2); transition:all 0.2s;">';
+    h += '<span>ادفع الآن</span> <span style="font-size:16px;">➔</span></a>';
+    h += '</div>';
 
     // Customer form
     h += '<div class="checkout-form-section">';
