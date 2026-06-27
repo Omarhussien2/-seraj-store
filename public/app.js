@@ -237,10 +237,10 @@
       return buildHomeProductCard(slug, PRODUCTS[slug], index);
     }).join('');
 
-    html += '<a href="#/products" data-link class="product-card reveal is-visible" style="min-width:200px; display:flex; align-items:center; justify-content:center; background:var(--cream-1); text-decoration:none; border:2px dashed var(--ink); box-shadow:none;">';
-    html += '<div style="text-align:center; padding:20px; color:var(--ink); font-weight:bold;">';
-    html += '<span style="font-size:32px; display:block; margin-bottom:12px;">➔</span>';
-    html += 'اكتشف باقي المنتجات';
+    html += '<a href="#/products" data-link class="product-card reveal is-visible" style="display:flex; align-items:center; justify-content:center; background:var(--cream-1); text-decoration:none; border:2px dashed var(--ink); box-shadow:none;">';
+    html += '<div style="text-align:center; padding:12px; color:var(--ink); font-weight:bold;">';
+    html += '<span style="font-size:24px; display:block; margin-bottom:8px;">➔</span>';
+    html += 'باقي المنتجات';
     html += '</div></a>';
 
     grid.innerHTML = html;
