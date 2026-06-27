@@ -1508,18 +1508,19 @@
     h += '</div>';
 
     // InstaPay card — amount shown depends on the chosen payment mode
-    h += '<div class="insta-card reveal">';
-    h += '<div class="insta-head"><span>ادفع على InstaPay — ' + toArabicNum(amountToPayNow) + ' ج.م</span></div>';
-    h += '<div class="insta-body">';
-    h += '<p style="font-size:14px; margin-bottom:12px; color:var(--ink-mute); text-align:center;">عشان يوصلك المنتج بأسرع وقت، يرجى الدفع عبر انستا باي بالضغط على الرابط التالي:</p>';
+    h += '<div class="insta-card reveal" style="border:1px solid var(--line); border-radius:12px; overflow:hidden;">';
+    h += '<div class="insta-head" style="background:var(--cream-2); padding:12px 16px; font-weight:bold; color:var(--seraj-dark); text-align:center; border-bottom:1px solid var(--line);"><span>ادفع على InstaPay — ' + toArabicNum(amountToPayNow) + ' ج.م</span></div>';
+    h += '<div class="insta-body" style="padding:20px 16px;">';
+    h += '<p style="font-size:13px; line-height:1.5; margin-bottom:16px; color:var(--ink); text-align:center;">لتأكيد طلبك وتجهيزه فوراً، يرجى الدفع عبر انستا باي</p>';
     h += '<div style="text-align:center; margin-bottom:16px;">';
-    h += '<a href="' + INSTAPAY_LINK + '" target="_blank" rel="noopener" class="btn btn-primary" style="background:#005c4a; border-color:#005c4a; text-decoration:none; display:inline-block; padding:10px 24px;">اضغط هنا للدفع ➔</a>';
+    h += '<a href="' + INSTAPAY_LINK + '" target="_blank" rel="noopener" class="btn btn-primary" style="background:#005c4a; border-color:#005c4a; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:12px 24px; border-radius:50px; font-weight:bold; width:100%; max-width:280px; box-shadow:0 4px 12px rgba(0,92,74,0.2);"><span>ادفع الآن عبر التطبيق</span><span style="font-size:16px;">➔</span></a>';
     h += '</div>';
-    h += '<details style="text-align:center; cursor:pointer; background:var(--cream-1); padding:12px; border-radius:8px;">';
-    h += '<summary style="font-size:14px; color:var(--seraj); font-weight:bold; list-style:none;">أو اضغط هنا لعمل Scan للـ QR Code ▼</summary>';
-    h += '<div class="qr" style="margin-top:12px; display:inline-block; max-width:200px;"><img src="assets/instapay-qr.webp" alt="InstaPay QR" style="width:100%; height:auto; object-fit:contain; border-radius:8px" loading="lazy"/></div>';
-    h += '<div class="insta-num" style="margin-top:8px;"><small>Username</small><strong>' + INSTAPAY_NUMBER + '</strong></div>';
-    h += '</details>';
+    h += '<details style="text-align:center; cursor:pointer;">';
+    h += '<summary style="font-size:13px; color:var(--ink-mute); list-style:none; display:inline-flex; align-items:center; gap:6px; border:1px dashed var(--line); padding:6px 16px; border-radius:20px; transition:all 0.2s;"><span>أو اعرض الـ QR Code للسكان</span><span style="font-size:10px;">▼</span></summary>';
+    h += '<div class="qr" style="margin-top:16px; display:inline-block; width:160px; max-width:100%; background:#fff; padding:12px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05); border:1px solid var(--line);">';
+    h += '<img src="assets/instapay-qr.webp" alt="InstaPay QR" style="width:100%; height:auto; object-fit:contain; border-radius:8px; display:block;" loading="lazy"/>';
+    h += '<div style="margin-top:8px; font-size:12px; color:var(--ink); font-weight:600; text-align:center; border-top:1px solid var(--line); padding-top:8px;">' + INSTAPAY_NUMBER + '</div>';
+    h += '</div></details>';
     h += '</div></div>';
 
     // Customer form
