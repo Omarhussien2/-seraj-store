@@ -229,13 +229,21 @@
     var slugs = getOrderedProductSlugs().filter(function(slug) {
       var product = PRODUCTS[slug];
       return product && product.active !== false;
-    }).slice(0, 3);
+    }).slice(0, 8); // show up to 8 products in the horizontal strip
 
     if (!slugs.length) return;
 
-    grid.innerHTML = slugs.map(function(slug, index) {
+    var html = slugs.map(function(slug, index) {
       return buildHomeProductCard(slug, PRODUCTS[slug], index);
     }).join('');
+
+    html += '<a href="#/products" data-link class="product-card reveal is-visible" style="min-width:200px; display:flex; align-items:center; justify-content:center; background:var(--cream-1); text-decoration:none; border:2px dashed var(--ink); box-shadow:none;">';
+    html += '<div style="text-align:center; padding:20px; color:var(--ink); font-weight:bold;">';
+    html += '<span style="font-size:32px; display:block; margin-bottom:12px;">➔</span>';
+    html += 'اكتشف باقي المنتجات';
+    html += '</div></a>';
+
+    grid.innerHTML = html;
     
     // CRITICAL: Immediately make product cards visible.
     // Do NOT rely on IntersectionObserver for the product grid — it is the

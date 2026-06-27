@@ -756,6 +756,48 @@ input, textarea { font-family: inherit; }
 .mini-cover.alt { background: linear-gradient(180deg, var(--ember), var(--ember-dark)); }
 .mini-cover.alt2 { background: linear-gradient(180deg, var(--brass), var(--brass-dark)); }
 
+/* ========== HORIZONTAL SCROLL GRID ========== */
+.scroll-grid {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  gap: 16px;
+  padding: 4px 16px 24px 16px;
+  margin: 0 auto;
+  max-width: 1100px;
+  -webkit-overflow-scrolling: touch;
+  /* Use a thin scrollbar for browsers that support it */
+  scrollbar-width: thin;
+  scrollbar-color: var(--seraj) var(--cream-2);
+}
+.scroll-grid::-webkit-scrollbar {
+  height: 8px;
+}
+.scroll-grid::-webkit-scrollbar-track {
+  background: var(--cream-2);
+  border-radius: 8px;
+  margin: 0 16px;
+}
+.scroll-grid::-webkit-scrollbar-thumb {
+  background: var(--seraj);
+  border-radius: 8px;
+}
+.scroll-grid .product-card {
+  min-width: 240px;
+  max-width: 240px;
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  border-radius: 20px;
+  border-width: 2px;
+  box-shadow: 0 4px 0 var(--ink), 0 10px 20px rgba(0,0,0,.04);
+}
+.scroll-grid .product-card:hover { transform: translateY(-4px); }
+.scroll-grid .product-media { aspect-ratio: 1.1; }
+.scroll-grid .product-info { padding: 16px; }
+.scroll-grid .product-name { font-size: 16px; }
+.scroll-grid .product-price { font-size: 16px; }
+
 /* ========== PRODUCTS GRID ========== */
 .products-grid {
   display: grid;
