@@ -213,7 +213,8 @@ input, textarea { font-family: inherit; }
 }
 .section-head p { color: var(--ink-mute); font-size: 15px; }
 
-.section { position: relative; padding: 60px 20px; max-width: 1160px; margin: 0 auto; }
+.section { position: relative; padding: 40px 16px; max-width: 1160px; margin: 0 auto; }
+@media (min-width: 600px) { .section { padding: 60px 24px; } }
 @media (min-width: 820px) { .section { padding: 80px 40px; } }
 
 /* ========== BUTTONS ========== */
