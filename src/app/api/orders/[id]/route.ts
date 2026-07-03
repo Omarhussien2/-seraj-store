@@ -5,6 +5,18 @@ import { connectDB } from "@/lib/db";
 import Order from "@/lib/models/Order";
 import { requireAdmin } from "@/lib/requireAdmin";
 import { apiCache } from "@/lib/apiCache";
+import {
+  canDeleteOrder,
+  deductInventoryForOrder,
+  getOrCreateFinanceSettings,
+  releaseOrReverseInventoryForOrder,
+} from "@/lib/financeOperations";
+
+const deductionRank = {
+  in_progress: 1,
+  shipped: 2,
+  delivered: 3,
+};
 
 const statsCache = apiCache("stats");
 
@@ -97,7 +109,7 @@ export async function PATCH(
     if (validated.notes !== undefined) updateFields.notes = validated.notes;
     if (validated.storyStatus !== undefined) updateFields["customStory.storyStatus"] = validated.storyStatus;
 
-    const order = await Order.findByIdAndUpdate(
+    let order = await Order.findByIdAndUpdate(
       id,
       { $set: updateFields },
       { new: true, runValidators: true }
@@ -108,6 +120,19 @@ export async function PATCH(
         { success: false, error: "Order not found" },
         { status: 404 }
       );
+    }
+
+    if (validated.orderStatus === "cancelled") {
+      await releaseOrReverseInventoryForOrder(order);
+      order = await Order.findById(id).lean();
+    } else if (validated.orderStatus && validated.orderStatus in deductionRank) {
+      const settings = await getOrCreateFinanceSettings();
+      const targetRank = deductionRank[validated.orderStatus as keyof typeof deductionRank];
+      const configuredRank = deductionRank[settings.inventoryDeductionStatus];
+      if (targetRank >= configuredRank) {
+        await deductInventoryForOrder(order);
+        order = await Order.findById(id).lean();
+      }
     }
 
     statsCache.invalidate();
@@ -161,21 +186,34 @@ export async function DELETE(
       );
     }
 
-    const order = await Order.findByIdAndDelete(id).lean();
+    const existing = await Order.findById(id).lean();
 
-    if (!order) {
+    if (!existing) {
       return NextResponse.json(
         { success: false, error: "Order not found" },
         { status: 404 }
       );
     }
 
+    if (!(await canDeleteOrder(existing))) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Order has financial or inventory impact. Cancel it instead of deleting.",
+          data: { orderNumber: existing.orderNumber },
+        },
+        { status: 409 }
+      );
+    }
+
+    const order = await Order.findByIdAndDelete(id).lean();
+
     statsCache.invalidate();
 
     return NextResponse.json({
       success: true,
-      message: `Order ${order.orderNumber} deleted permanently`,
-      data: { orderNumber: order.orderNumber, _id: order._id },
+      message: `Order ${existing.orderNumber} deleted permanently`,
+      data: { orderNumber: existing.orderNumber, _id: order?._id },
     });
   } catch (error) {
     console.error("DELETE /api/orders/[id] error:", error);

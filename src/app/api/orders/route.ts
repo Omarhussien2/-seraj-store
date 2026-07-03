@@ -11,12 +11,18 @@ import {
   redeemCouponOrThrow,
   rollbackCouponRedemption,
 } from "@/lib/coupons/apply";
-import SiteContent from "@/lib/models/SiteContent";
 import { normalizeCouponCode } from "@/lib/coupons/normalize";
 
 import { getOrCreatePaymentSettings, toPublic as toPaymentPublic } from "@/lib/paymentSettings";
 import { computeDeposit } from "@/lib/depositCalc";
 import { apiCache } from "@/lib/apiCache";
+import {
+  canDeleteOrder,
+  getFinanceProfileMap,
+  profileForSlug,
+  reserveInventoryForOrder,
+} from "@/lib/financeOperations";
+import { lineGrossRevenue, roundMoney } from "@/lib/financeMath";
 
 // Force dynamic rendering — prevent Vercel from caching or treating as static
 export const dynamic = "force-dynamic";
@@ -129,17 +135,28 @@ export async function POST(request: Request) {
     const body = await request.json();
     const validated = CreateOrderSchema.parse(body);
 
-    const slugs = validated.items.map((i) => i.productSlug);
+    const qtyBySlug = new Map<string, number>();
+    for (const item of validated.items) {
+      qtyBySlug.set(item.productSlug, (qtyBySlug.get(item.productSlug) || 0) + item.qty);
+    }
+
+    const slugs = Array.from(qtyBySlug.keys());
     const products = await Product.find({ slug: { $in: slugs }, active: true })
-      .select("slug price depositAmount action")
+      .select("slug name price depositAmount action")
       .lean();
 
     const productMap = new Map(
       products.map((p) => [
         p.slug,
-        { price: p.price, depositAmount: p.depositAmount ?? null, action: p.action },
+        {
+          name: p.name,
+          price: p.price,
+          depositAmount: p.depositAmount ?? null,
+          action: p.action,
+        },
       ])
     );
+    const financeProfiles = await getFinanceProfileMap(slugs);
 
     let subtotal = 0;
     const pricedItems: {
@@ -150,8 +167,8 @@ export async function POST(request: Request) {
       isCustom?: boolean;
     }[] = [];
 
-    for (const item of validated.items) {
-
+    for (const [productSlug, qty] of qtyBySlug) {
+      const item = { productSlug, qty };
 
       const productInfo = productMap.get(item.productSlug);
       if (productInfo === undefined) {
@@ -176,6 +193,7 @@ export async function POST(request: Request) {
     let discounts = { shipping: 0, subtotal: 0, products: 0 };
     let coupon: { code: string; couponId: mongoose.Types.ObjectId } | undefined;
     let totalAfterDiscount = subtotal + shippingFee;
+    let itemDiscounts = new Map<string, number>();
 
     if (validated.couponCode) {
       try {
@@ -191,6 +209,7 @@ export async function POST(request: Request) {
         discounts = applied.discountBreakdown;
         coupon = { code: applied.code, couponId: applied.couponId };
         totalAfterDiscount = applied.totalAfterDiscount;
+        itemDiscounts = new Map(applied.itemDiscounts.map((item) => [item.productSlug, item.discount]));
       } catch (e) {
         return NextResponse.json(
           {
@@ -208,6 +227,29 @@ export async function POST(request: Request) {
 
     // Compute deposit server-side from product data + global settings — never
     // trust the client. If `paymentMode === "full"`, deposit is 0.
+    const orderItems = pricedItems.map((item) => {
+      const productInfo = productMap.get(item.productSlug)!;
+      const profile = profileForSlug(financeProfiles, item.productSlug);
+      const grossRevenue = lineGrossRevenue({
+        productSlug: item.productSlug,
+        qty: item.qty,
+        unitPriceSnapshot: item.unitPrice,
+      });
+      const discountShare = roundMoney(itemDiscounts.get(item.productSlug) || 0);
+
+      return {
+        productSlug: item.productSlug,
+        name: productInfo.name,
+        price: item.unitPrice,
+        qty: item.qty,
+        unitPriceSnapshot: item.unitPrice,
+        nameSnapshot: productInfo.name,
+        estimatedUnitCost: profile.averageUnitCost || 0,
+        discountShare,
+        netRevenue: roundMoney(Math.max(0, grossRevenue - discountShare)),
+      };
+    });
+
     let deposit = 0;
     if (validated.paymentMode === "deposit") {
       const paymentSettings = toPaymentPublic(await getOrCreatePaymentSettings());
@@ -243,11 +285,12 @@ export async function POST(request: Request) {
     }
 
     let order;
+    let stockWarnings: { productSlug: string; requestedQty: number; availableQty: number }[] = [];
     try {
       order = await Order.create({
         _id: orderId,
         orderNumber,
-        items: validated.items,
+        items: orderItems,
         total: totalAfterDiscount,
         subtotal,
         shippingFee,
@@ -280,7 +323,10 @@ export async function POST(request: Request) {
         customerPhone: validated.customerPhone,
         address: validated.address,
         notes: validated.notes,
+        finance: { costingStatus: "snapshot" },
       });
+      const reservation = await reserveInventoryForOrder(order);
+      stockWarnings = reservation.warnings;
     } catch (e) {
       if (coupon && discountTotal > 0) {
         await rollbackCouponRedemption({ couponId: coupon.couponId, orderId });
@@ -308,6 +354,7 @@ export async function POST(request: Request) {
           paymentMode: order.paymentMode,
           orderStatus: order.orderStatus,
           paymentStatus: order.paymentStatus,
+          warnings: stockWarnings.length ? { stock: stockWarnings } : undefined,
           createdAt: order.createdAt,
         },
       },
@@ -362,6 +409,25 @@ export async function DELETE(request: Request) {
       return NextResponse.json(
         { success: false, error: `Invalid order IDs: ${invalidIds.join(", ")}` },
         { status: 400 }
+      );
+    }
+
+    const orders = await Order.find({ _id: { $in: ids } }).lean();
+    const protectedOrders: string[] = [];
+    for (const order of orders) {
+      if (!(await canDeleteOrder(order))) {
+        protectedOrders.push(order.orderNumber);
+      }
+    }
+
+    if (protectedOrders.length > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Some orders have financial or inventory impact. Cancel them instead of deleting.",
+          data: { protectedOrders },
+        },
+        { status: 409 }
       );
     }
 

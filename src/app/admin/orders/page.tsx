@@ -73,6 +73,13 @@ interface Order {
   customerPhone: string;
   address: string;
   notes?: string;
+  finance?: {
+    stockWarnings?: {
+      productSlug: string;
+      requestedQty: number;
+      availableQty: number;
+    }[];
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -363,6 +370,11 @@ export default function AdminOrdersPage() {
                         جروب: {order.groupBuy.code}
                       </Badge>
                     )}
+                    {order.finance?.stockWarnings?.length ? (
+                      <Badge variant="outline" className="mt-1 bg-red-50 text-red-700 text-xs block mb-1">
+                        نقص مخزون
+                      </Badge>
+                    ) : null}
                     {order.deposit > 0 && order.paymentStatus !== "fully_paid" ? (
                       <div className="mt-1 text-xs text-amber-700 leading-snug">
                         عربون {order.deposit} ج.م
@@ -529,6 +541,16 @@ export default function AdminOrdersPage() {
                   <CardTitle className="text-sm">المنتجات</CardTitle>
                 </CardHeader>
                 <CardContent>
+                  {selectedOrder.finance?.stockWarnings?.length ? (
+                    <div className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                      {selectedOrder.finance.stockWarnings.map((warning) => (
+                        <div key={warning.productSlug}>
+                          نقص مخزون في {warning.productSlug}: المطلوب {warning.requestedQty}،
+                          المتاح {warning.availableQty}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                   <Table>
                     <TableHeader>
                       <TableRow>
