@@ -28,6 +28,10 @@ export type CouponApplyResult = {
     subtotal: number;
     products: number;
   };
+  itemDiscounts: {
+    productSlug: string;
+    discount: number;
+  }[];
   totalAfterDiscount: number;
 };
 
@@ -55,6 +59,44 @@ function computeProductsBase(rule: ICouponDiscountRule, items: CouponApplyItem[]
     base += item.unitPrice * item.qty;
   }
   return Math.max(0, base);
+}
+
+function itemMatchesProductsRule(rule: ICouponDiscountRule, productSlug: string): boolean {
+  const include = new Set((rule.productSlugs || []).map((s) => s.trim()).filter(Boolean));
+  const exclude = new Set((rule.excludeProductSlugs || []).map((s) => s.trim()).filter(Boolean));
+
+  if (exclude.has(productSlug)) return false;
+  if (include.size > 0 && !include.has(productSlug)) return false;
+  return true;
+}
+
+function allocateDiscountToItems(
+  items: CouponApplyItem[],
+  discount: number,
+  isEligible: (item: CouponApplyItem) => boolean
+) {
+  const eligible = items
+    .map((item) => ({
+      item,
+      gross: item.unitPrice * item.qty,
+    }))
+    .filter(({ item, gross }) => gross > 0 && isEligible(item));
+
+  const base = eligible.reduce((sum, { gross }) => sum + gross, 0);
+  const allocations = new Map<string, number>();
+  if (discount <= 0 || base <= 0) return allocations;
+
+  let allocated = 0;
+  eligible.forEach(({ item, gross }, index) => {
+    const isLast = index === eligible.length - 1;
+    const share = isLast
+      ? Math.round((discount - allocated) * 100) / 100
+      : Math.round(((discount * gross) / base) * 100) / 100;
+    allocated = Math.round((allocated + share) * 100) / 100;
+    allocations.set(item.productSlug, (allocations.get(item.productSlug) || 0) + share);
+  });
+
+  return allocations;
 }
 
 export async function applyCouponOrThrow(input: CouponApplyInput): Promise<CouponApplyResult> {
@@ -98,6 +140,7 @@ export async function applyCouponOrThrow(input: CouponApplyInput): Promise<Coupo
   let shippingDiscount = 0;
   let subtotalDiscount = 0;
   let productsDiscount = 0;
+  const itemDiscountMap = new Map<string, number>();
   let hasApplicableRule = false;
 
   for (const rule of coupon.discounts) {
@@ -111,6 +154,10 @@ export async function applyCouponOrThrow(input: CouponApplyInput): Promise<Coupo
       const d = computeRuleDiscount(rule, input.subtotal);
       if (d > 0) hasApplicableRule = true;
       subtotalDiscount += d;
+      const allocations = allocateDiscountToItems(input.items, d, () => true);
+      for (const [slug, amount] of allocations) {
+        itemDiscountMap.set(slug, (itemDiscountMap.get(slug) || 0) + amount);
+      }
       continue;
     }
     if (rule.scope === "products") {
@@ -119,6 +166,12 @@ export async function applyCouponOrThrow(input: CouponApplyInput): Promise<Coupo
       const d = computeRuleDiscount(rule, base);
       if (d > 0) hasApplicableRule = true;
       productsDiscount += d;
+      const allocations = allocateDiscountToItems(input.items, d, (item) =>
+        itemMatchesProductsRule(rule, item.productSlug)
+      );
+      for (const [slug, amount] of allocations) {
+        itemDiscountMap.set(slug, (itemDiscountMap.get(slug) || 0) + amount);
+      }
       continue;
     }
   }
@@ -135,6 +188,25 @@ export async function applyCouponOrThrow(input: CouponApplyInput): Promise<Coupo
     throw new Error("COUPON_NOT_APPLICABLE");
   }
 
+  const itemDiscountTarget = subtotalDiscount + productsDiscount;
+  const rawItemDiscountTotal = Array.from(itemDiscountMap.values()).reduce(
+    (sum, value) => sum + value,
+    0
+  );
+  if (rawItemDiscountTotal > 0 && itemDiscountTarget >= 0) {
+    const scale = itemDiscountTarget / rawItemDiscountTotal;
+    let allocated = 0;
+    const entries = Array.from(itemDiscountMap.entries());
+    entries.forEach(([slug, amount], index) => {
+      const isLast = index === entries.length - 1;
+      const scaled = isLast
+        ? Math.round((itemDiscountTarget - allocated) * 100) / 100
+        : Math.round(amount * scale * 100) / 100;
+      allocated = Math.round((allocated + scaled) * 100) / 100;
+      itemDiscountMap.set(slug, scaled);
+    });
+  }
+
   const totalBefore = input.subtotal + input.shippingFee;
   const totalAfterDiscount = Math.max(0, totalBefore - discountTotal);
 
@@ -148,6 +220,10 @@ export async function applyCouponOrThrow(input: CouponApplyInput): Promise<Coupo
       subtotal: subtotalDiscount,
       products: productsDiscount,
     },
+    itemDiscounts: input.items.map((item) => ({
+      productSlug: item.productSlug,
+      discount: Math.round((itemDiscountMap.get(item.productSlug) || 0) * 100) / 100,
+    })),
     totalAfterDiscount,
   };
 }
