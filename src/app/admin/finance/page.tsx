@@ -145,6 +145,7 @@ export default function AdminFinancePage() {
   });
 
   const [legacyOrders, setLegacyOrders] = useState<any[]>([]);
+  const [approvedOrders, setApprovedOrders] = useState<any[]>([]);
   const [legacyReviewForm, setLegacyReviewForm] = useState<Record<string, {
     items: { productSlug: string; finalUnitCost: number }[];
     actualShipping: string;
@@ -152,6 +153,7 @@ export default function AdminFinancePage() {
     deductInventory: boolean;
   }>>({});
   const [submittingLegacyId, setSubmittingLegacyId] = useState<string | null>(null);
+  const [reopeningId, setReopeningId] = useState<string | null>(null);
 
   const showToast = useCallback((message: string, type: "success" | "error" = "success") => {
     setToast({ type, message });
@@ -161,16 +163,17 @@ export default function AdminFinancePage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [summaryRes, productsRes, expensesRes, reportsRes, settingsRes, legacyOrdersRes] = await Promise.all([
+      const [summaryRes, productsRes, expensesRes, reportsRes, settingsRes, legacyOrdersRes, approvedOrdersRes] = await Promise.all([
         fetch("/api/admin/finance/summary"),
         fetch("/api/admin/finance/products"),
         fetch("/api/admin/finance/expenses"),
         fetch("/api/admin/finance/reports"),
         fetch("/api/admin/finance/settings"),
         fetch("/api/admin/finance/legacy-orders"),
+        fetch("/api/admin/finance/legacy-orders?status=approved"),
       ]);
 
-      const [summaryJson, productsJson, expensesJson, reportsJson, settingsJson, legacyOrdersJson] =
+      const [summaryJson, productsJson, expensesJson, reportsJson, settingsJson, legacyOrdersJson, approvedOrdersJson] =
         await Promise.all([
           summaryRes.json(),
           productsRes.json(),
@@ -178,6 +181,7 @@ export default function AdminFinancePage() {
           reportsRes.json(),
           settingsRes.json(),
           legacyOrdersRes.json(),
+          approvedOrdersRes.json(),
         ]);
 
       if (summaryJson.success) setSummary(summaryJson.data);
@@ -201,6 +205,9 @@ export default function AdminFinancePage() {
           };
         });
         setLegacyReviewForm(initialFormState);
+      }
+      if (approvedOrdersJson.success) {
+        setApprovedOrders(approvedOrdersJson.data);
       }
     } catch (error) {
       console.error("Failed to load finance data:", error);
@@ -349,6 +356,24 @@ export default function AdminFinancePage() {
       showToast("فشل اعتماد الطلب ماليًا", "error");
     } finally {
       setSubmittingLegacyId(null);
+    }
+  }
+
+  async function reopenOrder(orderId: string) {
+    setReopeningId(orderId);
+    try {
+      const res = await fetch(`/api/admin/finance/legacy-orders/${orderId}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Reopen failed");
+      showToast("تم إعادة فتح الطلب للتعديل");
+      loadData();
+    } catch (error) {
+      console.error("Failed to reopen order:", error);
+      showToast("فشل إعادة فتح الطلب", "error");
+    } finally {
+      setReopeningId(null);
     }
   }
 
@@ -1006,6 +1031,43 @@ export default function AdminFinancePage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Approved Orders - editable */}
+          {approvedOrders.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">الطلبات المعتمدة ماليًا (يمكن إعادة فتحها للتعديل)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {approvedOrders.map((order) => (
+                    <div key={order._id} className="flex flex-wrap items-center justify-between gap-3 border rounded-lg p-3 bg-emerald-50/30">
+                      <div className="flex items-center gap-3">
+                        <span className="font-semibold text-sm">{order.orderNumber}</span>
+                        <Badge variant="outline">{order.customerName}</Badge>
+                        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300">✓ معتمد</Badge>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">
+                          {order.items?.map((i: any) => `${i.name} (تكلفة: ${i.finalUnitCost})`).join(" | ")}
+                        </span>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                          disabled={reopeningId === order._id}
+                          onClick={() => reopenOrder(order._id)}
+                        >
+                          {reopeningId === order._id ? "جاري الإعادة..." : "🔄 إعادة فتح للتعديل"}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>

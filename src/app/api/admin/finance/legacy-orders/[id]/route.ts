@@ -132,9 +132,73 @@ export async function PATCH(
         { status: 400 }
       );
     }
-    console.error("PATCH /api/admin/finance/legacy-orders/[id]/review error:", error);
+    console.error("PATCH /api/admin/finance/legacy-orders/[id] error:", error);
     return NextResponse.json(
       { success: false, error: "فشل في اعتماد الطلب ماليًا" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE /api/admin/finance/legacy-orders/[id]
+ * Reopen a financially approved order so admin can re-enter costs.
+ */
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
+  try {
+    await connectDB();
+    const { id } = await params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { success: false, error: "ID الطلب غير صالح" },
+        { status: 400 }
+      );
+    }
+
+    const order = await Order.findById(id);
+    if (!order) {
+      return NextResponse.json(
+        { success: false, error: "الطلب غير موجود" },
+        { status: 404 }
+      );
+    }
+
+    // 1. Delete associated inventory movements (sale type)
+    const InventoryMovement = (await import("@/lib/models/InventoryMovement")).default;
+    await InventoryMovement.deleteMany({ orderId: order._id, type: "sale" });
+
+    // 2. Delete associated additional costs
+    await AdditionalCost.deleteMany({ orderId: order._id });
+
+    // 3. Reset items finalUnitCost
+    const resetItems = order.items.map((item: any) => ({
+      ...item.toObject ? item.toObject() : item,
+      finalUnitCost: 0,
+    }));
+
+    // 4. Reset finance status
+    await Order.updateOne(
+      { _id: id },
+      {
+        $set: {
+          items: resetItems,
+          finance: { costingStatus: "legacy_missing", stockWarnings: [] },
+        },
+      }
+    );
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("DELETE /api/admin/finance/legacy-orders/[id] error:", error);
+    return NextResponse.json(
+      { success: false, error: "فشل في إعادة فتح الطلب" },
       { status: 500 }
     );
   }
