@@ -15,7 +15,10 @@ export async function GET() {
     const orders = await Order.find({
       orderStatus: "delivered",
       paymentStatus: "fully_paid",
-      "finance.costingStatus": { $exists: false },
+      $or: [
+        { "finance.costingStatus": { $exists: false } },
+        { "finance.costingStatus": "legacy_missing" }
+      ],
     })
       .sort({ createdAt: -1 })
       .lean();
