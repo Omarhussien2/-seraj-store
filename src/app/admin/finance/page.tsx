@@ -677,7 +677,7 @@ export default function AdminFinancePage() {
                     <TableHead>المخزون الحالي</TableHead>
                     <TableHead>المحجوز</TableHead>
                     <TableHead>المتاح للبيع</TableHead>
-                    <TableHead>داخل/خارج</TableHead>
+                    <TableHead>إحصائيات المخزن</TableHead>
                     <TableHead>قيمة المخزون</TableHead>
                     <TableHead>تكلفة الوحدة</TableHead>
                     <TableHead>سعر البيع</TableHead>
@@ -726,11 +726,31 @@ export default function AdminFinancePage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-xs leading-6">
-                          <div>داخل: {formatQty(product.movementSummary?.totalInQty || 0)}</div>
-                          <div>خارج: {formatQty(product.movementSummary?.totalOutQty || 0)}</div>
-                          <div>افتتاحي: {formatQty(product.movementSummary?.openingQty || 0)}</div>
-                        </div>
+                        {(() => {
+                          const totalIn = product.movementSummary?.totalInQty || 0;
+                          const sold = product.movementSummary?.soldQty || 0;
+                          const totalOut = product.movementSummary?.totalOutQty || 0;
+                          const missing = totalOut - sold;
+                          const soldPercent = totalIn > 0 ? Math.round((sold / totalIn) * 100) : 0;
+                          return (
+                            <div className="text-xs leading-5 min-w-36">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">إجمالي الدخول:</span>
+                                <span className="font-medium text-emerald-600">{formatQty(totalIn)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">إجمالي المباع:</span>
+                                <span className="font-medium text-blue-600">{formatQty(sold)} <span className="text-[10px]">({soldPercent}%)</span></span>
+                              </div>
+                              {missing > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">نواقص/تسويات:</span>
+                                  <span className="font-medium text-orange-600">{formatQty(missing)}</span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell>
                         {formatEgp(product.inventoryValue || 0)}
