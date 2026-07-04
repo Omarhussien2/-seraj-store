@@ -716,19 +716,19 @@ export default function AdminFinancePage() {
                           const missing = totalOut - sold;
                           const soldPercent = totalIn > 0 ? Math.round((sold / totalIn) * 100) : 0;
                           return (
-                            <div className="text-xs leading-5 min-w-36">
-                              <div className="flex justify-between">
+                            <div className="text-xs leading-5 min-w-36 space-y-0.5">
+                              <div className="flex gap-2 items-center">
                                 <span className="text-muted-foreground">إجمالي الدخول:</span>
-                                <span className="font-medium text-emerald-600">{formatQty(totalIn)}</span>
+                                <span className="font-medium text-emerald-600 font-mono">{formatQty(totalIn)}</span>
                               </div>
-                              <div className="flex justify-between">
+                              <div className="flex gap-2 items-center">
                                 <span className="text-muted-foreground">إجمالي المباع:</span>
-                                <span className="font-medium text-blue-600">{formatQty(sold)} <span className="text-[10px]">({soldPercent}%)</span></span>
+                                <span className="font-medium text-blue-600 font-mono">{formatQty(sold)} <span className="text-[10px]">({soldPercent}%)</span></span>
                               </div>
                               {missing > 0 && (
-                                <div className="flex justify-between">
+                                <div className="flex gap-2 items-center">
                                   <span className="text-muted-foreground">نواقص/تسويات:</span>
-                                  <span className="font-medium text-orange-600">{formatQty(missing)}</span>
+                                  <span className="font-medium text-orange-600 font-mono">{formatQty(missing)}</span>
                                 </div>
                               )}
                             </div>
