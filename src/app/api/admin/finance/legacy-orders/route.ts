@@ -13,7 +13,9 @@ export async function GET() {
   try {
     await connectDB();
     const orders = await Order.find({
-      "finance.costingStatus": "legacy_missing",
+      orderStatus: "delivered",
+      paymentStatus: "fully_paid",
+      "finance.costingStatus": { $exists: false },
     })
       .sort({ createdAt: -1 })
       .lean();
