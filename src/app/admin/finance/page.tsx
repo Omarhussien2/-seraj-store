@@ -154,20 +154,20 @@ const movementTypeHints: Record<string, string> = {
 };
 
 function formatQty(value: number) {
-  return typeof value === "number" ? value.toLocaleString("ar-EG") : "-";
+  return typeof value === "number" ? value.toLocaleString("en-US") : "-";
 }
 
 function signedQty(value: number) {
-  const formatted = Math.abs(value).toLocaleString("ar-EG");
-  return value > 0 ? `+${formatted}` : value < 0 ? `-${formatted}` : "٠";
+  const formatted = Math.abs(value).toLocaleString("en-US");
+  return value > 0 ? `+${formatted}` : value < 0 ? `-${formatted}` : "0";
 }
 
 function formatEgp(value: number) {
-  return `${Math.round(value || 0).toLocaleString("ar-EG")} ج.م`;
+  return `${Math.round(value || 0).toLocaleString("en-US")} ج.م`;
 }
 
 function formatPercent(value: number) {
-  return `${(value || 0).toLocaleString("ar-EG", { maximumFractionDigits: 1 })}%`;
+  return `${(value || 0).toLocaleString("en-US", { maximumFractionDigits: 1 })}%`;
 }
 
 export default function AdminFinancePage() {
@@ -674,9 +674,7 @@ export default function AdminFinancePage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>المنتج</TableHead>
-                    <TableHead>المخزون الحالي</TableHead>
-                    <TableHead>المحجوز</TableHead>
-                    <TableHead>المتاح للبيع</TableHead>
+                    <TableHead>المخزون (متاح/محجوز)</TableHead>
                     <TableHead>إحصائيات المخزن</TableHead>
                     <TableHead>قيمة المخزون</TableHead>
                     <TableHead>تكلفة الوحدة</TableHead>
@@ -699,30 +697,15 @@ export default function AdminFinancePage() {
                       <TableCell>
                         <Input
                           type="number"
-                          className="w-24"
+                          className="w-24 font-mono"
                           value={product.currentStock}
                           onChange={(e) =>
                             updateProduct(index, "currentStock", Number(e.target.value) || 0)
                           }
                         />
-                        <div className="mt-1 text-xs text-muted-foreground">إجمالي الموجود</div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-semibold">{formatQty(product.reservedStock)}</div>
-                        <div className="text-xs text-muted-foreground">تلقائي من الطلبات</div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          className={
-                            product.availableStock < 0
-                              ? "bg-red-100 text-red-700"
-                              : "bg-emerald-100 text-emerald-700"
-                          }
-                        >
-                          {formatQty(product.availableStock)}
-                        </Badge>
-                        <div className="mt-1 text-xs text-muted-foreground">
-                          الحالي - المحجوز
+                        <div className="mt-1 text-xs flex flex-col gap-1">
+                          <span className="text-orange-600">محجوز: {formatQty(product.reservedStock)}</span>
+                          <span className="text-emerald-600 font-bold">متاح للبيع: {formatQty(product.availableStock)}</span>
                         </div>
                       </TableCell>
                       <TableCell>
