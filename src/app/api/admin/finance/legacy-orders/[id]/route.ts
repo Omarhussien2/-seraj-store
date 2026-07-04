@@ -64,8 +64,8 @@ export async function PATCH(
       }
     }
 
-    // 2. Set costingStatus to final and save metadata
-    order.finance = {
+    // 2. Prepare finance update
+    const financeUpdate = {
       ...order.finance,
       costingStatus: "final",
       legacyReviewedAt: new Date(),
@@ -78,12 +78,19 @@ export async function PATCH(
       await deductInventoryForOrder(order);
     } else {
       // Bypass inventory deduction by setting the stamp
-      order.finance.inventoryDeductedAt = new Date();
-      await order.save();
+      financeUpdate.inventoryDeductedAt = new Date();
     }
 
-    // Save final state
-    await order.save();
+    // Save final state using updateOne to avoid full document validation on old orders
+    await Order.updateOne(
+      { _id: id },
+      { 
+        $set: { 
+          items: order.items,
+          finance: financeUpdate 
+        } 
+      }
+    );
 
     // 4. Create expenses for shipping or others if provided
     if (validated.actualShipping && validated.actualShipping > 0) {
