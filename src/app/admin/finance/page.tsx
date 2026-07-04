@@ -328,7 +328,7 @@ export default function AdminFinancePage() {
 
     setSubmittingLegacyId(orderId);
     try {
-      const res = await fetch(`/api/admin/finance/legacy-orders/${orderId}/review`, {
+      const res = await fetch(`/api/admin/finance/legacy-orders/${orderId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
