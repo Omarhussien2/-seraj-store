@@ -333,6 +333,7 @@ export default function AdminOrdersPage() {
                 <TableHead>رقم الطلب</TableHead>
                 <TableHead>اسم العميل</TableHead>
                 <TableHead>التليفون</TableHead>
+                <TableHead>المنتجات</TableHead>
                 <TableHead>المبلغ</TableHead>
                 <TableHead>حالة الدفع</TableHead>
                 <TableHead>حالة الطلب</TableHead>
@@ -357,6 +358,15 @@ export default function AdminOrdersPage() {
                   <TableCell>{order.customerName}</TableCell>
                   <TableCell className="font-mono text-sm" dir="ltr">
                     {order.customerPhone}
+                  </TableCell>
+                  <TableCell className="max-w-[200px]">
+                    <div className="text-xs space-y-1">
+                      {order.items.map((item, idx) => (
+                        <div key={idx} className="bg-gray-100 px-2 py-1 rounded text-gray-700 font-medium">
+                          {item.name} <span className="font-bold text-gray-900 mx-1">×{item.qty}</span>
+                        </div>
+                      ))}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div>{order.total} ج.م</div>
