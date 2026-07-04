@@ -7,6 +7,12 @@ const OrderItemSchema = new mongoose.Schema(
     name: { type: String, required: true },
     price: { type: Number, required: true, min: 0 },
     qty: { type: Number, required: true, min: 1, default: 1 },
+    unitPriceSnapshot: { type: Number, min: 0 },
+    nameSnapshot: { type: String },
+    estimatedUnitCost: { type: Number, min: 0 },
+    finalUnitCost: { type: Number, min: 0 },
+    discountShare: { type: Number, min: 0, default: 0 },
+    netRevenue: { type: Number, min: 0 },
   },
   { _id: false }
 );
@@ -37,6 +43,12 @@ export interface IOrder extends Document {
     name: string;
     price: number;
     qty: number;
+    unitPriceSnapshot?: number;
+    nameSnapshot?: string;
+    estimatedUnitCost?: number;
+    finalUnitCost?: number;
+    discountShare?: number;
+    netRevenue?: number;
   }[];
   total: number;
   subtotal: number;
@@ -71,6 +83,20 @@ export interface IOrder extends Document {
   customerPhone: string;
   address: string;
   notes?: string;
+  finance?: {
+    costingStatus?: "legacy_missing" | "snapshot" | "final";
+    inventoryReservedAt?: Date;
+    inventoryReleasedAt?: Date;
+    inventoryDeductedAt?: Date;
+    inventoryReversedAt?: Date;
+    stockWarnings?: {
+      productSlug: string;
+      requestedQty: number;
+      availableQty: number;
+    }[];
+    legacyReviewedAt?: Date;
+    legacyReviewedBy?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -131,10 +157,30 @@ const OrderSchema = new mongoose.Schema<IOrder>(
     customerPhone: { type: String, required: true, trim: true },
     address: { type: String, required: true, trim: true },
     notes: { type: String, trim: true },
+    finance: {
+      costingStatus: {
+        type: String,
+        enum: ["legacy_missing", "snapshot", "final"],
+      },
+      inventoryReservedAt: { type: Date },
+      inventoryReleasedAt: { type: Date },
+      inventoryDeductedAt: { type: Date },
+      inventoryReversedAt: { type: Date },
+      stockWarnings: [
+        {
+          productSlug: { type: String, required: true },
+          requestedQty: { type: Number, required: true },
+          availableQty: { type: Number, required: true },
+          _id: false,
+        },
+      ],
+      legacyReviewedAt: { type: Date },
+      legacyReviewedBy: { type: String },
+      _id: false,
+    },
   },
   { timestamps: true }
 );
-
 // Index for admin queries
 OrderSchema.index({ orderStatus: 1, createdAt: -1 });
 OrderSchema.index({ customerPhone: 1 });
