@@ -44,6 +44,22 @@ export async function POST(request: Request) {
       );
     }
 
+    if (validated.type === "opening") {
+      const hasPreviousStockActivity = await InventoryMovement.exists({
+        productSlug: product.slug,
+      });
+      if (hasPreviousStockActivity) {
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "Opening stock is already recorded for this product. Use purchase or adjustment instead.",
+          },
+          { status: 409 }
+        );
+      }
+    }
+
     const before =
       (await ProductFinance.findOne({ productSlug: product.slug }).lean()) ||
       ({

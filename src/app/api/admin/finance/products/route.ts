@@ -14,10 +14,63 @@ const PatchSchema = z.object({
   productSlug: z.string().min(1),
   averageUnitCost: z.number().min(0).optional(),
   currentStock: z.number().optional(),
-  reservedStock: z.number().min(0).optional(),
   lowStockThreshold: z.number().min(0).optional(),
   trackInventory: z.boolean().optional(),
 });
+
+type MovementSummary = {
+  openingQty: number;
+  purchasedQty: number;
+  adjustmentQty: number;
+  soldQty: number;
+  returnedQty: number;
+  totalInQty: number;
+  totalOutQty: number;
+};
+
+type MovementDoc = {
+  productSlug: string;
+  type: string;
+  qty: number;
+  unitCost?: number;
+  totalCost?: number;
+  orderNumber?: string;
+  note?: string;
+  createdAt?: Date;
+};
+
+const emptyMovementSummary: MovementSummary = {
+  openingQty: 0,
+  purchasedQty: 0,
+  adjustmentQty: 0,
+  soldQty: 0,
+  returnedQty: 0,
+  totalInQty: 0,
+  totalOutQty: 0,
+};
+
+function summarizeMovements(movements: MovementDoc[]) {
+  return movements.reduce<MovementSummary>((summary, movement) => {
+    const qty = Number(movement.qty) || 0;
+    if (movement.type === "opening") summary.openingQty += qty;
+    if (movement.type === "purchase") summary.purchasedQty += qty;
+    if (movement.type === "adjustment") summary.adjustmentQty += qty;
+    if (movement.type === "sale") summary.soldQty += Math.abs(qty);
+    if (movement.type === "cancel") summary.returnedQty += qty;
+
+    if (["opening", "purchase", "cancel"].includes(movement.type) && qty > 0) {
+      summary.totalInQty += qty;
+    }
+    if (movement.type === "adjustment") {
+      if (qty > 0) summary.totalInQty += qty;
+      if (qty < 0) summary.totalOutQty += Math.abs(qty);
+    }
+    if (movement.type === "sale" && qty < 0) {
+      summary.totalOutQty += Math.abs(qty);
+    }
+    return summary;
+  }, { ...emptyMovementSummary });
+}
 
 export async function GET() {
   const authError = await requireAdmin();
@@ -25,14 +78,29 @@ export async function GET() {
 
   try {
     await connectDB();
-    const [products, financeDocs] = await Promise.all([
-      Product.find({}).sort({ order: 1 }).select("_id slug name price active order").lean(),
-      ProductFinance.find({}).lean(),
+    const products = await Product.find({})
+      .sort({ order: 1 })
+      .select("_id slug name price active order")
+      .lean();
+    const productSlugs = products.map((product) => product.slug);
+    const [financeDocs, movementDocs] = await Promise.all([
+      ProductFinance.find({ productSlug: { $in: productSlugs } }).lean(),
+      InventoryMovement.find({ productSlug: { $in: productSlugs } })
+        .sort({ createdAt: -1 })
+        .lean(),
     ]);
 
     const financeMap = new Map(financeDocs.map((doc) => [doc.productSlug, doc]));
+    const movementsByProduct = new Map<string, MovementDoc[]>();
+    for (const movement of movementDocs as MovementDoc[]) {
+      const movements = movementsByProduct.get(movement.productSlug) || [];
+      movements.push(movement);
+      movementsByProduct.set(movement.productSlug, movements);
+    }
+
     const data = products.map((product) => {
       const finance = financeMap.get(product.slug);
+      const productMovements = movementsByProduct.get(product.slug) || [];
       const averageUnitCost = finance?.averageUnitCost || 0;
       const currentStock = finance?.currentStock || 0;
       const reservedStock = finance?.reservedStock || 0;
@@ -55,6 +123,17 @@ export async function GET() {
         availableStock,
         lowStockThreshold,
         trackInventory: finance?.trackInventory || false,
+        inventoryValue: roundMoney(currentStock * averageUnitCost),
+        movementSummary: summarizeMovements(productMovements),
+        recentMovements: productMovements.slice(0, 5).map((movement) => ({
+          type: movement.type,
+          qty: movement.qty,
+          unitCost: movement.unitCost || 0,
+          totalCost: movement.totalCost || 0,
+          orderNumber: movement.orderNumber,
+          note: movement.note,
+          createdAt: movement.createdAt,
+        })),
         expectedUnitProfit,
         expectedMargin,
         isLowStock:
@@ -101,7 +180,6 @@ export async function PATCH(request: Request) {
     for (const key of [
       "averageUnitCost",
       "currentStock",
-      "reservedStock",
       "lowStockThreshold",
       "trackInventory",
     ] as const) {

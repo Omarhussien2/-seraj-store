@@ -64,6 +64,25 @@ type FinanceProduct = {
   expectedUnitProfit: number;
   expectedMargin: number;
   isLowStock: boolean;
+  inventoryValue: number;
+  movementSummary: {
+    openingQty: number;
+    purchasedQty: number;
+    adjustmentQty: number;
+    soldQty: number;
+    returnedQty: number;
+    totalInQty: number;
+    totalOutQty: number;
+  };
+  recentMovements: {
+    type: string;
+    qty: number;
+    unitCost: number;
+    totalCost: number;
+    orderNumber?: string;
+    note?: string;
+    createdAt?: string;
+  }[];
 };
 
 type Expense = {
@@ -111,6 +130,37 @@ const expenseTypeLabels: Record<string, string> = {
   design_printing: "تصميم/طباعة/إنتاج",
   other: "أخرى",
 };
+
+const expenseScopeLabels: Record<string, string> = {
+  general: "عامة",
+  product: "منتج",
+  order: "طلب",
+};
+
+const movementTypeLabels: Record<string, string> = {
+  opening: "رصيد افتتاحي",
+  purchase: "شراء/إنتاج",
+  adjustment: "تسوية",
+  reserve: "حجز تلقائي",
+  release: "إفراج تلقائي",
+  sale: "بيع تلقائي",
+  cancel: "إرجاع تلقائي",
+};
+
+const movementTypeHints: Record<string, string> = {
+  opening: "يستخدم مرة واحدة فقط عند بدء جرد المخزن. الكمية المدخلة تمثل الموجود الفعلي حالياً.",
+  purchase: "يستخدم عند شراء أو إنتاج كميات جديدة لزيادة المخزون.",
+  adjustment: "يستخدم لتسوية الفروقات اليدوية (+ لزيادة المخزون، - لتقليله).",
+};
+
+function formatQty(value: number) {
+  return typeof value === "number" ? value.toLocaleString("ar-EG") : "-";
+}
+
+function signedQty(value: number) {
+  const formatted = Math.abs(value).toLocaleString("ar-EG");
+  return value > 0 ? `+${formatted}` : value < 0 ? `-${formatted}` : "٠";
+}
 
 function formatEgp(value: number) {
   return `${Math.round(value || 0).toLocaleString("ar-EG")} ج.م`;
@@ -223,7 +273,30 @@ export default function AdminFinancePage() {
 
   function updateProduct(index: number, field: keyof FinanceProduct, value: unknown) {
     setProducts((prev) =>
-      prev.map((product, i) => (i === index ? { ...product, [field]: value } : product))
+      prev.map((product, i) => {
+        if (i !== index) return product;
+        const updated = { ...product, [field]: value };
+        if (field === "currentStock") {
+          updated.availableStock = (Number(value) || 0) - (product.reservedStock || 0);
+          updated.isLowStock =
+            Boolean(product.trackInventory) &&
+            product.lowStockThreshold > 0 &&
+            updated.availableStock <= product.lowStockThreshold;
+        }
+        if (field === "trackInventory") {
+          updated.isLowStock =
+            Boolean(value) &&
+            product.lowStockThreshold > 0 &&
+            product.availableStock <= product.lowStockThreshold;
+        }
+        if (field === "lowStockThreshold") {
+          updated.isLowStock =
+            Boolean(product.trackInventory) &&
+            (Number(value) || 0) > 0 &&
+            product.availableStock <= (Number(value) || 0);
+        }
+        return updated;
+      })
     );
   }
 
@@ -237,7 +310,6 @@ export default function AdminFinancePage() {
           productSlug: product.productSlug,
           averageUnitCost: Number(product.averageUnitCost) || 0,
           currentStock: Number(product.currentStock) || 0,
-          reservedStock: Number(product.reservedStock) || 0,
           lowStockThreshold: Number(product.lowStockThreshold) || 0,
           trackInventory: Boolean(product.trackInventory),
         }),
@@ -288,6 +360,15 @@ export default function AdminFinancePage() {
   }
 
   async function createMovement() {
+    const qty = Number(movementForm.qty) || 0;
+    if (qty === 0) {
+      showToast("الكمية لا يمكن أن تكون صفراً", "error");
+      return;
+    }
+    if (movementForm.type !== "adjustment" && qty < 0) {
+      showToast("الكمية يجب أن تكون موجبة لعمليات الشراء والرصيد الافتتاحي", "error");
+      return;
+    }
     try {
       const res = await fetch("/api/admin/finance/inventory-movements", {
         method: "POST",
@@ -295,7 +376,7 @@ export default function AdminFinancePage() {
         body: JSON.stringify({
           productSlug: movementForm.productSlug,
           type: movementForm.type,
-          qty: Number(movementForm.qty) || 0,
+          qty,
           unitCost: movementForm.unitCost ? Number(movementForm.unitCost) : undefined,
           note: movementForm.note || undefined,
         }),
@@ -307,7 +388,7 @@ export default function AdminFinancePage() {
       loadData();
     } catch (error) {
       console.error("Failed to create inventory movement:", error);
-      showToast("فشل تسجيل حركة المخزون", "error");
+      showToast(error instanceof Error ? error.message : "فشل تسجيل حركة المخزون", "error");
     }
   }
 
@@ -377,6 +458,25 @@ export default function AdminFinancePage() {
     }
   }
 
+  const selectedMovementProduct = products.find(
+    (p) => p.productSlug === movementForm.productSlug
+  );
+
+  const movementStockPreview = selectedMovementProduct
+    ? selectedMovementProduct.currentStock + (Number(movementForm.qty) || 0)
+    : null;
+
+  const recentInventoryMovements = products
+    .flatMap((p) =>
+      (p.recentMovements || []).map((m) => ({
+        ...m,
+        productName: p.name,
+        productSlug: p.productSlug,
+      }))
+    )
+    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+    .slice(0, 12);
+
   if (loading) {
     return <div className="py-12 text-center text-muted-foreground">جاري التحميل...</div>;
   }
@@ -433,7 +533,7 @@ export default function AdminFinancePage() {
           {summary && (
             <>
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
-                <MetricCard title="COGS" value={formatEgp(summary.summary.cogs)} />
+                <MetricCard title="تكلفة البضاعة المباعة (COGS)" value={formatEgp(summary.summary.cogs)} />
                 <MetricCard title="الربح الإجمالي" value={formatEgp(summary.summary.grossProfit)} />
                 <MetricCard
                   title="التكاليف الإضافية"
@@ -488,61 +588,80 @@ export default function AdminFinancePage() {
             <CardHeader>
               <CardTitle className="text-base">حركة مخزون</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-6">
-              <Select
-                value={movementForm.productSlug || undefined}
-                onValueChange={(value) => {
-                  if (value) setMovementForm((prev) => ({ ...prev, productSlug: value }));
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="المنتج" />
-                </SelectTrigger>
-                <SelectContent>
-                  {products.map((product) => (
-                    <SelectItem key={product.productSlug} value={product.productSlug}>
-                      {product.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={movementForm.type}
-                onValueChange={(value) => {
-                  if (value) setMovementForm((prev) => ({ ...prev, type: value }));
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="opening">رصيد افتتاحي</SelectItem>
-                  <SelectItem value="purchase">شراء/إنتاج</SelectItem>
-                  <SelectItem value="adjustment">تسوية</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input
-                type="number"
-                placeholder="الكمية"
-                value={movementForm.qty}
-                onChange={(e) => setMovementForm((prev) => ({ ...prev, qty: e.target.value }))}
-              />
-              <Input
-                type="number"
-                placeholder="تكلفة الوحدة"
-                value={movementForm.unitCost}
-                onChange={(e) =>
-                  setMovementForm((prev) => ({ ...prev, unitCost: e.target.value }))
-                }
-              />
-              <Input
-                placeholder="ملاحظة"
-                value={movementForm.note}
-                onChange={(e) => setMovementForm((prev) => ({ ...prev, note: e.target.value }))}
-              />
-              <Button type="button" onClick={createMovement} disabled={!movementForm.productSlug}>
-                تسجيل
-              </Button>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-6">
+                <Select
+                  value={movementForm.productSlug || undefined}
+                  onValueChange={(value) => {
+                    if (value) setMovementForm((prev) => ({ ...prev, productSlug: value }));
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="المنتج" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map((product) => (
+                      <SelectItem key={product.productSlug} value={product.productSlug}>
+                        {product.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={movementForm.type}
+                  onValueChange={(value) => {
+                    if (value) setMovementForm((prev) => ({ ...prev, type: value }));
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="opening">رصيد افتتاحي</SelectItem>
+                    <SelectItem value="purchase">شراء/إنتاج</SelectItem>
+                    <SelectItem value="adjustment">تسوية</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="number"
+                  placeholder={movementForm.type === "adjustment" ? "فرق التسوية +/-" : "الكمية"}
+                  value={movementForm.qty}
+                  onChange={(e) => setMovementForm((prev) => ({ ...prev, qty: e.target.value }))}
+                />
+                <Input
+                  type="number"
+                  placeholder="تكلفة الوحدة"
+                  value={movementForm.unitCost}
+                  onChange={(e) =>
+                    setMovementForm((prev) => ({ ...prev, unitCost: e.target.value }))
+                  }
+                />
+                <Input
+                  placeholder="ملاحظة"
+                  value={movementForm.note}
+                  onChange={(e) => setMovementForm((prev) => ({ ...prev, note: e.target.value }))}
+                />
+                <Button type="button" onClick={createMovement} disabled={!movementForm.productSlug}>
+                  تسجيل
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 rounded-md border bg-muted/30 p-3 text-sm md:grid-cols-3">
+                <div>
+                  <span className="font-semibold">معنى الحركة: </span>
+                  <span className="text-muted-foreground">
+                    {movementTypeHints[movementForm.type] || "حركة مخزون"}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-semibold">المخزون الحالي: </span>
+                  <span>{selectedMovementProduct ? formatQty(selectedMovementProduct.currentStock) : "-"}</span>
+                </div>
+                <div>
+                  <span className="font-semibold">بعد الحركة: </span>
+                  <span>{movementStockPreview === null ? "-" : formatQty(movementStockPreview)}</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -555,8 +674,11 @@ export default function AdminFinancePage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>المنتج</TableHead>
-                    <TableHead>المخزون</TableHead>
+                    <TableHead>المخزون الحالي</TableHead>
                     <TableHead>المحجوز</TableHead>
+                    <TableHead>المتاح للبيع</TableHead>
+                    <TableHead>إحصائيات المخزن</TableHead>
+                    <TableHead>قيمة المخزون</TableHead>
                     <TableHead>تكلفة الوحدة</TableHead>
                     <TableHead>سعر البيع</TableHead>
                     <TableHead>ربح الوحدة</TableHead>
@@ -583,16 +705,55 @@ export default function AdminFinancePage() {
                             updateProduct(index, "currentStock", Number(e.target.value) || 0)
                           }
                         />
+                        <div className="mt-1 text-xs text-muted-foreground">إجمالي الموجود</div>
                       </TableCell>
                       <TableCell>
-                        <Input
-                          type="number"
-                          className="w-24"
-                          value={product.reservedStock}
-                          onChange={(e) =>
-                            updateProduct(index, "reservedStock", Number(e.target.value) || 0)
+                        <div className="font-semibold">{formatQty(product.reservedStock)}</div>
+                        <div className="text-xs text-muted-foreground">تلقائي من الطلبات</div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={
+                            product.availableStock < 0
+                              ? "bg-red-100 text-red-700"
+                              : "bg-emerald-100 text-emerald-700"
                           }
-                        />
+                        >
+                          {formatQty(product.availableStock)}
+                        </Badge>
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          الحالي - المحجوز
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {(() => {
+                          const totalIn = product.movementSummary?.totalInQty || 0;
+                          const sold = product.movementSummary?.soldQty || 0;
+                          const totalOut = product.movementSummary?.totalOutQty || 0;
+                          const missing = totalOut - sold;
+                          const soldPercent = totalIn > 0 ? Math.round((sold / totalIn) * 100) : 0;
+                          return (
+                            <div className="text-xs leading-5 min-w-36">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">إجمالي الدخول:</span>
+                                <span className="font-medium text-emerald-600">{formatQty(totalIn)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">إجمالي المباع:</span>
+                                <span className="font-medium text-blue-600">{formatQty(sold)} <span className="text-[10px]">({soldPercent}%)</span></span>
+                              </div>
+                              {missing > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">نواقص/تسويات:</span>
+                                  <span className="font-medium text-orange-600">{formatQty(missing)}</span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </TableCell>
+                      <TableCell>
+                        {formatEgp(product.inventoryValue || 0)}
                       </TableCell>
                       <TableCell>
                         <Input
@@ -661,6 +822,50 @@ export default function AdminFinancePage() {
                   ))}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">آخر حركات المخزون</CardTitle>
+            </CardHeader>
+            <CardContent className="overflow-x-auto">
+              {recentInventoryMovements.length === 0 ? (
+                <p className="py-4 text-center text-sm text-muted-foreground">
+                  لا توجد حركات مخزون مسجلة بعد
+                </p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>التاريخ</TableHead>
+                      <TableHead>المنتج</TableHead>
+                      <TableHead>الحركة</TableHead>
+                      <TableHead>الكمية</TableHead>
+                      <TableHead>تكلفة الوحدة</TableHead>
+                      <TableHead>الطلب/الملاحظة</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recentInventoryMovements.map((movement, idx) => (
+                      <TableRow key={`${movement.productSlug}-${movement.createdAt}-${idx}`}>
+                        <TableCell>
+                          {movement.createdAt
+                            ? new Date(movement.createdAt).toLocaleDateString("ar-EG")
+                            : "-"}
+                        </TableCell>
+                        <TableCell className="font-medium">{movement.productName}</TableCell>
+                        <TableCell>{movementTypeLabels[movement.type] || movement.type}</TableCell>
+                        <TableCell>{signedQty(movement.qty)}</TableCell>
+                        <TableCell>{formatEgp(movement.unitCost)}</TableCell>
+                        <TableCell className="min-w-40 text-sm text-muted-foreground">
+                          {movement.orderNumber || movement.note || "-"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -763,7 +968,7 @@ export default function AdminFinancePage() {
                   {expenses.map((expense) => (
                     <TableRow key={expense._id}>
                       <TableCell>{expenseTypeLabels[expense.type] || expense.type}</TableCell>
-                      <TableCell>{expense.scope}</TableCell>
+                      <TableCell>{expenseScopeLabels[expense.scope] || expense.scope}</TableCell>
                       <TableCell>{expense.description}</TableCell>
                       <TableCell>{formatEgp(expense.amount)}</TableCell>
                       <TableCell>{new Date(expense.incurredAt).toLocaleDateString("ar-EG")}</TableCell>
@@ -795,7 +1000,7 @@ export default function AdminFinancePage() {
                   <TableRow>
                     <TableHead>الشهر</TableHead>
                     <TableHead>صافي الإيراد</TableHead>
-                    <TableHead>COGS</TableHead>
+                    <TableHead>تكلفة البضاعة (COGS)</TableHead>
                     <TableHead>صافي الربح</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -917,28 +1122,33 @@ export default function AdminFinancePage() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <Label className="text-xs text-muted-foreground">تكلفة القطعة:</Label>
-                                  <Input
-                                    type="number"
-                                    className="w-24 h-8 text-sm"
-                                    placeholder={`${recCost}`}
-                                    value={itemVal === 0 ? "" : itemVal}
-                                    onChange={(e) => {
-                                      const val = Number(e.target.value) || 0;
-                                      setLegacyReviewForm(prev => {
-                                        const orderForm = prev[order._id];
-                                        if (!orderForm) return prev;
-                                        return {
-                                          ...prev,
-                                          [order._id]: {
-                                            ...orderForm,
-                                            items: orderForm.items.map(i => 
-                                              i.productSlug === item.productSlug ? { ...i, finalUnitCost: val } : i
-                                            )
-                                          }
-                                        };
-                                      });
-                                    }}
-                                  />
+                                  <div className="flex flex-col items-end">
+                                    <Input
+                                      type="number"
+                                      className={`w-24 h-8 text-sm ${(itemVal || recCost) === 0 ? "border-red-400 bg-red-50/50 focus-visible:ring-red-400" : ""}`}
+                                      placeholder={`${recCost}`}
+                                      value={itemVal === 0 ? "" : itemVal}
+                                      onChange={(e) => {
+                                        const val = Number(e.target.value) || 0;
+                                        setLegacyReviewForm(prev => {
+                                          const orderForm = prev[order._id];
+                                          if (!orderForm) return prev;
+                                          return {
+                                            ...prev,
+                                            [order._id]: {
+                                              ...orderForm,
+                                              items: orderForm.items.map(i => 
+                                                i.productSlug === item.productSlug ? { ...i, finalUnitCost: val } : i
+                                              )
+                                            }
+                                          };
+                                        });
+                                      }}
+                                    />
+                                    {(itemVal || recCost) === 0 && (
+                                      <span className="text-[9px] text-red-500 font-semibold mt-0.5">التكلفة 0!</span>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             );
@@ -1128,7 +1338,7 @@ function ProductReportTable({
           <TableHead>المنتج</TableHead>
           <TableHead>الكمية</TableHead>
           <TableHead>صافي الإيراد</TableHead>
-          {!compact && <TableHead>COGS</TableHead>}
+          {!compact && <TableHead>تكلفة البضاعة (COGS)</TableHead>}
           {!compact && <TableHead>تكاليف إضافية</TableHead>}
           <TableHead>صافي الربح</TableHead>
           <TableHead>الهامش</TableHead>
