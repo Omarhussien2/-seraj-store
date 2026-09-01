@@ -138,11 +138,10 @@
               <video
                 class="hero-video"
                 src="assets/family-photo.mp4"
-                autoplay
                 muted
                 loop
                 playsinline
-                preload="auto"
+                preload="none"
                 poster="assets/seraj.webp"
                 aria-label="عائلة سراج"
               ></video>
@@ -362,7 +361,7 @@
             <p id="catalogDesc">أكتر من قصص.. تجربة تعليمية متكاملة لبطلنا الصغير</p>
           </div>
           <div class="catalog-mascot-wrap">
-            <img id="catalogMascotImg" src="assets/catagory/catalog-all.webp" alt="سِراج" loading="eager"
+            <img id="catalogMascotImg" src="assets/catagory/catalog-all.webp" alt="سِراج" loading="lazy"
                  onerror="this.onerror=null; this.src='assets/catagory/catalog-all.webp'"/>
           </div>
         </div>
@@ -1030,7 +1029,7 @@
   <!-- ============ PWA INSTALL BANNER ============ -->
   <aside class="pwa-install-banner" id="pwaInstallBanner" hidden aria-hidden="true" role="dialog" aria-label="تثبيت التطبيق">
     <div class="pwa-install-top">
-      <img class="pwa-install-icon" src="/assets/logo/logo-icon.png" alt="" width="46" height="46">
+      <img class="pwa-install-icon" src="/assets/logo/favicon-48x48.png" alt="" width="46" height="46" loading="lazy">
       <div class="pwa-install-body">
         <p class="pwa-install-title" id="pwaInstallTitle">ثبّت تطبيق سِراج على شاشة الموبايل</p>
         <p class="pwa-install-sub" id="pwaInstallSub">اطلب بسرعة حتى بدون إنترنت</p>

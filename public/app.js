@@ -3421,10 +3421,10 @@
     }
   });
 
-  if (document.readyState !== 'loading') {
+  if (document.readyState === 'complete') {
     initHeroVideo();
   } else {
-    document.addEventListener('DOMContentLoaded', initHeroVideo);
+    window.addEventListener('load', initHeroVideo, { once: true });
   }
 
   function isIosSafari() {
