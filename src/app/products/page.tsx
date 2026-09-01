@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import SeoProductCard from "@/components/seo/SeoProductCard";
+import { SEO_CATEGORIES } from "@/lib/seoCategories";
 import {
   getActiveProducts,
   jsonLd,
-  productDescription,
-  productImageUrl,
   siteUrl,
 } from "@/lib/seoContent";
 
@@ -68,39 +68,24 @@ export default async function ProductsSeoPage() {
           </div>
         </header>
 
+        <nav className="grid gap-3 sm:grid-cols-3" aria-label="فئات منتجات سراج">
+          {SEO_CATEGORIES.map((category) => (
+            <Link
+              className="rounded-lg border border-[#dcc9ad] bg-white p-4 shadow-sm transition hover:border-[#1f7a5c]"
+              href={`/category/${category.slug}`}
+              key={category.slug}
+            >
+              <strong className="block text-lg text-[#1f7a5c]">{category.name}</strong>
+              <span className="mt-1 block text-sm leading-6 text-[#67594e]">
+                {category.eyebrow}
+              </span>
+            </Link>
+          ))}
+        </nav>
+
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => (
-            <article
-              className="overflow-hidden rounded-lg border border-[#dcc9ad] bg-white shadow-sm"
-              key={product.slug}
-            >
-              <img
-                alt={product.name}
-                className="h-56 w-full object-cover"
-                loading="lazy"
-                src={productImageUrl(product)}
-              />
-              <div className="space-y-3 p-5">
-                {product.badge && (
-                  <p className="text-sm font-bold text-[#1f7a5c]">{product.badge}</p>
-                )}
-                <h2 className="text-xl font-extrabold">{product.name}</h2>
-                <p className="min-h-16 text-sm leading-7 text-[#67594e]">
-                  {productDescription(product)}
-                </p>
-                <div className="flex items-center justify-between gap-3">
-                  <strong className="text-lg text-[#8a4316]">
-                    {product.priceText || `${product.price} ج.م`}
-                  </strong>
-                  <Link
-                    className="rounded-md bg-[#1f7a5c] px-4 py-2 text-sm font-bold text-white"
-                    href={`/product/${encodeURIComponent(product.slug)}`}
-                  >
-                    تفاصيل المنتج
-                  </Link>
-                </div>
-              </div>
-            </article>
+            <SeoProductCard key={product.slug} product={product} />
           ))}
         </section>
 

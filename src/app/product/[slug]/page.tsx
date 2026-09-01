@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { seoCategoryForProduct } from "@/lib/seoCategories";
 import {
   encodedPath,
   getActiveProduct,
@@ -59,6 +60,7 @@ export default async function ProductSeoPage({ params }: ProductPageProps) {
   if (!product) notFound();
 
   const productPath = encodedPath("/product", product.slug);
+  const category = seoCategoryForProduct(product);
   const image = productImageUrl(product);
   const description = productDescription(product);
   const offer =
@@ -95,7 +97,20 @@ export default async function ProductSeoPage({ params }: ProductPageProps) {
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "الرئيسية", item: siteUrl("/") },
           { "@type": "ListItem", position: 2, name: "المنتجات", item: siteUrl("/products") },
-          { "@type": "ListItem", position: 3, name: product.name, item: siteUrl(productPath) },
+          ...(category
+            ? [{
+                "@type": "ListItem",
+                position: 3,
+                name: category.name,
+                item: siteUrl(`/category/${category.slug}`),
+              }]
+            : []),
+          {
+            "@type": "ListItem",
+            position: category ? 4 : 3,
+            name: product.name,
+            item: siteUrl(productPath),
+          },
         ],
       },
     ],
@@ -109,9 +124,15 @@ export default async function ProductSeoPage({ params }: ProductPageProps) {
       />
       <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1fr_1.05fr] lg:items-start">
         <section className="space-y-4">
-          <Link className="text-sm font-semibold text-[#1f7a5c]" href="/products">
-            كل المنتجات
-          </Link>
+          <nav className="flex flex-wrap gap-2 text-sm font-semibold text-[#1f7a5c]" aria-label="مسار التنقل">
+            <Link href="/products">كل المنتجات</Link>
+            {category && (
+              <>
+                <span aria-hidden="true">/</span>
+                <Link href={`/category/${category.slug}`}>{category.name}</Link>
+              </>
+            )}
+          </nav>
           <div className="overflow-hidden rounded-lg border border-[#dcc9ad] bg-white shadow-sm">
             <img alt={product.name} className="w-full object-cover" src={image} />
           </div>
