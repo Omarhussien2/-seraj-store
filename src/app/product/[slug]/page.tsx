@@ -5,6 +5,10 @@ import {
   googleProductCategoryId,
   GOOGLE_PRODUCT_TAXONOMY_URL,
 } from "@/lib/googleProductCategories";
+import {
+  RETURN_POLICY_ID,
+  SHIPPING_SERVICE_ID,
+} from "@/lib/commercePolicies";
 import { seoCategoryForProduct } from "@/lib/seoCategories";
 import {
   encodedPath,
@@ -80,6 +84,11 @@ export default async function ProductSeoPage({ params }: ProductPageProps) {
           itemCondition: "https://schema.org/NewCondition",
           url: siteUrl(productPath),
           seller: { "@id": `${siteUrl("/")}#organization` },
+          shippingDetails: {
+            "@type": "OfferShippingDetails",
+            hasShippingService: { "@id": SHIPPING_SERVICE_ID },
+          },
+          hasMerchantReturnPolicy: { "@id": RETURN_POLICY_ID },
         }
       : undefined;
   const productJsonLd = {
