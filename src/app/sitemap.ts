@@ -2,6 +2,7 @@ import { type MetadataRoute } from "next";
 import { connectDB } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import Article from "@/lib/models/Article";
+import { SEO_CATEGORIES } from "@/lib/seoCategories";
 import { encodedPath, siteUrl } from "@/lib/seoContent";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +18,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: siteUrl("/"), changeFrequency: "daily", priority: 1.0 },
     { url: siteUrl("/products"), changeFrequency: "daily", priority: 0.9 },
+    ...SEO_CATEGORIES.map((category) => ({
+      url: siteUrl(`/category/${category.slug}`),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    })),
     { url: siteUrl("/mama-world"), changeFrequency: "weekly", priority: 0.7 },
     { url: siteUrl("/about"), changeFrequency: "monthly", priority: 0.6 },
     { url: siteUrl("/contact"), changeFrequency: "monthly", priority: 0.5 },
