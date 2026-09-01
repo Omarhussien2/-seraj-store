@@ -4,6 +4,10 @@ Read this file before any work involving SEO, structured data, Google Search
 Console, Bing Webmaster Tools, Google Merchant Center, product feeds, crawler
 access, search-platform logos, or AI-search discoverability.
 
+For customer-facing positioning, content architecture, search intent, evidence
+requirements, and the owner-confirmed personalized-story workflow, read
+`SEO-CONTENT-STRATEGY.md` in full before drafting or changing public copy.
+
 Last verified: **2026-09-01, Africa/Cairo**. External dashboards change over
 time. Treat counts below as dated observations, not permanent facts.
 
@@ -35,6 +39,8 @@ values before changing them in code or an external dashboard.
 - Merchant feed: `src/app/merchant-feed.xml/route.ts`
 - PWA identity: `public/manifest.json`
 - Search and platform logo assets: `public/assets/logo/`
+- Organic-discovery messaging and content source of truth:
+  `SEO-CONTENT-STRATEGY.md`
 
 The root static SPA and the Next.js SEO pages expose the same business facts
 through different files. A business-identity or policy change must update every
