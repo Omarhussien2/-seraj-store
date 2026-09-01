@@ -3,6 +3,7 @@ import Link from "next/link";
 import SeoProductCard from "@/components/seo/SeoProductCard";
 import { SEO_CATEGORIES } from "@/lib/seoCategories";
 import {
+  DEFAULT_SOCIAL_IMAGE,
   getActiveProducts,
   jsonLd,
   siteUrl,
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
       "قصص مخصصة وجاهزة وأنشطة تعليمية للأطفال من سراج، مصنوعة بحب وجودة عالية.",
     url: siteUrl("/products"),
     type: "website",
+    images: [DEFAULT_SOCIAL_IMAGE],
   },
 };
 

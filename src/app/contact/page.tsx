@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { jsonLd, siteUrl } from "@/lib/seoContent";
+import { DEFAULT_SOCIAL_IMAGE, jsonLd, siteUrl } from "@/lib/seoContent";
 
 const supportPhone = "+201152806034";
 const whatsappUrl = `https://wa.me/${supportPhone.replace("+", "")}`;
@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     description: "فريق سراج جاهز لمساعدتك في المنتجات والطلبات عبر واتساب.",
     url: siteUrl("/contact"),
     type: "website",
+    images: [DEFAULT_SOCIAL_IMAGE],
   },
 };
 

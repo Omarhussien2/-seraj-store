@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  DEFAULT_SOCIAL_IMAGE,
   absoluteAssetUrl,
   articleDescription,
   encodedPath,
@@ -53,7 +54,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
       siteName: "سراج",
       images: article.coverImage
         ? [{ url: absoluteAssetUrl(article.coverImage), alt: article.coverImageAlt || article.title }]
-        : undefined,
+        : [DEFAULT_SOCIAL_IMAGE],
     },
   };
 }
@@ -74,7 +75,9 @@ export default async function ArticleSeoPage({ params }: ArticlePageProps) {
         "@id": `${siteUrl(articlePath)}#article`,
         headline: article.seoTitle || article.title,
         description,
-        image: article.coverImage ? [absoluteAssetUrl(article.coverImage)] : undefined,
+        image: article.coverImage
+          ? [absoluteAssetUrl(article.coverImage)]
+          : [DEFAULT_SOCIAL_IMAGE.url],
         url: siteUrl(articlePath),
         mainEntityOfPage: siteUrl(articlePath),
         inLanguage: "ar-EG",

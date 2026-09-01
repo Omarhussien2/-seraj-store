@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { jsonLd, siteUrl } from "@/lib/seoContent";
+import { DEFAULT_SOCIAL_IMAGE, jsonLd, siteUrl } from "@/lib/seoContent";
 
 export const metadata: Metadata = {
   title: "حكاية سراج وعيلته",
@@ -14,6 +14,7 @@ export const metadata: Metadata = {
       "عالم عربي يجمع بين الخيال والمعرفة والقيم ليصنع للأطفال أبطالًا حقيقيين.",
     url: siteUrl("/about"),
     type: "website",
+    images: [DEFAULT_SOCIAL_IMAGE],
   },
 };
 

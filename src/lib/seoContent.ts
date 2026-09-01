@@ -49,6 +49,13 @@ export function siteUrl(path = "") {
   return `${SITE_URL}${normalizedPath === "/" ? "" : normalizedPath}`;
 }
 
+export const DEFAULT_SOCIAL_IMAGE = {
+  url: siteUrl("/assets/social-card-1200x630.jpg"),
+  width: 1200,
+  height: 630,
+  alt: "شخصيات عالم سراج لقصص الأطفال العربية",
+};
+
 export function encodedPath(prefix: string, slug: string) {
   return `${prefix}/${encodeURIComponent(slug)}`;
 }
