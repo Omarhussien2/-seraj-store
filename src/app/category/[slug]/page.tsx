@@ -91,6 +91,18 @@ export default async function CategorySeoPage({ params }: CategoryPageProps) {
           { "@type": "ListItem", position: 3, name: category.name, item: siteUrl(categoryPath) },
         ],
       },
+      {
+        "@type": "FAQPage",
+        "@id": `${siteUrl(categoryPath)}#faq`,
+        mainEntity: category.faqs.map((faq) => ({
+          "@type": "Question",
+          name: faq.question,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: faq.answer,
+          },
+        })),
+      },
     ],
   };
 
@@ -149,6 +161,32 @@ export default async function CategorySeoPage({ params }: CategoryPageProps) {
             {products.map((product) => (
               <SeoProductCard key={product.slug} product={product} />
             ))}
+          </div>
+        </section>
+
+        <section className="grid gap-6 rounded-lg border border-[#dcc9ad] bg-white p-6 shadow-sm lg:grid-cols-2">
+          <div className="space-y-4">
+            <p className="text-sm font-bold text-[#a15c1b]">دليل الاختيار</p>
+            <h2 className="text-2xl font-extrabold">كيف تختارين الأنسب لطفلك؟</h2>
+            {category.selectionGuide.map((paragraph) => (
+              <p className="leading-8 text-[#5f5044]" key={paragraph}>
+                {paragraph}
+              </p>
+            ))}
+          </div>
+          <div className="space-y-4" aria-labelledby="category-faq-title">
+            <p className="text-sm font-bold text-[#a15c1b]">أسئلة شائعة</p>
+            <h2 className="text-2xl font-extrabold" id="category-faq-title">
+              قبل اختيار المنتج
+            </h2>
+            <dl className="space-y-4">
+              {category.faqs.map((faq) => (
+                <div className="rounded-md bg-[#f7f1e7] p-4" key={faq.question}>
+                  <dt className="font-extrabold">{faq.question}</dt>
+                  <dd className="mt-2 leading-7 text-[#5f5044]">{faq.answer}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </section>
 
