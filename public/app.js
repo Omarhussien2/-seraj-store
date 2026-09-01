@@ -753,7 +753,7 @@
       // Step 1
       h += '<article class="zz-row reveal" style="--d:.05s">';
       h += '<div class="zz-media"><div class="zz-video-wrap">';
-      h += '<video class="zz-video" src="assets/1-.mp4" autoplay muted loop playsinline preload="auto" poster="assets/seraj.webp" aria-label="الخطوة ١"></video>';
+      h += '<video class="zz-video" data-src="assets/1-.mp4" muted loop playsinline preload="none" poster="assets/seraj.webp" aria-label="الخطوة ١"></video>';
       h += '</div></div>';
       h += '<div class="zz-text"><span class="zz-num">١</span>';
       h += '<h3>قول لسراج اسم بطلنا وسنه</h3>';
@@ -762,7 +762,7 @@
       // Step 2
       h += '<article class="zz-row zz-reversed reveal" style="--d:.1s">';
       h += '<div class="zz-media"><div class="zz-video-wrap">';
-      h += '<video class="zz-video" src="assets/2.mp4" autoplay muted loop playsinline preload="auto" poster="assets/seraj.webp" aria-label="الخطوة ٢"></video>';
+      h += '<video class="zz-video" data-src="assets/2.mp4" muted loop playsinline preload="none" poster="assets/seraj.webp" aria-label="الخطوة ٢"></video>';
       h += '</div></div>';
       h += '<div class="zz-text"><span class="zz-num">٢</span>';
       h += '<h3>سراج هيدخل ورشه السحرية يكتب ويرسم القصة مخصوص ليه</h3>';
@@ -771,7 +771,7 @@
       // Step 3
       h += '<article class="zz-row reveal" style="--d:.15s">';
       h += '<div class="zz-media"><div class="zz-video-wrap">';
-      h += '<video class="zz-video" src="assets/3.mp4" autoplay muted loop playsinline preload="auto" poster="assets/seraj.webp" aria-label="الخطوة ٣"></video>';
+      h += '<video class="zz-video" data-src="assets/3.mp4" muted loop playsinline preload="none" poster="assets/seraj.webp" aria-label="الخطوة ٣"></video>';
       h += '</div></div>';
       h += '<div class="zz-text"><span class="zz-num">٣</span>';
       h += '<h3>القصة هتجيلك مطبوعة بجودة عالية لحد باب البيت</h3>';
@@ -3094,9 +3094,27 @@
   }
 
   // ----- Zig-Zag Section Videos: Lazy-load -----
+  function loadZigzagVideo(video) {
+    var source = video.dataset.src;
+    if (!source) return;
+    video.src = source;
+    video.removeAttribute('data-src');
+    video.load();
+  }
+
   function initZigzagVideos() {
     var wraps = document.querySelectorAll('.zz-video-wrap');
     if (!wraps.length) return;
+
+    if (typeof IntersectionObserver === 'undefined') {
+      wraps.forEach(function (wrap) {
+        var video = wrap.querySelector('video');
+        if (!video) return;
+        loadZigzagVideo(video);
+        video.play().catch(function () { /* autoplay blocked */ });
+      });
+      return;
+    }
 
     var observer = new IntersectionObserver(
       function (entries) {
@@ -3105,8 +3123,8 @@
           var video = wrap.querySelector('video');
           if (!video) return;
           if (entry.isIntersecting) {
-            if (video.readyState === 0) video.load();
-            video.play().catch(function () { });
+            loadZigzagVideo(video);
+            video.play().catch(function () { /* autoplay blocked */ });
             wrap.classList.add('is-playing');
           } else {
             video.pause();
@@ -3114,7 +3132,7 @@
           }
         });
       },
-      { threshold: 0.25 }
+      { rootMargin: '200px 0px', threshold: 0.1 }
     );
     wraps.forEach(function (w) { observer.observe(w); });
   }
