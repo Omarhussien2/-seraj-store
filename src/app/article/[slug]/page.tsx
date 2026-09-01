@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
 
   if (!article) {
     return {
-      title: "المقال غير موجود | سراج",
+      title: "المقال غير موجود",
       robots: { index: false, follow: true },
     };
   }
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
   const description = articleDescription(article);
 
   return {
-    title: `${article.seoTitle || article.title} | سراج`,
+    title: article.seoTitle || article.title,
     description,
     alternates: { canonical: siteUrl(path) },
     openGraph: {
@@ -68,15 +68,40 @@ export default async function ArticleSeoPage({ params }: ArticlePageProps) {
   const paragraphs = articleParagraphs(article.contentMarkdown);
   const articleJsonLd = {
     "@context": "https://schema.org",
-    "@type": "Article",
-    headline: article.seoTitle || article.title,
-    description,
-    image: article.coverImage ? absoluteAssetUrl(article.coverImage) : undefined,
-    url: siteUrl(articlePath),
-    author: { "@type": "Organization", name: article.author || "فريق سراج" },
-    publisher: { "@type": "Organization", name: "سراج" },
-    datePublished: article.publishedAt?.toISOString(),
-    dateModified: article.updatedAt?.toISOString(),
+    "@graph": [
+      {
+        "@type": "Article",
+        "@id": `${siteUrl(articlePath)}#article`,
+        headline: article.seoTitle || article.title,
+        description,
+        image: article.coverImage ? [absoluteAssetUrl(article.coverImage)] : undefined,
+        url: siteUrl(articlePath),
+        mainEntityOfPage: siteUrl(articlePath),
+        inLanguage: "ar-EG",
+        author: { "@type": "Organization", name: article.author || "فريق سراج" },
+        publisher: {
+          "@type": "Organization",
+          "@id": `${siteUrl("/")}#organization`,
+          name: "سراج",
+          logo: {
+            "@type": "ImageObject",
+            url: siteUrl("/assets/logo/google-logo-512.png"),
+            width: 512,
+            height: 512,
+          },
+        },
+        datePublished: article.publishedAt?.toISOString(),
+        dateModified: article.updatedAt?.toISOString(),
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "الرئيسية", item: siteUrl("/") },
+          { "@type": "ListItem", position: 2, name: "عالم ماما وبابا", item: siteUrl("/mama-world") },
+          { "@type": "ListItem", position: 3, name: article.title, item: siteUrl(articlePath) },
+        ],
+      },
+    ],
   };
 
   return (

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   getActiveProducts,
+  jsonLd,
   productDescription,
   productImageUrl,
   siteUrl,
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export const metadata: Metadata = {
-  title: "منتجات سراج | قصص وألعاب تعليمية للأطفال",
+  title: "قصص وألعاب تعليمية للأطفال",
   description:
     "تصفح منتجات سراج من قصص مخصصة، قصص جاهزة، وأنشطة تعليمية للأطفال بجودة عالية ومحتوى عربي دافئ.",
   alternates: { canonical: siteUrl("/products") },
@@ -26,9 +27,30 @@ export const metadata: Metadata = {
 
 export default async function ProductsSeoPage() {
   const products = await getActiveProducts();
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "منتجات سراج",
+    description: metadata.description,
+    url: siteUrl("/products"),
+    inLanguage: "ar-EG",
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: products.map((product, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: product.name,
+        url: siteUrl(`/product/${encodeURIComponent(product.slug)}`),
+      })),
+    },
+  };
 
   return (
     <main className="min-h-screen bg-[#f7f1e7] px-4 py-8 text-[#26170f]" dir="rtl">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(collectionJsonLd) }}
+      />
       <div className="mx-auto max-w-6xl space-y-8">
         <header className="space-y-4">
           <Link className="text-sm font-semibold text-[#1f7a5c]" href="/index.html#/home">

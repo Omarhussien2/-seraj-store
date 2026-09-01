@@ -3,6 +3,7 @@ import Link from "next/link";
 import {
   articleDescription,
   getPublishedArticles,
+  jsonLd,
   siteUrl,
   absoluteAssetUrl,
 } from "@/lib/seoContent";
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export const metadata: Metadata = {
-  title: "عالم ماما وبابا | سراج",
+  title: "عالم ماما وبابا",
   description:
     "مقالات عملية للأمهات والآباء عن التربية، التعليم، السلوكيات، والقراءة للأطفال.",
   alternates: { canonical: siteUrl("/mama-world") },
@@ -25,9 +26,30 @@ export const metadata: Metadata = {
 
 export default async function MamaWorldSeoPage() {
   const articles = await getPublishedArticles(24);
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "عالم ماما وبابا",
+    description: metadata.description,
+    url: siteUrl("/mama-world"),
+    inLanguage: "ar-EG",
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: articles.map((article, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: article.title,
+        url: siteUrl(`/article/${encodeURIComponent(article.slug)}`),
+      })),
+    },
+  };
 
   return (
     <main className="min-h-screen bg-[#f7f1e7] px-4 py-8 text-[#26170f]" dir="rtl">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(collectionJsonLd) }}
+      />
       <div className="mx-auto max-w-6xl space-y-8">
         <header className="space-y-4">
           <Link className="text-sm font-semibold text-[#1f7a5c]" href="/index.html#/mama-world">

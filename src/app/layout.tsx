@@ -6,31 +6,53 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "https://seraj-store.vercel.app"
   ),
-  title: "سِراج — متعة القراءة واللعب",
+  title: {
+    default: "سِراج — قصص أطفال عربية مخصصة وألعاب تعليمية",
+    template: "%s | سراج",
+  },
+  applicationName: "سِراج",
   description:
-    "قصص مخصصة باسم طفلك — مصنوعة بحب في مصر. كتب أطفال بجودة عالية بتعلّم القيم والمغامرة. اطلب قصة بطلك النهاردة!",
+    "قصص أطفال عربية مخصصة باسم وصورة طفلك، وكتب وألعاب تعليمية تنمّي حب القراءة والقيم. مصنوعة بحب في مصر وتُشحن لباب البيت.",
+  authors: [{ name: "فريق سراج" }],
+  creator: "سراج",
+  publisher: "سراج",
+  category: "كتب وقصص أطفال",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   openGraph: {
-    title: "سِراج — متعة القراءة واللعب",
+    title: "سِراج — قصص أطفال عربية مخصصة وألعاب تعليمية",
     description:
-      "قصص مخصصة باسم طفلك — مصنوعة بحب في مصر. كتب أطفال بجودة عالية بتعلّم القيم والمغامرة.",
+      "قصص مخصصة باسم وصورة طفلك، وكتب وألعاب تعليمية عربية مصنوعة بحب في مصر.",
     type: "website",
     locale: "ar_EG",
     siteName: "سِراج",
     images: [
       {
-        url: "/assets/share-banner.jpg",
-        width: 2400,
-        height: 1792,
-        alt: "سِراج — متعة القراءة واللعب",
+        url: "/assets/social-card-1200x630.jpg",
+        width: 1200,
+        height: 630,
+        alt: "شخصيات عالم سراج لقصص الأطفال العربية",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "سِراج — متعة القراءة واللعب",
+    title: "سِراج — قصص أطفال عربية مخصصة وألعاب تعليمية",
     description:
-      "قصص مخصصة باسم طفلك — مصنوعة بحب في مصر.",
-    images: ["/assets/share-banner.jpg"],
+      "قصص مخصصة باسم وصورة طفلك، وكتب وألعاب تعليمية عربية.",
+    images: ["/assets/social-card-1200x630.jpg"],
+  },
+  icons: {
+    icon: [
+      { url: "/assets/logo/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/assets/logo/favicon-48x48.png", sizes: "48x48", type: "image/png" },
+    ],
+    apple: [
+      { url: "/assets/logo/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
   robots: {
     index: true,
@@ -63,8 +85,6 @@ export default function RootLayout({
             gtag('config', 'G-FZW3R2J7Y9');
           `}
         </Script>
-        <link rel="icon" type="image/svg+xml" href="/assets/logo/logo-icon.svg" />
-        <link rel="apple-touch-icon" href="/assets/logo/logo-icon.svg" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"

@@ -33,7 +33,7 @@ export function AdminSidebar() {
       <div className="p-4 border-b border-gray-200">
         <Link href="/admin" className="flex items-center gap-2">
           <img
-            src="/assets/logo/logo.svg"
+            src="/assets/logo/logo.webp"
             alt="سِراج"
             className="w-9 h-9 object-contain rounded-lg"
           />

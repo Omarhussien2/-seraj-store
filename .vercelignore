@@ -12,11 +12,19 @@ out
 coverage
 test-results
 playwright-report
+scratch
+tests
 
 # Repository and local automation artifacts not needed by Vercel builds.
 .git
 claude.exe
 project-session-tracker
+.planning
+wiki
+debug-sc.png
+diff.txt
+index_diff.patch
+original_app.js
 
 # Workspace-only documentation; not required for the deployed runtime.
 docs
