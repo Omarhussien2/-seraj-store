@@ -594,11 +594,11 @@
     }
     var ogTitle = product.name + ' — سِراج';
     var ogImage = resolvePhotoUrl(product.imageUrl, product.media) ||
-      'https://seraj-store.vercel.app/assets/share-banner.webp';
+      window.location.origin + '/assets/social-card-1200x630.webp';
     setMetaProp('og:title', ogTitle);
     setMetaProp('og:description', product.shortDesc || product.longDesc || '');
     setMetaProp('og:image', ogImage);
-    setMetaProp('og:url', 'https://seraj-store.vercel.app/#/product/' + slug);
+    setMetaProp('og:url', window.location.origin + '/product/' + encodeURIComponent(slug));
     setMetaProp('og:type', 'product');
 
     // Inject Product JSON-LD so Google's product rich-result
@@ -615,7 +615,7 @@
         brand: { '@type': 'Brand', name: 'سِراج' },
         offers: {
           '@type': 'Offer',
-          url: 'https://seraj-store.vercel.app/#/product/' + slug,
+          url: window.location.origin + '/product/' + encodeURIComponent(slug),
           priceCurrency: 'EGP',
           price: String(product.price),
           availability: product.comingSoon
@@ -1932,17 +1932,17 @@
     setTimeout(initReveals, 80);
 
     var pageTitles = {
-      'home': 'سراج | حكايات بتكبر مع طفلك',
-      'products': 'سراج | المنتجات',
-      'about': 'سراج | حكايتنا',
-      'wizard': 'سراج | اصنع قصتك',
-      'cart': 'سراج | سلة المشتريات',
-      'checkout': 'سراج | إتمام الطلب',
-      'mama-world': 'سراج | عالم ماما وبابا',
-      'article': 'سراج | عالم ماما وبابا', // could be dynamic
-      'faq': 'سراج | الأسئلة الشائعة',
-      'shipping': 'سراج | سياسة الشحن',
-      'returns': 'سراج | سياسة الاسترجاع'
+      'home': 'سِراج — قصص أطفال عربية مخصصة وألعاب تعليمية',
+      'products': 'قصص وألعاب تعليمية للأطفال | سراج',
+      'about': 'حكاية سراج | قصص أطفال عربية',
+      'wizard': 'اصنع قصة مخصصة لطفلك | سراج',
+      'cart': 'سلة المشتريات | سراج',
+      'checkout': 'إتمام الطلب | سراج',
+      'mama-world': 'عالم ماما وبابا | سراج',
+      'article': 'عالم ماما وبابا | سراج',
+      'faq': 'الأسئلة الشائعة | سراج',
+      'shipping': 'سياسة الشحن | سراج',
+      'returns': 'سياسة الاسترجاع | سراج'
     };
     if (pageTitles[name]) document.title = pageTitles[name];
 
@@ -3502,7 +3502,7 @@
   };
 
   window.shareProduct = function(slug, name) {
-    var url = window.location.origin + '/#/product/' + slug;
+    var url = window.location.origin + '/product/' + encodeURIComponent(slug);
     var text = 'شوف المنتج ده من سِراج: ' + name;
     if (navigator.share) {
       navigator.share({

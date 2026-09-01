@@ -1,26 +1,35 @@
 {
   "name": "سِراج — متعة القراءة واللعب",
   "short_name": "سِراج",
-  "description": "قصص مخصصة باسم طفلك — مصنوعة بحب في مصر",
-  "start_url": "/#/home",
+  "description": "قصص أطفال عربية مخصصة وكتب وألعاب تعليمية — مصنوعة بحب في مصر",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#fdf4e4",
   "theme_color": "#6bbf3f",
   "dir": "rtl",
   "lang": "ar",
   "orientation": "portrait",
+  "categories": ["education", "shopping", "books"],
   "icons": [
     {
-      "src": "assets/logo/logo-icon.png",
-      "sizes": "any",
+      "src": "/assets/logo/icon-192.png",
+      "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "assets/logo/logo.webp",
-      "sizes": "any",
-      "type": "image/webp",
+      "src": "/assets/logo/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/assets/logo/maskable-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

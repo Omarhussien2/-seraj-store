@@ -10,37 +10,24 @@ Disallow: /admin/
 Disallow: /api/
 
 # ==========================================
-# AI Agents & Crawlers — Explicit Rules
+# AI Search Crawlers — Explicit Rules
 # ==========================================
-User-agent: GPTBot
-Allow: /
-
 User-agent: ChatGPT-User
-Allow: /
-
 User-agent: OAI-SearchBot
-Allow: /
-
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: Claude-Web
-Allow: /
-
-User-agent: Google-Extended
-Allow: /
-
 User-agent: PerplexityBot
 Allow: /
+Disallow: /admin/
+Disallow: /api/
 
-User-agent: Bytespider
-Allow: /
+# Search access is allowed while model-training crawlers stay blocked.
+User-agent: GPTBot
+Disallow: /
 
-User-agent: FacebookBot
-Allow: /
+User-agent: Google-Extended
+Disallow: /
 
 # ==========================================
-# Content Signals (IETF Draft — contentsignals.org)
+# Content Signals
 # ==========================================
 Content-Signal: ai-train=no, search=yes, ai-input=no
 

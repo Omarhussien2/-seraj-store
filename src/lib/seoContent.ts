@@ -22,6 +22,8 @@ export type SeoProduct = {
   media?: { image?: string };
   gallery?: { url: string; resourceType?: string; alt?: string; sortOrder?: number }[];
   ctaText?: string;
+  action?: "cart" | "wizard" | "none";
+  comingSoon?: boolean;
   active?: boolean;
   updatedAt?: Date;
 };
@@ -52,7 +54,7 @@ export function encodedPath(prefix: string, slug: string) {
 }
 
 export function absoluteAssetUrl(url?: string | null) {
-  if (!url) return siteUrl("/assets/share-banner.webp");
+  if (!url) return siteUrl("/assets/social-card-1200x630.webp");
   return new URL(url, SITE_URL).toString();
 }
 

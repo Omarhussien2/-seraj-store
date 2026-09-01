@@ -49,7 +49,7 @@ function LoginForm() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <img
-            src="/assets/logo/logo-icon.svg"
+            src="/assets/logo/logo-icon.png"
             alt="سِراج"
             className="w-20 h-20 mx-auto object-contain rounded-2xl"
           />

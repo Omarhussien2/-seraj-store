@@ -4,6 +4,9 @@ import Product from "@/lib/models/Product";
 import Article from "@/lib/models/Article";
 import { encodedPath, siteUrl } from "@/lib/seoContent";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 /**
  * Sitemap should list crawlable canonical URLs only. The public storefront can
  * still use hash routes, but Google needs normal paths for products/articles.
@@ -12,9 +15,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   const staticRoutes: MetadataRoute.Sitemap = [
-    { url: siteUrl("/"), lastModified: now, changeFrequency: "daily", priority: 1.0 },
-    { url: siteUrl("/products"), lastModified: now, changeFrequency: "daily", priority: 0.9 },
-    { url: siteUrl("/mama-world"), lastModified: now, changeFrequency: "weekly", priority: 0.7 },
+    { url: siteUrl("/"), changeFrequency: "daily", priority: 1.0 },
+    { url: siteUrl("/products"), changeFrequency: "daily", priority: 0.9 },
+    { url: siteUrl("/mama-world"), changeFrequency: "weekly", priority: 0.7 },
   ];
 
   let dynamicRoutes: MetadataRoute.Sitemap = [];

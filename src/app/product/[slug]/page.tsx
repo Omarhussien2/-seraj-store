@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
   if (!product) {
     return {
-      title: "المنتج غير موجود | سراج",
+      title: "المنتج غير موجود",
       robots: { index: false, follow: true },
     };
   }
@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const description = productDescription(product);
 
   return {
-    title: `${product.name} | سراج`,
+    title: product.name,
     description,
     alternates: { canonical: siteUrl(path) },
     openGraph: {
@@ -61,21 +61,44 @@ export default async function ProductSeoPage({ params }: ProductPageProps) {
   const productPath = encodedPath("/product", product.slug);
   const image = productImageUrl(product);
   const description = productDescription(product);
+  const offer =
+    product.price > 0 && product.action !== "none"
+      ? {
+          "@type": "Offer",
+          priceCurrency: "EGP",
+          price: product.price,
+          availability: product.comingSoon
+            ? "https://schema.org/PreOrder"
+            : "https://schema.org/InStock",
+          itemCondition: "https://schema.org/NewCondition",
+          url: siteUrl(productPath),
+          seller: { "@id": `${siteUrl("/")}#organization` },
+        }
+      : undefined;
   const productJsonLd = {
     "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.name,
-    description,
-    image,
-    url: siteUrl(productPath),
-    brand: { "@type": "Brand", name: "سراج" },
-    offers: {
-      "@type": "Offer",
-      priceCurrency: "EGP",
-      price: product.price,
-      availability: "https://schema.org/InStock",
-      url: siteUrl(productPath),
-    },
+    "@graph": [
+      {
+        "@type": "Product",
+        "@id": `${siteUrl(productPath)}#product`,
+        name: product.name,
+        sku: product.slug,
+        description,
+        image: [image],
+        url: siteUrl(productPath),
+        category: product.category,
+        brand: { "@type": "Brand", name: "سراج" },
+        offers: offer,
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "الرئيسية", item: siteUrl("/") },
+          { "@type": "ListItem", position: 2, name: "المنتجات", item: siteUrl("/products") },
+          { "@type": "ListItem", position: 3, name: product.name, item: siteUrl(productPath) },
+        ],
+      },
+    ],
   };
 
   return (
@@ -144,7 +167,7 @@ export default async function ProductSeoPage({ params }: ProductPageProps) {
           <div className="flex flex-wrap gap-3">
             <Link
               className="rounded-md bg-[#1f7a5c] px-5 py-3 font-bold text-white"
-              href={`/index.html#/product/${product.slug}`}
+              href={`/index.html#/product/${encodeURIComponent(product.slug)}`}
             >
               افتح المنتج في المتجر
             </Link>
