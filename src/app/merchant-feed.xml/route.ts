@@ -4,6 +4,7 @@ import {
   productImageUrl,
   siteUrl,
 } from "@/lib/seoContent";
+import { googleProductCategoryId } from "@/lib/googleProductCategories";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -24,6 +25,10 @@ export async function GET() {
   const productItems = products.map((product) => {
     const productUrl = siteUrl(`/product/${encodeURIComponent(product.slug)}`);
     const availability = product.comingSoon ? "preorder" : "in_stock";
+    const googleCategoryId = googleProductCategoryId(product);
+    const googleCategoryXml = googleCategoryId
+      ? `<g:google_product_category>${googleCategoryId}</g:google_product_category>`
+      : "";
 
     return `
       <item>
@@ -37,6 +42,7 @@ export async function GET() {
         <g:condition>new</g:condition>
         <g:brand>سراج</g:brand>
         <g:product_type>${escapeXml(product.category || "كتب وقصص أطفال")}</g:product_type>
+        ${googleCategoryXml}
         <g:identifier_exists>false</g:identifier_exists>
       </item>`;
   });
