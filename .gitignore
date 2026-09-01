@@ -51,6 +51,7 @@ claude.exe
 
 # temp
 seraj-nextjs-init/
+/scratch/
 
 # Duplicate assets (originals in public/assets/)
 public/assets/assets/

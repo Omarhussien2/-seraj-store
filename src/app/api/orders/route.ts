@@ -38,20 +38,65 @@ const OrderItemSchema = z.object({
   qty: z.number().int().min(1).default(1),
 });
 
-const CustomStorySchema = z.object({
-  heroName: z.string().min(1),
-  age: z.preprocess(
-    (val) => (val === null || val === undefined || val === "" ? 5 : Number(val)),
-    z.number().int().min(1).max(18)
-  ),
-  challenge: z.preprocess(
-    (val) => (val === null || val === undefined || val === "" ? "شجاعة" : val),
-    z.string().min(1)
-  ),
-  customChallenge: z.string().max(500).optional(),
-  photoUrl: z.string().url().optional().nullable(),
-  photoUrls: z.array(z.string().url()).max(5).optional().nullable(),
-});
+const CustomStorySchema = z
+  .object({
+    heroName: z.string().min(1),
+    age: z.preprocess(
+      (val) => Number(val),
+      z.number().int().min(1).max(18)
+    ),
+    gender: z.enum(["boy", "girl"]),
+    challenge: z.string().trim().min(1),
+    customChallenge: z.string().max(500).optional(),
+    language: z.literal("ar").default("ar"),
+    dedicationType: z.enum(["none", "warm", "dream", "custom"]).default("none"),
+    dedicationText: z.string().trim().max(500).optional(),
+    deliveryRecipientType: z.enum(["customer", "other"]).default("customer"),
+    recipientName: z.string().trim().max(120).optional(),
+    recipientPhone: z.string().regex(/^01[0-9]{9}$/).optional(),
+    recipientAddress: z.string().trim().max(500).optional(),
+    photoUrl: z.string().url().optional().nullable(),
+    photoUrls: z.array(z.string().url()).max(5).optional().nullable(),
+  })
+  .superRefine((story, context) => {
+    if (!story.photoUrl && !story.photoUrls?.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "صورة الطفل مطلوبة",
+        path: ["photoUrls"],
+      });
+    }
+    if (story.dedicationType === "custom" && !story.dedicationText) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "نص الإهداء المخصص مطلوب",
+        path: ["dedicationText"],
+      });
+    }
+    if (story.deliveryRecipientType === "other") {
+      if (!story.recipientName) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "اسم مستلم القصة مطلوب",
+          path: ["recipientName"],
+        });
+      }
+      if (!story.recipientPhone) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "رقم موبايل مستلم القصة مطلوب",
+          path: ["recipientPhone"],
+        });
+      }
+      if (!story.recipientAddress) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "عنوان مستلم القصة مطلوب",
+          path: ["recipientAddress"],
+        });
+      }
+    }
+  });
 
 const CreateOrderSchema = z.object({
   items: z.array(OrderItemSchema).min(1, "سلة التسوق فاضية"),
@@ -307,9 +352,23 @@ export async function POST(request: Request) {
           ? {
               heroName: validated.customStory.heroName,
               age: validated.customStory.age,
+              gender: validated.customStory.gender,
               challenge: validated.customStory.challenge,
+              language: validated.customStory.language,
+              dedicationType: validated.customStory.dedicationType,
+              deliveryRecipientType: validated.customStory.deliveryRecipientType,
+              ...(validated.customStory.dedicationText
+                ? { dedicationText: validated.customStory.dedicationText }
+                : {}),
               ...(validated.customStory.customChallenge
                 ? { customChallenge: validated.customStory.customChallenge }
+                : {}),
+              ...(validated.customStory.deliveryRecipientType === "other"
+                ? {
+                    recipientName: validated.customStory.recipientName,
+                    recipientPhone: validated.customStory.recipientPhone,
+                    recipientAddress: validated.customStory.recipientAddress,
+                  }
                 : {}),
               ...(validated.customStory.photoUrl
                 ? { photoUrl: validated.customStory.photoUrl }

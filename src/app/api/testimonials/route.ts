@@ -3,6 +3,8 @@ import { connectDB } from "@/lib/db";
 import Testimonial from "@/lib/models/Testimonial";
 import { requireAdmin } from "@/lib/requireAdmin";
 import { apiCache } from "@/lib/apiCache";
+import { CreateTestimonialSchema } from "@/lib/testimonials/validation";
+import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +15,11 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const all = searchParams.get("all") === "true"; // return inactive as well
     const fresh = searchParams.get("fresh") === "1";
+
+    if (all) {
+      const authError = await requireAdmin();
+      if (authError) return authError;
+    }
 
     const cacheKey = all ? null : "__public__";
 
@@ -65,14 +72,19 @@ export async function POST(request: Request) {
     if (authError) return authError;
 
     await connectDB();
-    const body = await request.json();
-
+    const body = CreateTestimonialSchema.parse(await request.json());
     const newDoc = await Testimonial.create(body);
 
     cache.invalidate();
 
     return NextResponse.json({ success: true, data: newDoc }, { status: 201 });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: "بيانات الشهادة غير مكتملة", details: error.issues },
+        { status: 400 }
+      );
+    }
     console.error("POST /api/testimonials error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to create testimonial" },

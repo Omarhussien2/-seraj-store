@@ -22,8 +22,24 @@ const CustomStorySchema = new mongoose.Schema(
   {
     heroName: { type: String, required: true },
     age: { type: Number, required: true, min: 1, max: 18 },
+    gender: { type: String, required: true, enum: ["boy", "girl"] },
     challenge: { type: String, required: true },
     customChallenge: { type: String },
+    language: { type: String, default: "ar", enum: ["ar"] },
+    dedicationType: {
+      type: String,
+      default: "none",
+      enum: ["none", "warm", "dream", "custom"],
+    },
+    dedicationText: { type: String },
+    deliveryRecipientType: {
+      type: String,
+      default: "customer",
+      enum: ["customer", "other"],
+    },
+    recipientName: { type: String, trim: true },
+    recipientPhone: { type: String, trim: true },
+    recipientAddress: { type: String, trim: true },
     photoUrl: { type: String },
     photoUrls: [{ type: String }],
     storyStatus: {
@@ -73,8 +89,16 @@ export interface IOrder extends Document {
   customStory?: {
     heroName: string;
     age: number;
+    gender: "boy" | "girl";
     challenge: string;
     customChallenge?: string;
+    language: "ar";
+    dedicationType: "none" | "warm" | "dream" | "custom";
+    dedicationText?: string;
+    deliveryRecipientType: "customer" | "other";
+    recipientName?: string;
+    recipientPhone?: string;
+    recipientAddress?: string;
     photoUrl?: string;
     photoUrls?: string[];
     storyStatus: "pending" | "reviewed" | "sent_to_print" | "delivered";

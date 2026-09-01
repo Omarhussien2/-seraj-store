@@ -65,27 +65,19 @@ Shipping and returns remain governed by `src/lib/commercePolicies.ts` and the
 live `/shipping` and `/returns` pages. Do not merge custom-story production
 time with carrier delivery time unless both stages have been confirmed.
 
-### Current content drift to resolve
+### Catalog synchronization completed
 
-The production database, public fallback, and seed data do not currently agree:
+On 2026-09-01, the live product data, `public/app.js`, `scripts/seed.ts`,
+`scripts/seed-products.js`, and the catalog migrations were synchronized. The
+custom story is 310 EGP with a 340 EGP comparison price. Unconfirmed page-count,
+cover, paper, artist, and gift-wrapping claims were removed from the active
+copy and fallback sources.
 
-| Source checked on 2026-09-01 | Current claim |
-| --- | --- |
-| Live `/api/products` record for `custom-story` | 310 EGP; complete story with the child's name and photo; no visible page-count or detailed print specification |
-| `public/app.js` fallback product | 220 EGP; 24 colored pages; reinforced cover; thick paper |
-| `scripts/seed.ts` and `scripts/seed-products.js` | 220 EGP; 24 colored pages; reinforced cover; thick paper; Egyptian artists |
-| `public/index.html` personalization steps | Reinforced cover and thick paper, without the complete package specification |
-
-A fallback or seed file is not proof of the current product. Confirm the real
-package, update every source together, and verify the server-recalculated order
-price before publishing stronger copy. This is a Priority 0 trust and conversion
-issue, not merely a keyword task.
-
-`public/app.js` also contains testimonial-style names and quotations. Treat
-them as unverified until they can be tied to genuine orders and permission for
-public display. Do not use them in structured data, aggregate ratings, landing
-pages, or social proof merely because they exist in fallback code. Re-check
-this finding after the active story-builder/testimonials work is merged.
+Unverified testimonial-style product reviews were also removed from the live
+product records and fallback data. Customer proof now comes only from the
+dedicated WhatsApp testimonial records managed through `/admin/testimonials`.
+Do not add ratings or quotations to product data unless they can be tied to a
+genuine order and permission for public display.
 
 ## Positioning
 

@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
 import { isRateLimited, getClientIp } from "@/lib/rateLimit";
 import { filetypeinfo } from "magic-bytes.js";
-import sharp from "sharp";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 // Configure Cloudinary from env
 cloudinary.config({
@@ -15,7 +17,7 @@ cloudinary.config({
  * POST /api/upload-child-photo
  * Public endpoint for uploading child photos from the wizard.
  * No auth required — customers use this during checkout wizard.
- * Has strict validation: max 5MB, images only, magic bytes validation, and sharp sanitization.
+ * Has strict validation: max 5MB, images only, magic bytes validation, and Cloudinary re-encoding.
  */
 export async function POST(request: Request) {
   // Rate limit: 20 uploads per 10 minutes per IP
@@ -33,7 +35,7 @@ export async function POST(request: Request) {
 
     if (!file) {
       return NextResponse.json(
-        { success: false, error: "No file provided" },
+        { success: false, error: "اختاري صورة للطفل أولًا" },
         { status: 400 }
       );
     }
@@ -42,7 +44,7 @@ export async function POST(request: Request) {
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       return NextResponse.json(
-        { success: false, error: "File too large. Max: 5MB" },
+        { success: false, error: "حجم الصورة لازم يكون أقل من ٥ ميجا" },
         { status: 400 }
       );
     }
@@ -58,22 +60,23 @@ export async function POST(request: Request) {
 
     if (!isValidSignature) {
       return NextResponse.json(
-        { success: false, error: "Invalid file signature. Allowed: JPEG, PNG, WebP" },
+        { success: false, error: "الصورة لازم تكون JPEG أو PNG أو WebP" },
         { status: 400 }
       );
     }
 
-    // Sanitize and resize with Sharp (removes EXIF and potentially malicious payloads)
-    const sanitizedBuffer = await sharp(buffer)
-      .resize({ width: 800, height: 800, fit: "inside", withoutEnlargement: true })
-      .webp({ quality: 80 })
-      .toBuffer();
-
-    const base64 = `data:image/webp;base64,${sanitizedBuffer.toString("base64")}`;
+    const detectedMime = typeInfo.find((info) =>
+      ["image/jpeg", "image/png", "image/webp"].includes(info.mime || "")
+    )?.mime;
+    const base64 = `data:${detectedMime};base64,${buffer.toString("base64")}`;
 
     const result = await cloudinary.uploader.upload(base64, {
       folder: "seraj/children-photos",
       resource_type: "image",
+      transformation: [
+        { width: 800, height: 800, crop: "limit" },
+        { quality: "auto:good" },
+      ],
     });
 
     return NextResponse.json(
@@ -92,7 +95,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("POST /api/upload-child-photo error:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to upload file" },
+      { success: false, error: "تعذر رفع الصورة الآن، حاولي مرة تانية" },
       { status: 500 }
     );
   }

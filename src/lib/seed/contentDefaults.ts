@@ -22,7 +22,7 @@ export const DEFAULT_CONTENT = [
   { key: "how.step2_title", section: "how", value: "ارفع أحلى صورة ليه" },
   { key: "how.step2_desc", section: "how", value: "سراج هياخد الصورة ويخلي ابنك هو البطل الحقيقي للقصة." },
   { key: "how.step3_title", section: "how", value: "استلم قصتك لحد البيت" },
-  { key: "how.step3_desc", section: "how", value: "هتستلم قصة مطبوعة بألوان مبهجة وتغليف يفرّح القلب." },
+  { key: "how.step3_desc", section: "how", value: "هتستلم قصة مطبوعة بألوان مبهجة لحد باب البيت." },
   
   // Values
   { key: "values.kicker", section: "values", value: "القيم اللي هيتعلمها" },

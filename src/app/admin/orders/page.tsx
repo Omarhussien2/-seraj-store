@@ -37,8 +37,16 @@ interface OrderItem {
 interface CustomStory {
   heroName: string;
   age: number;
+  gender: "boy" | "girl";
   challenge: string;
   customChallenge?: string;
+  language?: "ar";
+  dedicationType?: "none" | "warm" | "dream" | "custom";
+  dedicationText?: string;
+  deliveryRecipientType?: "customer" | "other";
+  recipientName?: string;
+  recipientPhone?: string;
+  recipientAddress?: string;
   photoUrl?: string;
   photoUrls?: string[];
 }
@@ -622,9 +630,21 @@ export default function AdminOrdersPage() {
                   <CardContent className="text-sm space-y-2">
                     <p><strong>اسم الطفل:</strong> {selectedOrder.customStory.heroName}</p>
                     <p><strong>السن:</strong> {selectedOrder.customStory.age} سنوات</p>
+                    <p><strong>بطل الحكاية:</strong> {selectedOrder.customStory.gender === "girl" ? "بطلة" : "بطل"}</p>
                     <p><strong>التحدي:</strong> {selectedOrder.customStory.challenge}</p>
                     {selectedOrder.customStory.customChallenge && (
                       <p><strong>تفاصيل خاصة:</strong> {selectedOrder.customStory.customChallenge}</p>
+                    )}
+                    {selectedOrder.customStory.dedicationText && (
+                      <p><strong>الإهداء:</strong> {selectedOrder.customStory.dedicationText}</p>
+                    )}
+                    {selectedOrder.customStory.deliveryRecipientType === "other" && (
+                      <div className="rounded-lg border bg-green-50 p-3 space-y-1">
+                        <p className="font-semibold text-green-800">التوصيل لشخص آخر</p>
+                        <p><strong>اسم المستلم:</strong> {selectedOrder.customStory.recipientName}</p>
+                        <p><strong>موبايل المستلم:</strong> {selectedOrder.customStory.recipientPhone}</p>
+                        <p><strong>عنوان المستلم:</strong> {selectedOrder.customStory.recipientAddress}</p>
+                      </div>
                     )}
                     {(selectedOrder.customStory.photoUrls?.length || selectedOrder.customStory.photoUrl) && (
                       <div>

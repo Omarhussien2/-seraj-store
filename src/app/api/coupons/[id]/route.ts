@@ -24,6 +24,13 @@ const CouponLimitsSchema = z.object({
   minSubtotal: z.number().min(0).optional(),
 });
 
+const CouponPromotionSchema = z.object({
+  featured: z.boolean(),
+  headline: z.string().trim().max(200).optional().nullable(),
+  message: z.string().trim().max(500).optional().nullable(),
+  ctaText: z.string().trim().max(100).optional().nullable(),
+});
+
 const PatchCouponSchema = z.object({
   code: z.string().min(1).max(64).optional(),
   active: z.boolean().optional(),
@@ -33,6 +40,7 @@ const PatchCouponSchema = z.object({
   validTo: z.coerce.date().optional().nullable(),
   discounts: z.array(CouponDiscountRuleSchema).min(1).optional(),
   limits: CouponLimitsSchema.optional(),
+  promotion: CouponPromotionSchema.optional(),
 });
 
 export async function GET(
@@ -99,6 +107,13 @@ export async function PATCH(
 
     if (!coupon) {
       return NextResponse.json({ success: false, error: "Coupon not found" }, { status: 404 });
+    }
+
+    if (validated.promotion?.featured) {
+      await Coupon.updateMany(
+        { _id: { $ne: coupon._id }, "promotion.featured": true },
+        { $set: { "promotion.featured": false } }
+      );
     }
 
     return NextResponse.json({ success: true, data: coupon });
