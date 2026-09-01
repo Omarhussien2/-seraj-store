@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
+  DEFAULT_SOCIAL_IMAGE,
   articleDescription,
   getPublishedArticles,
   jsonLd,
@@ -21,6 +22,7 @@ export const metadata: Metadata = {
     description: "مقالات عملية للأمهات والآباء من فريق سراج.",
     url: siteUrl("/mama-world"),
     type: "website",
+    images: [DEFAULT_SOCIAL_IMAGE],
   },
 };
 

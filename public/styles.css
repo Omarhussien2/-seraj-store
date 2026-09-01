@@ -1191,7 +1191,8 @@ input, textarea { font-family: inherit; }
 
 /* ========== PAGE HEAD ========== */
 .page-head { text-align: center; padding: 60px 20px 30px; max-width: 780px; margin: 0 auto; }
-.page-head h1 { font-size: clamp(32px, 5vw, 52px); margin: 14px 0 8px; }
+.page-head h1,
+.page-head h2 { font-size: clamp(32px, 5vw, 52px); margin: 14px 0 8px; }
 .page-head p { color: var(--ink-mute); font-size: 17px; }
 .page-head.tight { padding: 40px 20px 20px; }
 
@@ -2112,7 +2113,8 @@ input, textarea { font-family: inherit; }
   0%,100% { transform: rotate(-6deg) translateY(0); }
   50% { transform: rotate(6deg) translateY(-10px); }
 }
-.success-wrap h1 { font-size: clamp(28px, 5vw, 40px); margin-bottom: 10px; }
+.success-wrap h1,
+.success-wrap h2 { font-size: clamp(28px, 5vw, 40px); margin-bottom: 10px; }
 .success-wrap p.lead { color: var(--ink-mute); margin-bottom: 24px; }
 .order-id {
   display: inline-block;
@@ -3246,7 +3248,8 @@ input, textarea { font-family: inherit; }
 @media (min-width: 820px) {
   .mama-hero-img { width: 200px; height: 200px; }
 }
-.mama-hero-copy h1 {
+.mama-hero-copy h1,
+.mama-hero-copy h2 {
   font-size: clamp(28px, 5vw, 42px);
   margin-bottom: 8px;
 }
@@ -4260,7 +4263,8 @@ input, textarea { font-family: inherit; }
   border: 1px solid rgba(255,255,255,.3); font-size: .78rem;
   backdrop-filter: blur(4px);
 }
-.catalog-hero-copy h1 {
+.catalog-hero-copy h1,
+.catalog-hero-copy h2 {
   color: #fff; font-size: clamp(24px, 5vw, 38px);
   margin: 10px 0 6px; line-height: 1.2; font-weight: 800;
   text-shadow: 0 2px 8px rgba(0,0,0,0.08);

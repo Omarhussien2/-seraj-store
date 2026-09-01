@@ -7,7 +7,12 @@ import {
   productMatchesSeoCategory,
   SEO_CATEGORIES,
 } from "@/lib/seoCategories";
-import { getActiveProducts, jsonLd, siteUrl } from "@/lib/seoContent";
+import {
+  DEFAULT_SOCIAL_IMAGE,
+  getActiveProducts,
+  jsonLd,
+  siteUrl,
+} from "@/lib/seoContent";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -43,6 +48,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       type: "website",
       locale: "ar_EG",
       siteName: "سراج",
+      images: [DEFAULT_SOCIAL_IMAGE],
     },
   };
 }
