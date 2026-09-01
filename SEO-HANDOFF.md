@@ -50,28 +50,53 @@ relevant source above in the same pull request.
 
 ### Google Search Console
 
-- The property is verified under the correct Google account.
-- `https://seraj-store.vercel.app/sitemap.xml` was submitted successfully.
-- The last observed report showed 56 sitemap URLs, with 40 indexed and 10 not
-  indexed. Re-read the live report before quoting these numbers.
+- The property is verified under the correct Google account. **Users and
+  permissions** showed one user only: `hussien.impression@gmail.com`, verified
+  owner. There were 0 unused ownership tokens.
+- `https://seraj-store.vercel.app/sitemap.xml` was last read successfully on
+  2026-09-01 and contained 56 discovered pages.
+- The live report showed 40 indexed pages and 10 not indexed. The exclusions
+  were 9 pages marked **Discovered - currently not indexed** and the expected
+  `/index.html` duplicate marked **Alternate page with proper canonical tag**.
+- Validation for the 9 discovered-but-not-indexed pages was started on
+  2026-09-01 after their production responses, metadata, canonicals, and
+  structured data were rechecked.
 - Manual indexing requests reached Google's daily quota on 2026-09-01. This was
   a quota response, not a page failure.
+- Manual Actions and Security Issues both reported **No issues detected**.
+- Search Console reported `robots.txt` as valid and 304 crawl requests during
+  the preceding 90 days.
+- The Search generative AI control was **Include**, inherited from the
+  production property. This permits links and content from the site to appear
+  in Google Search AI features; it does not guarantee inclusion or ranking.
 - The obsolete `samawah.pod@gmail.com` user and its verification token were
   removed. Do not restore them.
 
 ### Bing Webmaster Tools
 
 - The property was imported from Search Console under the correct account.
+  User management showed only `hussien.impression@gmail.com`, with Administrator
+  access.
 - Only `https://seraj-store.vercel.app/sitemap.xml` should remain as the sitemap;
-  an invalid root-URL submission was removed.
-- All 56 URLs known on 2026-09-01 were submitted through URL Submission. Check
-  the live sitemap processing and indexing state before reporting completion.
+  an invalid root-URL submission was removed. On 2026-09-01 Bing reported the
+  remaining sitemap as **Success**, with 56 URLs discovered, 0 errors, and 0
+  warnings.
+- All 56 URLs known on 2026-09-01 were submitted through URL Submission. Bing
+  showed 56 URLs submitted that day and said new reports could take up to 48
+  hours to process.
+- Bing AI Performance was available for the property but showed 0 citations and
+  0 cited pages before the new property data had finished processing. Treat this
+  as a dated baseline, not evidence that the site is excluded from Copilot.
 
 ### Google Merchant Center
 
-- Account setup is complete.
+- Account setup is complete under `hussien.impression@gmail.com`; the store is
+  verified and claimed.
 - Product source: `https://seraj-store.vercel.app/merchant-feed.xml`
-- The feed contained 6 products when last checked.
+- The Merchant Center UI showed the feed update completed successfully at 15:16
+  on 2026-09-01.
+  Merchant Center reported 6 updated products, all attribute names recognized,
+  and no product-file issues.
 - Shipping for Egypt: 40 EGP, free from 500 EGP, estimated 5–7 business days.
 - Standard return policy: **Standard for Egypt**, 14 days, new products only,
   by mail with a free electronic return label, no restocking fee, and 7-day
@@ -80,10 +105,14 @@ relevant source above in the same pull request.
 - Books and personalized stories use the `books-personalized` exception. It
   accepts defective-product returns and exchanges only. Google exception ID:
   `9298594050`.
-- Business address and customer-service details were saved on 2026-09-01.
+- Business address and customer-service details were visible as saved on
+  2026-09-01. The public contact URL, correct Google email, and phone were also
+  visible in Business info.
 - Product status immediately after setup: 5 under review and 1 not approved.
   The single issue was **Image not processed**; Google said no action was needed
-  and that the image would be processed again within 3 days.
+  and that the image would be processed again within 3 days. This remained the
+  live status after the successful feed refresh on 2026-09-01; **Pending initial
+  review** was also shown for the affected product.
 
 ### Production website
 
@@ -91,6 +120,18 @@ relevant source above in the same pull request.
   `https://seraj-store.vercel.app/returns`.
 - Organization JSON-LD includes the confirmed legal identity and postal address.
 - `MerchantReturnPolicy` JSON-LD mirrors the Merchant Center return settings.
+- A production crawl on 2026-09-01 checked every one of the 56 sitemap URLs:
+  all returned HTTP 200, had a non-empty title and description, used a
+  self-referencing canonical, were indexable, exposed at least one valid JSON-LD
+  block, and had no JSON-LD parse errors.
+- The same crawl confirmed Product, Offer, BreadcrumbList, Article,
+  CollectionPage, Organization, shipping, and return-policy structured data.
+- All six Merchant feed images and the search-platform logo, icon, maskable,
+  Apple touch, and 1200x630 social-card assets returned HTTP 200.
+- `robots.txt` permits Google, Bing, `ChatGPT-User`, `OAI-SearchBot`, and
+  `PerplexityBot` to crawl public pages while keeping admin and API paths out of
+  search. `GPTBot` and `Google-Extended` remain blocked from training use by
+  deliberate policy; this does not block Google Search AI inclusion.
 - Production build, targeted ESLint, desktop rendering, and 320px no-overflow
   checks passed for the policy release merged in PR #48.
 
@@ -119,19 +160,23 @@ the near future. This is intentionally unfinished.
   If it remains, identify the affected product, verify the image URL returns
   HTTP 200 with a supported image content type, confirm crawler access and image
   dimensions, then refresh the feed after any fix.
-- Confirm the refreshed feed associates `story-khaled`, `custom-story`, and
-  `hero-conqueror` with the `books-personalized` exception. The remaining
-  products must continue using the default policy.
+- The production feed associates `story-khaled`, `custom-story`, and
+  `hero-conqueror` with the `books-personalized` exception. Reconfirm this after
+  any future feed or policy change; the remaining products must continue using
+  the default policy.
 - Re-read the status of all 6 products. Do not assume an item still under review
   or rejected has the same reason recorded above.
 
 ### Search indexing follow-up
 
-- Retry priority URL indexing in Search Console after the daily quota resets.
-- Re-check page indexing, sitemap discovery, rich-result eligibility, and any
-  new enhancement or manual-action report.
-- Confirm Bing finished processing the sitemap and retain evidence of any URLs
-  that remain excluded.
+- Monitor the Search Console validation started on 2026-09-01 for the 9
+  discovered-but-not-indexed URLs. Use individual priority URL requests only
+  after Google's daily quota resets and only where the live inspection still
+  shows that a request is useful.
+- Re-check page indexing, rich-result eligibility, and any new enhancement,
+  security, or manual-action report after Google refreshes the dated report.
+- Confirm Bing's imported property reports finish processing after the stated
+  48-hour window, then retain evidence of any URLs that remain excluded.
 
 ### AI-search discoverability follow-up
 
