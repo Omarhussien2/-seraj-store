@@ -97,7 +97,7 @@ export default async function CategorySeoPage({ params }: CategoryPageProps) {
       <div className="mx-auto max-w-6xl space-y-10">
         <header className="space-y-5">
           <nav className="flex flex-wrap gap-2 text-sm font-semibold text-[#1f7a5c]" aria-label="مسار التنقل">
-            <Link href="/">الرئيسية</Link>
+            <a href="/">الرئيسية</a>
             <span aria-hidden="true">/</span>
             <Link href="/products">المنتجات</Link>
             <span aria-hidden="true">/</span>
