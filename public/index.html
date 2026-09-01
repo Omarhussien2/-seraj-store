@@ -69,6 +69,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="image" href="/assets/family-photo-poster.webp" type="image/webp" fetchpriority="high" />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;600;700;800&family=Tajawal:wght@400;500;700;900&family=Lalezar&display=swap" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" />
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;600;700;800&family=Tajawal:wght@400;500;700;900&family=Lalezar&display=swap" /></noscript>
   <link rel="stylesheet" href="styles.css" />
@@ -138,15 +139,17 @@
               <video
                 class="hero-video"
                 src="assets/family-photo.mp4"
+                width="640"
+                height="360"
                 muted
                 loop
                 playsinline
                 preload="none"
-                poster="assets/seraj.webp"
+                poster="assets/family-photo-poster.webp"
                 aria-label="عائلة سراج"
               ></video>
               <noscript>
-                <img src="assets/seraj.webp" alt="سِراج الأرنب الأخضر" class="hero-video-fallback"  loading="lazy"/>
+                <img src="assets/family-photo-poster.webp" alt="شخصيات عائلة سراج" class="hero-video-fallback" width="640" height="360" />
               </noscript>
             </div>
           </div>
