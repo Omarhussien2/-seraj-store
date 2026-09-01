@@ -18,6 +18,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: siteUrl("/"), changeFrequency: "daily", priority: 1.0 },
     { url: siteUrl("/products"), changeFrequency: "daily", priority: 0.9 },
     { url: siteUrl("/mama-world"), changeFrequency: "weekly", priority: 0.7 },
+    { url: siteUrl("/about"), changeFrequency: "monthly", priority: 0.6 },
+    { url: siteUrl("/contact"), changeFrequency: "monthly", priority: 0.5 },
   ];
 
   let dynamicRoutes: MetadataRoute.Sitemap = [];
@@ -33,31 +35,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const [products, articles] = await Promise.all([
       Product.find({ active: true })
         .select("slug updatedAt")
-        .lean()
-        .catch(() => []),
+        .lean(),
       Article.find({ active: true, publishedAt: { $ne: null, $lte: now } })
         .select("slug updatedAt")
-        .lean()
-        .catch(() => []),
+        .lean(),
     ]);
 
-    const productRoutes: MetadataRoute.Sitemap = products.map((p) => ({
-      url: siteUrl(encodedPath("/product", p.slug)),
-      lastModified: p.updatedAt || now,
+    const productRoutes: MetadataRoute.Sitemap = products.map((product) => ({
+      url: siteUrl(encodedPath("/product", product.slug)),
+      lastModified: product.updatedAt || now,
       changeFrequency: "weekly" as const,
       priority: 0.9,
     }));
 
-    const articleRoutes: MetadataRoute.Sitemap = articles.map((a) => ({
-      url: siteUrl(encodedPath("/article", a.slug)),
-      lastModified: a.updatedAt || now,
+    const articleRoutes: MetadataRoute.Sitemap = articles.map((article) => ({
+      url: siteUrl(encodedPath("/article", article.slug)),
+      lastModified: article.updatedAt || now,
       changeFrequency: "monthly" as const,
       priority: 0.6,
     }));
 
     dynamicRoutes = [...productRoutes, ...articleRoutes];
-  } catch {
-    // DB unavailable — return static routes only.
+  } catch (error) {
+    console.error("Failed to build dynamic sitemap routes:", error);
   }
 
   return [...staticRoutes, ...dynamicRoutes];
