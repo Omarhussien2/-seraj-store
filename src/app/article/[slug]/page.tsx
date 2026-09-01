@@ -81,7 +81,12 @@ export default async function ArticleSeoPage({ params }: ArticlePageProps) {
         url: siteUrl(articlePath),
         mainEntityOfPage: siteUrl(articlePath),
         inLanguage: "ar-EG",
-        author: { "@type": "Organization", name: article.author || "فريق سراج" },
+        author: {
+          "@type": "Organization",
+          "@id": siteUrl("/#organization"),
+          name: article.author || "فريق سراج",
+          url: siteUrl("/about"),
+        },
         publisher: {
           "@type": "Organization",
           "@id": `${siteUrl("/")}#organization`,
