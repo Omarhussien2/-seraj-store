@@ -9,6 +9,13 @@ import { googleProductCategoryId } from "@/lib/googleProductCategories";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+const DEFECT_ONLY_RETURN_POLICY_LABEL = "books-personalized";
+const DEFECT_ONLY_RETURN_PRODUCT_SLUGS = new Set([
+  "story-khaled",
+  "custom-story",
+  "hero-conqueror",
+]);
+
 function escapeXml(text: string) {
   return text
     .replaceAll("&", "&amp;")
@@ -29,6 +36,9 @@ export async function GET() {
     const googleCategoryXml = googleCategoryId
       ? `<g:google_product_category>${googleCategoryId}</g:google_product_category>`
       : "";
+    const returnPolicyLabelXml = DEFECT_ONLY_RETURN_PRODUCT_SLUGS.has(product.slug)
+      ? `<g:return_policy_label>${DEFECT_ONLY_RETURN_POLICY_LABEL}</g:return_policy_label>`
+      : "";
 
     return `
       <item>
@@ -43,6 +53,7 @@ export async function GET() {
         <g:brand>سراج</g:brand>
         <g:product_type>${escapeXml(product.category || "كتب وقصص أطفال")}</g:product_type>
         ${googleCategoryXml}
+        ${returnPolicyLabelXml}
         <g:identifier_exists>false</g:identifier_exists>
       </item>`;
   });

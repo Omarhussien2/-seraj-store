@@ -14,6 +14,14 @@ editing, reviewing, testing, or documenting this repository.
 - Admin UI lives under `src/app/admin/` and uses React client components.
 - Read `AGENT-GUIDES.md` for deeper module-specific context.
 
+## SEO, Search, Merchant, and AI Discovery
+
+Before changing or auditing SEO, structured data, Search Console, Bing
+Webmaster Tools, Merchant Center, product feeds, crawler access, logos used by
+search platforms, or AI-search discoverability, read `SEO-HANDOFF.md` in full.
+It is the source of truth for verified external-service state, pending work,
+account ownership, and the files that must stay synchronized.
+
 ## Guard Skills
 
 The `amElnagdy/guard-skills` package is installed in Codex:
