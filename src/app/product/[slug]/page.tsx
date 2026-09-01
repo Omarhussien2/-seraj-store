@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import {
+  googleProductCategoryId,
+  GOOGLE_PRODUCT_TAXONOMY_URL,
+} from "@/lib/googleProductCategories";
 import { seoCategoryForProduct } from "@/lib/seoCategories";
 import {
   encodedPath,
@@ -61,6 +65,7 @@ export default async function ProductSeoPage({ params }: ProductPageProps) {
 
   const productPath = encodedPath("/product", product.slug);
   const category = seoCategoryForProduct(product);
+  const googleCategoryId = googleProductCategoryId(product);
   const image = productImageUrl(product);
   const description = productDescription(product);
   const offer =
@@ -88,7 +93,13 @@ export default async function ProductSeoPage({ params }: ProductPageProps) {
         description,
         image: [image],
         url: siteUrl(productPath),
-        category: product.category,
+        category: googleCategoryId
+          ? {
+              "@type": "CategoryCode",
+              inCodeSet: GOOGLE_PRODUCT_TAXONOMY_URL,
+              codeValue: googleCategoryId,
+            }
+          : undefined,
         brand: { "@type": "Brand", name: "سراج" },
         offers: offer,
       },
