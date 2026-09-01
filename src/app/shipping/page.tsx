@@ -3,6 +3,7 @@ import Link from "next/link";
 import {
   DELIVERY_ESTIMATE_BUSINESS_DAYS,
   FREE_SHIPPING_MINIMUM_EGP,
+  merchantIdentity,
   SHIPPING_FEE_EGP,
   shippingService,
 } from "@/lib/commercePolicies";
@@ -32,6 +33,7 @@ const shippingPageJsonLd = {
   "@type": "Organization",
   "@id": siteUrl("/#organization"),
   name: "سِراج",
+  ...merchantIdentity,
   url: siteUrl("/"),
   hasShippingService: shippingService,
 };

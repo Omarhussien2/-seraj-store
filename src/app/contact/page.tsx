@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { merchantIdentity } from "@/lib/commercePolicies";
 import { DEFAULT_SOCIAL_IMAGE, jsonLd, siteUrl } from "@/lib/seoContent";
 
 const supportPhone = "+201152806034";
@@ -31,6 +32,7 @@ const contactPageJsonLd = {
     "@type": "Organization",
     "@id": siteUrl("/#organization"),
     name: "سِراج",
+    ...merchantIdentity,
     telephone: supportPhone,
     contactPoint: {
       "@type": "ContactPoint",

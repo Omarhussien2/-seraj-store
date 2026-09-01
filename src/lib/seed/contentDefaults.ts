@@ -70,7 +70,7 @@ export const DEFAULT_CONTENT = [
   { key: "shipping.title", section: "pages", value: "الشحن والتوصيل" },
   { key: "shipping.content", section: "pages", value: "سياسة الشحن والتوصيل." },
   { key: "returns.title", section: "pages", value: "سياسة الاسترجاع والاستبدال" },
-  { key: "returns.content", section: "pages", value: "يمكنك استرجاع أو استبدال المنتج خلال 14 يوماً." },
+  { key: "returns.content", section: "pages", value: "يمكن استرجاع المنتجات غير المخصصة خلال 14 يومًا، وتظل حقوق العميل محفوظة لمدة 30 يومًا عند وجود عيب أو اختلاف عن الطلب." },
   
   // Custom states
   { key: "success.title", section: "general", value: "سِراج استلم الإيصال.. الحكاية بدأت!" },
