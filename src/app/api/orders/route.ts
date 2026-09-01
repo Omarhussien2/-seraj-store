@@ -38,20 +38,38 @@ const OrderItemSchema = z.object({
   qty: z.number().int().min(1).default(1),
 });
 
-const CustomStorySchema = z.object({
-  heroName: z.string().min(1),
-  age: z.preprocess(
-    (val) => (val === null || val === undefined || val === "" ? 5 : Number(val)),
-    z.number().int().min(1).max(18)
-  ),
-  challenge: z.preprocess(
-    (val) => (val === null || val === undefined || val === "" ? "شجاعة" : val),
-    z.string().min(1)
-  ),
-  customChallenge: z.string().max(500).optional(),
-  photoUrl: z.string().url().optional().nullable(),
-  photoUrls: z.array(z.string().url()).max(5).optional().nullable(),
-});
+const CustomStorySchema = z
+  .object({
+    heroName: z.string().min(1),
+    age: z.preprocess(
+      (val) => Number(val),
+      z.number().int().min(1).max(18)
+    ),
+    gender: z.enum(["boy", "girl"]),
+    challenge: z.string().trim().min(1),
+    customChallenge: z.string().max(500).optional(),
+    language: z.literal("ar").default("ar"),
+    dedicationType: z.enum(["none", "warm", "dream", "custom"]).default("none"),
+    dedicationText: z.string().trim().max(500).optional(),
+    photoUrl: z.string().url().optional().nullable(),
+    photoUrls: z.array(z.string().url()).max(5).optional().nullable(),
+  })
+  .superRefine((story, context) => {
+    if (!story.photoUrl && !story.photoUrls?.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "صورة الطفل مطلوبة",
+        path: ["photoUrls"],
+      });
+    }
+    if (story.dedicationType === "custom" && !story.dedicationText) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "نص الإهداء المخصص مطلوب",
+        path: ["dedicationText"],
+      });
+    }
+  });
 
 const CreateOrderSchema = z.object({
   items: z.array(OrderItemSchema).min(1, "سلة التسوق فاضية"),
@@ -307,7 +325,13 @@ export async function POST(request: Request) {
           ? {
               heroName: validated.customStory.heroName,
               age: validated.customStory.age,
+              gender: validated.customStory.gender,
               challenge: validated.customStory.challenge,
+              language: validated.customStory.language,
+              dedicationType: validated.customStory.dedicationType,
+              ...(validated.customStory.dedicationText
+                ? { dedicationText: validated.customStory.dedicationText }
+                : {}),
               ...(validated.customStory.customChallenge
                 ? { customChallenge: validated.customStory.customChallenge }
                 : {}),

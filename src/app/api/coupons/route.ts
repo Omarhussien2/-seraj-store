@@ -23,6 +23,13 @@ const CouponLimitsSchema = z.object({
   minSubtotal: z.number().min(0).optional(),
 });
 
+const CouponPromotionSchema = z.object({
+  featured: z.boolean().default(false),
+  headline: z.string().trim().max(200).optional(),
+  message: z.string().trim().max(500).optional(),
+  ctaText: z.string().trim().max(100).optional(),
+});
+
 const CreateCouponSchema = z.object({
   code: z.string().min(1).max(64),
   active: z.boolean().optional().default(true),
@@ -32,6 +39,7 @@ const CreateCouponSchema = z.object({
   validTo: z.coerce.date().optional(),
   discounts: z.array(CouponDiscountRuleSchema).min(1),
   limits: CouponLimitsSchema.optional().default({}),
+  promotion: CouponPromotionSchema.optional(),
 });
 
 /**
@@ -106,6 +114,13 @@ export async function POST(request: Request) {
         excludeProductSlugs: d.excludeProductSlugs?.map((s) => s.trim()).filter(Boolean),
       })),
     });
+
+    if (validated.promotion?.featured) {
+      await Coupon.updateMany(
+        { _id: { $ne: created._id }, "promotion.featured": true },
+        { $set: { "promotion.featured": false } }
+      );
+    }
 
     return NextResponse.json({ success: true, data: created }, { status: 201 });
   } catch (error) {

@@ -32,6 +32,12 @@ interface Coupon {
   title?: string;
   validTo?: string;
   redeemedCount: number;
+  promotion?: {
+    featured: boolean;
+    headline?: string;
+    message?: string;
+    ctaText?: string;
+  };
   discounts: {
     scope: CouponDiscountScope;
     type: CouponDiscountType;
@@ -87,6 +93,10 @@ export default function AdminCouponsPage() {
   const [maxTotal, setMaxTotal] = useState("");
   const [maxPerPhone, setMaxPerPhone] = useState("1");
   const [validTo, setValidTo] = useState("");
+  const [featured, setFeatured] = useState(false);
+  const [promoHeadline, setPromoHeadline] = useState("");
+  const [promoMessage, setPromoMessage] = useState("");
+  const [promoCtaText, setPromoCtaText] = useState("فعّلي الخصم وابدئي القصة");
 
   const activeCount = useMemo(
     () => coupons.filter((coupon) => coupon.active).length,
@@ -120,6 +130,10 @@ export default function AdminCouponsPage() {
     setMaxTotal("");
     setMaxPerPhone("1");
     setValidTo("");
+    setFeatured(false);
+    setPromoHeadline("");
+    setPromoMessage("");
+    setPromoCtaText("فعّلي الخصم وابدئي القصة");
   }
 
   async function createCoupon() {
@@ -165,6 +179,12 @@ export default function AdminCouponsPage() {
           validTo: validTo || undefined,
           discounts: [discount],
           limits,
+          promotion: {
+            featured,
+            headline: promoHeadline || undefined,
+            message: promoMessage || undefined,
+            ctaText: promoCtaText || undefined,
+          },
         }),
       });
       const json = await res.json();
@@ -192,6 +212,28 @@ export default function AdminCouponsPage() {
         prev.map((item) => (item._id === coupon._id ? json.data : item))
       );
     }
+  }
+
+  async function toggleFeatured(coupon: Coupon) {
+    const makeFeatured = !coupon.promotion?.featured;
+    const res = await fetch(`/api/coupons/${coupon._id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        promotion: {
+          featured: makeFeatured,
+          headline: coupon.promotion?.headline || coupon.title || undefined,
+          message: coupon.promotion?.message || undefined,
+          ctaText: coupon.promotion?.ctaText || "فعّلي الخصم وابدئي القصة",
+        },
+      }),
+    });
+    const json = await res.json();
+    if (!json.success) {
+      setMessage(json.error || "فشل تحديث العرض");
+      return;
+    }
+    await fetchCoupons();
   }
 
   async function deleteCoupon(coupon: Coupon) {
@@ -295,6 +337,33 @@ export default function AdminCouponsPage() {
             </div>
           </div>
 
+          <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
+            <label className="flex items-center gap-2 font-medium">
+              <input
+                type="checkbox"
+                checked={featured}
+                onChange={(event) => setFeatured(event.target.checked)}
+              />
+              إظهار هذا الكوبون كعرض ترحيبي داخل المتجر
+            </label>
+            {featured && (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="space-y-2">
+                  <Label>عنوان العرض</Label>
+                  <Input value={promoHeadline} onChange={(event) => setPromoHeadline(event.target.value)} placeholder="هدية ترحيبية من سراج" />
+                </div>
+                <div className="space-y-2">
+                  <Label>رسالة قصيرة</Label>
+                  <Input value={promoMessage} onChange={(event) => setPromoMessage(event.target.value)} placeholder="خلي أول حكاية لبطلنا تبدأ بخصم مميز" />
+                </div>
+                <div className="space-y-2">
+                  <Label>نص زر الدعوة</Label>
+                  <Input value={promoCtaText} onChange={(event) => setPromoCtaText(event.target.value)} />
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="flex flex-wrap items-center gap-3">
             <Button onClick={createCoupon} disabled={saving || !code.trim() || value <= 0}>
               {saving ? "جاري الحفظ..." : "إنشاء الكوبون"}
@@ -322,6 +391,7 @@ export default function AdminCouponsPage() {
                   <TableHead>الاستخدام</TableHead>
                   <TableHead>الصلاحية</TableHead>
                   <TableHead>الحالة</TableHead>
+                  <TableHead>العرض الترحيبي</TableHead>
                   <TableHead>إجراءات</TableHead>
                 </TableRow>
               </TableHeader>
@@ -344,6 +414,11 @@ export default function AdminCouponsPage() {
                       <Badge className={coupon.active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-700"}>
                         {coupon.active ? "نشط" : "متوقف"}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Button variant="outline" size="sm" onClick={() => toggleFeatured(coupon)}>
+                        {coupon.promotion?.featured ? "إخفاء العرض" : "اجعله العرض الحالي"}
+                      </Button>
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">

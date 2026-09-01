@@ -8,6 +8,8 @@ export interface ITestimonial {
   childAge: string;
   avatarInitials: string;
   avatarColor: string;
+  screenshotUrl?: string;
+  screenshotAlt?: string;
   order: number;
   active: boolean;
   createdAt?: string;
@@ -16,12 +18,14 @@ export interface ITestimonial {
 
 const TestimonialSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    quote: { type: String, required: true },
-    location: { type: String, required: true },
-    childAge: { type: String, required: true },
-    avatarInitials: { type: String, required: true },
+    name: { type: String, default: "عميلة سراج" },
+    quote: { type: String, default: "" },
+    location: { type: String, default: "" },
+    childAge: { type: String, default: "" },
+    avatarInitials: { type: String, default: "س" },
     avatarColor: { type: String, required: true, default: "#6bbf3f" },
+    screenshotUrl: { type: String, trim: true },
+    screenshotAlt: { type: String, trim: true },
     order: { type: Number, default: 0 },
     active: { type: Boolean, default: true },
   },

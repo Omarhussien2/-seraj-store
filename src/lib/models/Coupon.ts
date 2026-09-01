@@ -18,6 +18,13 @@ export interface ICouponLimits {
   minSubtotal?: number;
 }
 
+export interface ICouponPromotion {
+  featured: boolean;
+  headline?: string;
+  message?: string;
+  ctaText?: string;
+}
+
 export interface ICoupon extends Document {
   code: string; // normalized uppercase, no spaces
   active: boolean;
@@ -27,6 +34,7 @@ export interface ICoupon extends Document {
   validTo?: Date;
   discounts: ICouponDiscountRule[];
   limits: ICouponLimits;
+  promotion?: ICouponPromotion;
   redeemedCount: number;
   createdAt: Date;
   updatedAt: Date;
@@ -44,6 +52,16 @@ const CouponDiscountRuleSchema = new mongoose.Schema<ICouponDiscountRule>(
     maxDiscount: { type: Number, min: 0 },
     productSlugs: [{ type: String, trim: true }],
     excludeProductSlugs: [{ type: String, trim: true }],
+  },
+  { _id: false }
+);
+
+const CouponPromotionSchema = new mongoose.Schema<ICouponPromotion>(
+  {
+    featured: { type: Boolean, default: false, index: true },
+    headline: { type: String, trim: true },
+    message: { type: String, trim: true },
+    ctaText: { type: String, trim: true },
   },
   { _id: false }
 );
@@ -66,12 +84,14 @@ const CouponSchema = new mongoose.Schema<ICoupon>(
       maxRedemptionsPerCustomerPhone: { type: Number, min: 1 },
       minSubtotal: { type: Number, min: 0 },
     },
+    promotion: { type: CouponPromotionSchema, default: undefined },
     redeemedCount: { type: Number, default: 0, min: 0 },
   },
   { timestamps: true }
 );
 
 CouponSchema.index({ active: 1, validTo: 1 });
+CouponSchema.index({ "promotion.featured": 1, active: 1, validTo: 1 });
 
 const Coupon: Model<ICoupon> =
   mongoose.models.Coupon || mongoose.model<ICoupon>("Coupon", CouponSchema);

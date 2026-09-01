@@ -217,6 +217,18 @@
         </div>
       </section>
 
+      <section class="section home-testimonials" id="customerStories">
+        <header class="section-head reveal">
+          <span class="kicker">حكايات وصلت أصحابها</span>
+          <h2>قالوا إيه عن سراج؟</h2>
+          <p>رسائل حقيقية من عملائنا بعد ما استلموا حكايات أبطالهم.</p>
+        </header>
+        <div class="testimonials-grid" id="testimonialsGrid">
+          <div class="testimonial-skeleton"></div>
+          <div class="testimonial-skeleton"></div>
+        </div>
+      </section>
+
       <!-- ============ CATEGORIES SHOWCASE — Zig-Zag Layout ============ -->
       <section class="section showcase-section">
         <header class="section-head reveal">
@@ -615,6 +627,11 @@
           </div>
         </details>
 
+        <div class="wizard-notices">
+          <p class="wizard-promo-chip" id="wizardPromoChip" hidden></p>
+          <button type="button" class="wizard-reset" id="wizardReset" hidden>ابدئي قصة جديدة</button>
+        </div>
+
         <!-- STEP 1: NAME & AGE -->
         <section class="wizard-step" data-step="1">
           <div class="wizard-character">
@@ -641,6 +658,20 @@
                 <button type="button" class="age-chip" data-age="7">٧</button>
                 <button type="button" class="age-chip" data-age="8">٨</button>
                 <button type="button" class="age-chip" data-age="9">٩+</button>
+              </div>
+            </div>
+
+            <div class="field">
+              <span>بطل الحكاية</span>
+              <div class="story-choice-grid" role="group" aria-label="اختيار بطل أو بطلة">
+                <button type="button" class="story-choice" data-gender="boy" aria-pressed="false">
+                  <span class="story-choice-icon" aria-hidden="true">ب</span>
+                  <strong>بطل</strong>
+                </button>
+                <button type="button" class="story-choice" data-gender="girl" aria-pressed="false">
+                  <span class="story-choice-icon" aria-hidden="true">ط</span>
+                  <strong>بطلة</strong>
+                </button>
               </div>
             </div>
           </form>
@@ -705,34 +736,95 @@
             </div>
           </div>
 
+          <section class="photo-guide reveal" aria-labelledby="photoGuideTitle">
+            <h3 id="photoGuideTitle">صورة واضحة تخلي الرسومات أقرب لبطلنا</h3>
+            <div class="photo-guide-examples">
+              <div class="photo-example is-good">
+                <span class="photo-example-mark">✓</span>
+                <svg viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="42" fill="#eaf6d6"/><circle cx="48" cy="38" r="17" fill="#d9a878"/><path d="M24 83c3-20 14-28 24-28s21 8 24 28" fill="#6bbf3f"/><path d="M31 34c2-15 10-22 17-22 10 0 18 8 18 24-8-4-24-4-35-2" fill="#3a2a1f"/><circle cx="42" cy="40" r="2"/><circle cx="55" cy="40" r="2"/><path d="M42 48c4 3 8 3 12 0" fill="none" stroke="#7b432e" stroke-width="2" stroke-linecap="round"/></svg>
+                <strong>وجه أمامي وواضح</strong>
+              </div>
+              <div class="photo-example is-bad">
+                <span class="photo-example-mark">×</span>
+                <svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="48" fill="#f6e9d2"/><circle cx="66" cy="31" r="10" fill="#d9a878"/><path d="M51 59c2-14 8-20 15-20s14 6 17 20" fill="#c9974e"/><path d="M13 78h70" stroke="#8b5e2a" stroke-width="5" stroke-linecap="round"/></svg>
+                <span>ليست بعيدة</span>
+              </div>
+              <div class="photo-example is-bad">
+                <span class="photo-example-mark">×</span>
+                <svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="48" fill="#f6e9d2"/><path d="M29 81c2-22 12-31 25-31 13 0 21 10 23 31" fill="#e85d4c"/><path d="M34 34c0-15 9-24 21-24 4 0 8 1 12 4-9 4-13 13-13 25-8 4-14 2-20-5" fill="#3a2a1f"/><path d="M54 17c12 2 18 10 18 20-4 8-10 12-18 12" fill="#d9a878"/></svg>
+                <span>ليست جانبية</span>
+              </div>
+              <div class="photo-example is-bad">
+                <span class="photo-example-mark">×</span>
+                <svg viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="48" fill="#f6e9d2"/><circle cx="48" cy="39" r="22" fill="#d9a878"/><path d="M21 86c3-24 14-33 27-33s24 9 27 33" fill="#36a39a"/><path d="M24 35h20v12H24zm28 0h20v12H52zM44 40h8" fill="#24242e" stroke="#24242e" stroke-width="3"/></svg>
+                <span>بدون نظارة تغطي العين</span>
+              </div>
+            </div>
+            <p class="photo-privacy-note">صورتك بنستخدمها لتجهيز القصة فقط، وفريق سراج هيراجعها قبل بدء التصميم.</p>
+          </section>
+
           <label class="dropzone reveal" for="photoInput">
-            <input id="photoInput" type="file" accept="image/*" multiple hidden/>
+            <input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden/>
             <div class="dz-icon">
               <svg viewBox="0 0 48 48"><rect x="6" y="10" width="36" height="28" rx="4" fill="#fde7b4" stroke="#231a14" stroke-width="2.5"/><circle cx="18" cy="22" r="3" fill="#231a14"/><path d="M8 34l10-10 8 8 6-6 8 8" stroke="#231a14" stroke-width="2.5" fill="none" stroke-linejoin="round"/></svg>
             </div>
-            <h3>اسحبي صورة بطلنا هنا</h3>
-            <p>أو اضغطي عشان تختاري صورة من موبايلك</p>
+            <h3>اختاري من صورة إلى ٥ صور لبطلنا</h3>
+            <p>JPEG أو PNG أو WebP، وبحد أقصى ٥ ميجا للصورة</p>
           </label>
 
           <div class="btn-row">
-            <button class="btn btn-ghost" data-next>تخطي الخطوة</button>
-            <button class="btn btn-primary btn-xl" data-next>كملي</button>
+            <button type="button" class="btn btn-primary btn-xl btn-fullrow" data-next>كملي للّمسـة الأخيرة</button>
           </div>
         </section>
 
-        <!-- STEP 4: GENERATING -->
+        <!-- STEP 4: DEDICATION -->
         <section class="wizard-step" data-step="4" hidden>
-          <div class="generating">
+          <div class="wizard-character compact">
+            <img src="assets/layla.webp" alt="ليلى" loading="lazy"/>
+            <div class="speech big pop">
+              <span>آخر لمسة.. تحبي نكتب إهداء لبطلنا جوه القصة؟</span>
+              <i></i>
+            </div>
+          </div>
+
+          <div class="language-note reveal">
+            <span aria-hidden="true">ع</span>
+            <div><strong>لغة القصة: العربية</strong><small>قصص سراج المخصصة متاحة بالعربية حاليًا.</small></div>
+          </div>
+
+          <div class="dedication-options reveal" role="radiogroup" aria-label="اختيار الإهداء">
+            <button type="button" class="dedication-card is-active" data-dedication="none" role="radio" aria-checked="true">
+              <strong>بدون إهداء</strong><span>تبدأ القصة مباشرة</span>
+            </button>
+            <button type="button" class="dedication-card" data-dedication="warm" role="radio" aria-checked="false">
+              <strong>إهداء دافئ</strong><span>كلمات حب وتشجيع باسم الطفل</span>
+            </button>
+            <button type="button" class="dedication-card" data-dedication="dream" role="radio" aria-checked="false">
+              <strong>إهداء الأحلام</strong><span>رسالة عن الأحلام والمغامرة</span>
+            </button>
+            <button type="button" class="dedication-card" data-dedication="custom" role="radio" aria-checked="false">
+              <strong>إهداء خاص</strong><span>اكتبي رسالتك بنفسك</span>
+            </button>
+          </div>
+
+          <label class="custom-challenge-box dedication-custom" id="dedicationCustomBox" hidden>
+            <span class="custom-challenge-label">نص الإهداء الخاص</span>
+            <textarea id="dedicationText" class="custom-challenge-input" rows="4" maxlength="500" placeholder="اكتبي رسالة قصيرة تظهر في بداية القصة..."></textarea>
+          </label>
+
+          <button type="button" class="btn btn-primary btn-xl btn-fullrow" data-next>راجعي القصة وكملي الطلب</button>
+        </section>
+
+        <section class="generating" id="wizardGenerating" hidden aria-live="polite">
             <div class="gen-gears">
               <svg class="gg gg-1" viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="5"/><circle cx="50" cy="50" r="12" fill="currentColor"/><g stroke="currentColor" stroke-width="8" stroke-linecap="round"><line x1="50" y1="6" x2="50" y2="18"/><line x1="50" y1="82" x2="50" y2="94"/><line x1="6" y1="50" x2="18" y2="50"/><line x1="82" y1="50" x2="94" y2="50"/><line x1="18" y1="18" x2="26" y2="26"/><line x1="74" y1="74" x2="82" y2="82"/><line x1="18" y1="82" x2="26" y2="74"/><line x1="74" y1="26" x2="82" y2="18"/></g></svg>
               <svg class="gg gg-2" viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="5"/><circle cx="50" cy="50" r="12" fill="currentColor"/><g stroke="currentColor" stroke-width="8" stroke-linecap="round"><line x1="50" y1="6" x2="50" y2="18"/><line x1="50" y1="82" x2="50" y2="94"/><line x1="6" y1="50" x2="18" y2="50"/><line x1="82" y1="50" x2="94" y2="50"/><line x1="18" y1="18" x2="26" y2="26"/><line x1="74" y1="74" x2="82" y2="82"/><line x1="18" y1="82" x2="26" y2="74"/><line x1="74" y1="26" x2="82" y2="18"/></g></svg>
               <svg class="gg gg-3" viewBox="0 0 100 100"><circle cx="50" cy="50" r="28" fill="none" stroke="currentColor" stroke-width="5"/><circle cx="50" cy="50" r="10" fill="currentColor"/><g stroke="currentColor" stroke-width="7" stroke-linecap="round"><line x1="50" y1="10" x2="50" y2="20"/><line x1="50" y1="80" x2="50" y2="90"/><line x1="10" y1="50" x2="20" y2="50"/><line x1="80" y1="50" x2="90" y2="50"/></g></svg>
             </div>
             <img src="assets/seraj.webp" class="gen-mascot" alt="سِراج" loading="lazy"/>
-            <h2>ثواني.. ورشة سِراج بدأت شغل!</h2>
-            <p class="gen-text"><span id="genText">بيخترع شخصيات القصة</span><span class="dots"><i></i><i></i><i></i></span></p>
+            <h2>ثواني.. بنرتّب تفاصيل حكايتك!</h2>
+            <p class="gen-text"><span id="genText">بنراجع اختياراتك</span><span class="dots"><i></i><i></i><i></i></span></p>
             <div class="gen-bar"><span id="genBar"></span></div>
-          </div>
         </section>
       </div>
     </section>
@@ -748,8 +840,9 @@
       </div>
 
       <div style="padding:20px;max-width:500px;margin:0 auto">
+        <div class="story-review" id="storyReview"></div>
         <a href="#/checkout" data-link class="btn btn-primary btn-xl btn-fullrow">
-          📖 احصلي على نسختك المطبوعة
+          📖 كمّلي للدفع
           <svg viewBox="0 0 24 24" width="22" height="22"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
       </div>
@@ -1060,6 +1153,24 @@
       ثم اختار <strong>«إضافة إلى الشاشة الرئيسية»</strong>
     </div>
   </aside>
+
+  <div class="promo-modal" id="promoModal" hidden>
+    <div class="promo-backdrop" data-promo-close></div>
+    <section class="promo-card" role="dialog" aria-modal="true" aria-labelledby="promoHeadline" aria-describedby="promoMessage">
+      <button type="button" class="promo-close" data-promo-close aria-label="إغلاق العرض">×</button>
+      <img src="assets/seraj.webp" alt="" class="promo-mascot" aria-hidden="true"/>
+      <p class="promo-kicker">✦ هدية من سِراج</p>
+      <h2 id="promoHeadline">هدية ترحيبية من سراج</h2>
+      <p class="promo-offer" id="promoOffer">خصم مميز</p>
+      <p class="promo-message" id="promoMessage">خلي أول حكاية لبطلنا تبدأ بخصم مميز.</p>
+      <div class="promo-code-row">
+        <code id="promoCode" dir="ltr">SERAJ10</code>
+        <button type="button" class="promo-copy" id="promoCopy">نسخ الكود</button>
+      </div>
+      <p class="promo-expiry" id="promoExpiry" hidden></p>
+      <button type="button" class="btn btn-primary btn-xl btn-fullrow" id="promoCta">فعّلي الخصم وابدئي القصة</button>
+    </section>
+  </div>
 
   <!-- Floating WhatsApp -->
   <a href="https://wa.me/201152806034" target="_blank" rel="noopener" class="floating-wa" aria-label="تواصل معنا عبر واتساب">

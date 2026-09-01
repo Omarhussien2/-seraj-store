@@ -21,6 +21,10 @@ const ALLOWED_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES];
 // Max file sizes
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB for images
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB for videos
+const IMAGE_FOLDERS: Record<string, string> = {
+  product: "seraj/product-images",
+  testimonial: "seraj/testimonials",
+};
 
 /**
  * POST /api/upload
@@ -38,6 +42,14 @@ export async function POST(request: Request) {
     if (authError) return authError;
 
     const formData = await request.formData();
+    const uploadPurpose = String(formData.get("purpose") || "product");
+
+    if (!IMAGE_FOLDERS[uploadPurpose]) {
+      return NextResponse.json(
+        { success: false, error: "Invalid upload purpose" },
+        { status: 400 }
+      );
+    }
 
     // Collect files from both "file" (single) and "files" (multiple) keys
     const files: File[] = [];
@@ -71,6 +83,13 @@ export async function POST(request: Request) {
 
     // Validate all files before uploading any
     for (const file of files) {
+      if (uploadPurpose === "testimonial" && !ALLOWED_IMAGE_TYPES.includes(file.type)) {
+        return NextResponse.json(
+          { success: false, error: "Testimonial uploads must be images" },
+          { status: 400 }
+        );
+      }
+
       if (!ALLOWED_TYPES.includes(file.type)) {
         return NextResponse.json(
           {
@@ -105,7 +124,7 @@ export async function POST(request: Request) {
       const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
 
       const uploadOptions: Record<string, unknown> = {
-        folder: isVideo ? "seraj/product-videos" : "seraj/product-images",
+        folder: isVideo ? "seraj/product-videos" : IMAGE_FOLDERS[uploadPurpose],
         resource_type: isVideo ? "video" : "image",
       };
 

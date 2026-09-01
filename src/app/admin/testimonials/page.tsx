@@ -17,17 +17,21 @@ interface Testimonial {
   childAge: string;
   avatarInitials: string;
   avatarColor: string;
+  screenshotUrl?: string;
+  screenshotAlt?: string;
   order: number;
   active: boolean;
 }
 
 const emptyTestimonial: Partial<Testimonial> = {
-  name: "",
+  name: "عميلة سراج",
   quote: "",
   location: "",
   childAge: "",
-  avatarInitials: "",
+  avatarInitials: "س",
   avatarColor: "#6bbf3f",
+  screenshotUrl: "",
+  screenshotAlt: "",
   order: 0,
   active: true,
 };
@@ -38,6 +42,8 @@ export default function TestimonialsAdmin() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState<Partial<Testimonial> | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState("");
 
   const fetchTestimonials = useCallback(async () => {
     try {
@@ -58,11 +64,13 @@ export default function TestimonialsAdmin() {
   }, [fetchTestimonials]);
 
   const openCreate = () => {
+    setUploadError("");
     setEditingTestimonial({ ...emptyTestimonial });
     setDialogOpen(true);
   };
 
   const openEdit = (testimonial: Testimonial) => {
+    setUploadError("");
     setEditingTestimonial({ ...testimonial });
     setDialogOpen(true);
   };
@@ -112,6 +120,36 @@ export default function TestimonialsAdmin() {
     setEditingTestimonial((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 
+  const uploadWhatsAppScreenshot = async (file: File) => {
+    setUploadError("");
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setUploadError("الصورة لازم تكون JPEG أو PNG أو WebP");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError("حجم الصورة لازم يكون أقل من 10 ميجا");
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("purpose", "testimonial");
+      const response = await fetch("/api/upload", { method: "POST", body: formData });
+      const json = await response.json();
+      const uploadedUrl = json.data?.[0]?.url;
+      if (!response.ok || !json.success || !uploadedUrl) {
+        throw new Error(json.error || "فشل رفع صورة واتساب");
+      }
+      updateField("screenshotUrl", uploadedUrl);
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : "فشل رفع صورة واتساب");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   return (
     <div dir="rtl">
       <div className="flex items-center justify-between mb-6">
@@ -139,6 +177,9 @@ export default function TestimonialsAdmin() {
                   <td className="py-3 px-2">{i + 1}</td>
                   <td className="py-3 px-2 font-medium">
                     <div className="flex items-center gap-2">
+                       {t.screenshotUrl && (
+                         <img src={t.screenshotUrl} alt="" className="h-12 w-9 rounded border object-cover" />
+                       )}
                        <span className="w-6 h-6 rounded-full flex items-center justify-center text-white" style={{ background: t.avatarColor }}>{t.avatarInitials}</span>
                        <span>{t.name}</span>
                     </div>
@@ -213,6 +254,42 @@ export default function TestimonialsAdmin() {
                 value={editingTestimonial.quote || ""}
                 onChange={(e) => updateField("quote", e.target.value)}
               />
+              <div className="space-y-3 rounded-lg border p-3">
+                <div>
+                  <p className="font-medium">صورة محادثة واتساب</p>
+                  <p className="text-xs text-gray-500">اقصص المحادثة وأخفِ رقم الهاتف والصورة الشخصية قبل الرفع.</p>
+                </div>
+                {editingTestimonial.screenshotUrl ? (
+                  <div className="flex items-start gap-3">
+                    <img
+                      src={editingTestimonial.screenshotUrl}
+                      alt={editingTestimonial.screenshotAlt || "معاينة شهادة واتساب"}
+                      className="max-h-64 w-36 rounded-lg border object-contain"
+                    />
+                    <Button variant="outline" type="button" onClick={() => updateField("screenshotUrl", "")}>حذف الصورة</Button>
+                  </div>
+                ) : null}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  disabled={uploadingImage}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file) uploadWhatsAppScreenshot(file);
+                    event.target.value = "";
+                  }}
+                  className="block w-full text-sm"
+                />
+                <input
+                  type="text"
+                  placeholder="وصف الصورة لذوي الإعاقة البصرية"
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={editingTestimonial.screenshotAlt || ""}
+                  onChange={(event) => updateField("screenshotAlt", event.target.value)}
+                />
+                {uploadingImage && <p className="text-sm text-gray-500">جاري رفع الصورة...</p>}
+                {uploadError && <p className="text-sm text-red-600">{uploadError}</p>}
+              </div>
               <div className="flex gap-3">
                 <input
                   type="text"
@@ -264,7 +341,7 @@ export default function TestimonialsAdmin() {
               </div>
 
               <div className="flex gap-3 pt-4">
-                <Button onClick={handleSave} disabled={saving}>
+                <Button onClick={handleSave} disabled={saving || uploadingImage}>
                   {saving ? "جاري الحفظ..." : "حفظ الرأي"}
                 </Button>
                 <Button variant="outline" onClick={() => setDialogOpen(false)}>

@@ -37,8 +37,12 @@ interface OrderItem {
 interface CustomStory {
   heroName: string;
   age: number;
+  gender: "boy" | "girl";
   challenge: string;
   customChallenge?: string;
+  language?: "ar";
+  dedicationType?: "none" | "warm" | "dream" | "custom";
+  dedicationText?: string;
   photoUrl?: string;
   photoUrls?: string[];
 }
@@ -622,9 +626,13 @@ export default function AdminOrdersPage() {
                   <CardContent className="text-sm space-y-2">
                     <p><strong>اسم الطفل:</strong> {selectedOrder.customStory.heroName}</p>
                     <p><strong>السن:</strong> {selectedOrder.customStory.age} سنوات</p>
+                    <p><strong>بطل الحكاية:</strong> {selectedOrder.customStory.gender === "girl" ? "بطلة" : "بطل"}</p>
                     <p><strong>التحدي:</strong> {selectedOrder.customStory.challenge}</p>
                     {selectedOrder.customStory.customChallenge && (
                       <p><strong>تفاصيل خاصة:</strong> {selectedOrder.customStory.customChallenge}</p>
+                    )}
+                    {selectedOrder.customStory.dedicationText && (
+                      <p><strong>الإهداء:</strong> {selectedOrder.customStory.dedicationText}</p>
                     )}
                     {(selectedOrder.customStory.photoUrls?.length || selectedOrder.customStory.photoUrl) && (
                       <div>

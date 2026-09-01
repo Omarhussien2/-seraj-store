@@ -32,9 +32,13 @@ interface Order {
   customStory?: {
     heroName: string;
     age: number;
+    gender: "boy" | "girl";
     challenge: string;
     customChallenge?: string;
     photoUrl?: string;
+    photoUrls?: string[];
+    dedicationType?: "none" | "warm" | "dream" | "custom";
+    dedicationText?: string;
     storyStatus: "pending" | "reviewed" | "sent_to_print" | "delivered";
   };
   customerName: string;
@@ -227,12 +231,22 @@ export default function AdminStoriesPage() {
                     <strong>السن:</strong> {selectedOrder.customStory.age} سنوات
                   </p>
                   <p>
+                    <strong>بطل الحكاية:</strong>{" "}
+                    {selectedOrder.customStory.gender === "girl" ? "بطلة" : "بطل"}
+                  </p>
+                  <p>
                     <strong>التحدي:</strong> {selectedOrder.customStory.challenge}
                   </p>
                   {selectedOrder.customStory.customChallenge && (
                     <p>
                       <strong>التحدي المخصص:</strong>{" "}
                       {selectedOrder.customStory.customChallenge}
+                    </p>
+                  )}
+                  {selectedOrder.customStory.dedicationText && (
+                    <p>
+                      <strong>الإهداء:</strong>{" "}
+                      {selectedOrder.customStory.dedicationText}
                     </p>
                   )}
                   <p>

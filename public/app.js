@@ -13,6 +13,9 @@
   var WIZARD_KEY = 'seraj-wizard';
   var ORDER_KEY = 'seraj-last-order';
   var COUPON_KEY = 'seraj-applied-coupon';
+  var PENDING_PROMO_KEY = 'seraj-promo-code';
+  var PROMO_DISMISSED_KEY = 'seraj-promo-dismissed-at';
+  var PROMO_DISMISS_MS = 7 * 24 * 60 * 60 * 1000;
   var PRODUCTS_CACHE_KEY = 'seraj-products-cache-v1';
   var PRODUCTS_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
   var SHIPPING_FEE = 35; // fallback — overridden by /api/config
@@ -33,8 +36,12 @@
   var state = {
     heroName: '',
     age: null,
+    gender: null,
     challenge: null,
     customChallenge: '',
+    language: 'ar',
+    dedicationType: 'none',
+    dedicationText: '',
     photoUrl: null,
     photoUrls: [],
     photoFile: null,
@@ -445,6 +452,18 @@
     try { localStorage.removeItem(COUPON_KEY); } catch (e) { /* silent */ }
   }
 
+  function getPendingPromoCode() {
+    try { return localStorage.getItem(PENDING_PROMO_KEY) || ''; } catch (e) { return ''; }
+  }
+
+  function savePendingPromoCode(code) {
+    try { localStorage.setItem(PENDING_PROMO_KEY, code); } catch (e) { /* silent */ }
+  }
+
+  function clearPendingPromoCode() {
+    try { localStorage.removeItem(PENDING_PROMO_KEY); } catch (e) { /* silent */ }
+  }
+
   function getCurrentCoupon(subtotal, shippingFee) {
     if (!appliedCoupon) return null;
     if (appliedCoupon.subtotal !== subtotal || appliedCoupon.shippingFee !== shippingFee) {
@@ -465,10 +484,15 @@
       localStorage.setItem(WIZARD_KEY, JSON.stringify({
         heroName: state.heroName,
         age: ageNum,
+        gender: state.gender,
         challenge: state.challenge || '',
         customChallenge: state.customChallenge || '',
+        language: 'ar',
+        dedicationType: state.dedicationType || 'none',
+        dedicationText: state.dedicationText || '',
         photoUrl: state.photoUrl || null,
-        photoUrls: state.photoUrls || []
+        photoUrls: state.photoUrls || [],
+        wizardStep: state.wizardStep
       }));
     } catch (e) { /* silent */ }
   }
@@ -1418,6 +1442,7 @@
     var total = calculateTotal();
     var shipping = getShippingFee(total);
     var currentCoupon = getCurrentCoupon(total, shipping);
+    var pendingPromoCode = currentCoupon ? '' : getPendingPromoCode();
     var discount = currentCoupon ? currentCoupon.discountTotal : 0;
     var grandTotal = Math.max(0, total + shipping - discount);
 
@@ -1465,7 +1490,7 @@
     h += '<div style="margin-top:12px; cursor:auto;">';
     h += '<label class="field">';
     h += '<div class="coupon-inline">';
-    h += '<input type="text" id="couponCode" placeholder="SERAJ10" value="' + (currentCoupon ? currentCoupon.code : '') + '" dir="ltr"/>';
+    h += '<input type="text" id="couponCode" placeholder="SERAJ10" value="' + escapeHtml(currentCoupon ? currentCoupon.code : pendingPromoCode) + '" dir="ltr"/>';
     h += '<button type="button" id="applyCouponBtn" class="btn btn-ghost">تطبيق</button>';
     if (currentCoupon) h += '<button type="button" id="removeCouponBtn" class="coupon-remove">إزالة</button>';
     h += '</div></label>';
@@ -1537,13 +1562,17 @@
 
     container.innerHTML = h;
     setTimeout(initReveals, 60);
+    if (pendingPromoCode && !pendingCouponApplying) {
+      setTimeout(function () { applyCouponCode(pendingPromoCode); }, 80);
+    }
   }
 
-  function applyCouponCode() {
+  var pendingCouponApplying = false;
+  function applyCouponCode(codeOverride) {
     var input = document.getElementById('couponCode');
     var status = document.getElementById('couponStatus');
     var phoneEl = document.getElementById('custPhone');
-    var code = input ? input.value.trim() : '';
+    var code = codeOverride || (input ? input.value.trim() : '');
     if (!code) {
       if (status) status.textContent = 'اكتبي كود الخصم الأول.';
       return;
@@ -1569,6 +1598,7 @@
       btn.disabled = true;
       btn.textContent = 'جاري...';
     }
+    if (codeOverride) pendingCouponApplying = true;
     if (status) status.textContent = 'بنراجع الكود...';
 
     fetch('/api/coupons/validate', {
@@ -1583,11 +1613,13 @@
         }
         appliedCoupon = data.data;
         saveAppliedCoupon();
+        clearPendingPromoCode();
         renderCheckoutPage();
         showToast('تم تطبيق الكوبون ✦');
       })
       .catch(function (err) {
         clearAppliedCoupon();
+        if (codeOverride) clearPendingPromoCode();
         if (status) {
           status.textContent = err.message || 'الكوبون غير صالح';
           status.className = 'coupon-status error';
@@ -1595,6 +1627,7 @@
         showToast(err.message || 'الكوبون غير صالح');
       })
       .finally(function () {
+        pendingCouponApplying = false;
         if (btn) {
           btn.disabled = false;
           btn.textContent = 'تطبيق';
@@ -1699,14 +1732,24 @@
     // Include wizard/custom story data ONLY if custom-story is in the cart
     var hasCustomStory = cart.some(function (item) { return item.slug === getWizardSlug(); });
     var wizardData = loadWizardData();
+    var hasWizardPhoto = wizardData && ((wizardData.photoUrls && wizardData.photoUrls.length) || wizardData.photoUrl);
+    var storyReady = wizardData && wizardData.heroName && wizardData.age && wizardData.gender && wizardData.challenge && hasWizardPhoto;
+    if (hasCustomStory && !storyReady) {
+      showToast('كمّلي بيانات القصة وصورة بطلنا الأول ✦');
+      location.hash = '#/wizard';
+      return;
+    }
     if (hasCustomStory && wizardData && wizardData.heroName) {
       var wizardAge = typeof wizardData.age === 'string' ? parseInt(wizardData.age, 10) : wizardData.age;
-      if (isNaN(wizardAge)) wizardAge = 5; // fallback
       orderData.customStory = {
         heroName: wizardData.heroName,
         age: wizardAge,
-        challenge: wizardData.challenge || 'شجاعة',
+        gender: wizardData.gender,
+        challenge: wizardData.challenge,
         customChallenge: wizardData.customChallenge || undefined,
+        language: 'ar',
+        dedicationType: wizardData.dedicationType || 'none',
+        dedicationText: wizardData.dedicationText || undefined,
         photoUrl: wizardData.photoUrl || undefined,
         photoUrls: wizardData.photoUrls || (wizardData.photoUrl ? [wizardData.photoUrl] : undefined)
       };
@@ -1928,6 +1971,11 @@
       a.classList.toggle('is-active', a.dataset.tab === name);
     });
 
+    var floatingWhatsApp = document.querySelector('.floating-wa');
+    if (floatingWhatsApp) {
+      floatingWhatsApp.hidden = ['wizard', 'checkout'].indexOf(name) !== -1;
+    }
+
     window.scrollTo({ top: 0, behavior: 'instant' });
     setTimeout(initReveals, 80);
 
@@ -1962,8 +2010,26 @@
       var heroName = state.heroName || 'بطلنا';
       var el = document.getElementById('previewName');
       if (el) el.textContent = heroName;
+      renderStoryReview();
     }
 
+    schedulePromotion();
+
+  }
+
+  function renderStoryReview() {
+    var review = document.getElementById('storyReview');
+    if (!review) return;
+    var saved = loadWizardData();
+    if (!saved) { review.innerHTML = ''; return; }
+    var dedicationLabel = saved.dedicationText || 'بدون إهداء';
+    var imageCount = saved.photoUrls && saved.photoUrls.length ? saved.photoUrls.length : (saved.photoUrl ? 1 : 0);
+    review.innerHTML =
+      '<div class="story-review-row"><span>بطل الحكاية</span><strong>' + escapeHtml(saved.heroName) + ' · ' + toArabicNum(saved.age) + ' سنوات · ' + (saved.gender === 'girl' ? 'بطلة' : 'بطل') + '</strong></div>' +
+      '<div class="story-review-row"><span>القيمة</span><strong>' + escapeHtml(saved.challenge) + '</strong></div>' +
+      '<div class="story-review-row"><span>الصور</span><strong>' + toArabicNum(imageCount) + ' صورة</strong></div>' +
+      '<div class="story-review-row"><span>الإهداء</span><strong>' + escapeHtml(dedicationLabel) + '</strong></div>' +
+      '<button type="button" class="story-review-edit" data-edit-story>تعديل بيانات القصة</button>';
   }
 
   function handleRoute() {
@@ -2059,81 +2125,206 @@
 
   // ----- Wizard -----
   var wizardInited = false;
+
+  function restoreWizardState() {
+    var saved = loadWizardData();
+    if (!saved) return false;
+    state.heroName = saved.heroName || '';
+    state.age = saved.age || null;
+    state.gender = saved.gender || null;
+    state.challenge = saved.challenge || null;
+    state.customChallenge = saved.customChallenge || '';
+    state.language = 'ar';
+    state.dedicationType = saved.dedicationType || 'none';
+    state.dedicationText = saved.dedicationText || '';
+    state.photoUrl = saved.photoUrl || null;
+    state.photoUrls = saved.photoUrls || (saved.photoUrl ? [saved.photoUrl] : []);
+    state.wizardStep = Math.min(4, Math.max(1, Number(saved.wizardStep) || 1));
+    return true;
+  }
+
+  function setExclusiveChoice(shell, selector, activeElement, ariaAttribute) {
+    shell.querySelectorAll(selector).forEach(function (element) {
+      var active = element === activeElement;
+      element.classList.toggle('is-active', active);
+      element.setAttribute(ariaAttribute, active ? 'true' : 'false');
+    });
+  }
+
+  function renderPhotoPreviews(dropzone, sources) {
+    if (!dropzone) return;
+    var existing = dropzone.querySelector('.dz-preview');
+    if (existing) existing.remove();
+    if (!sources.length) {
+      dropzone.classList.remove('has-photo');
+      return;
+    }
+    dropzone.classList.add('has-photo');
+    var preview = document.createElement('div');
+    preview.className = 'dz-preview dz-preview-grid';
+    dropzone.appendChild(preview);
+    sources.forEach(function (source) {
+      var img = document.createElement('img');
+      img.alt = 'صورة الطفل';
+      preview.appendChild(img);
+      if (typeof source === 'string') {
+        img.src = source;
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function (event) { img.src = event.target.result; };
+      reader.readAsDataURL(source);
+    });
+  }
+
+  function syncWizardControls(shell) {
+    var nameInput = shell.querySelector('#heroName');
+    var customChallengeInput = shell.querySelector('#customChallenge');
+    var dedicationText = shell.querySelector('#dedicationText');
+    if (nameInput) nameInput.value = state.heroName;
+    if (customChallengeInput) customChallengeInput.value = state.customChallenge;
+    if (dedicationText) dedicationText.value = state.dedicationType === 'custom' ? state.dedicationText : '';
+    shell.querySelectorAll('.age-chip').forEach(function (chip) {
+      chip.classList.toggle('is-active', Number(chip.dataset.age) === Number(state.age));
+    });
+    shell.querySelectorAll('[data-gender]').forEach(function (choice) {
+      var active = choice.dataset.gender === state.gender;
+      choice.classList.toggle('is-active', active);
+      choice.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    shell.querySelectorAll('.challenge-card').forEach(function (card) {
+      var heading = card.querySelector('h4');
+      card.classList.toggle('is-active', !!heading && heading.textContent === state.challenge);
+    });
+    shell.querySelectorAll('[data-dedication]').forEach(function (card) {
+      var active = card.dataset.dedication === state.dedicationType;
+      card.classList.toggle('is-active', active);
+      card.setAttribute('aria-checked', active ? 'true' : 'false');
+    });
+    var customBox = shell.querySelector('#dedicationCustomBox');
+    if (customBox) customBox.hidden = state.dedicationType !== 'custom';
+    renderPhotoPreviews(shell.querySelector('.dropzone'), state.photoUrls);
+  }
+
+  function resetWizardStateValues() {
+    state.heroName = '';
+    state.age = null;
+    state.gender = null;
+    state.challenge = null;
+    state.customChallenge = '';
+    state.language = 'ar';
+    state.dedicationType = 'none';
+    state.dedicationText = '';
+    state.photoUrl = null;
+    state.photoUrls = [];
+    state.photoFile = null;
+    state.photoFiles = [];
+    state.wizardStep = 1;
+  }
+
+  function resetWizard(shell) {
+    clearWizardData();
+    resetWizardStateValues();
+    var preview = shell.querySelector('.dz-preview');
+    if (preview) preview.remove();
+    var dropzone = shell.querySelector('.dropzone');
+    if (dropzone) dropzone.classList.remove('has-photo');
+    syncWizardControls(shell);
+    goToWizardStep(1);
+  }
+
+  function validateWizardStep(step, shell) {
+    if (step === 1 && !state.heroName) {
+      var nameInput = shell.querySelector('#heroName');
+      if (nameInput) nameInput.focus();
+      showToast('اكتبي اسم بطل الحكاية ✦');
+      return false;
+    }
+    if (step === 1 && !state.age) {
+      showToast('اختاري عمر بطلنا ✦');
+      return false;
+    }
+    if (step === 1 && !state.gender) {
+      showToast('اختاري بطل أو بطلة ✦');
+      return false;
+    }
+    if (step === 2 && !state.challenge && !state.customChallenge) {
+      showToast('اختاري قيمة للقصة أو اكتبي تفاصيل خاصة ✦');
+      return false;
+    }
+    if (step === 2 && !state.challenge) state.challenge = 'قيمة مخصصة';
+    if (step === 3 && !state.photoFiles.length && !state.photoUrls.length) {
+      showToast('اختاري صورة واضحة واحدة على الأقل ✦');
+      return false;
+    }
+    if (step === 4 && state.dedicationType === 'custom' && !state.dedicationText) {
+      var dedicationInput = shell.querySelector('#dedicationText');
+      if (dedicationInput) dedicationInput.focus();
+      showToast('اكتبي نص الإهداء الخاص ✦');
+      return false;
+    }
+    return true;
+  }
+
+  function dedicationForSelection() {
+    if (state.dedicationType === 'warm') {
+      return 'إلى ' + state.heroName + '، لكل طفل مميز قصة تشبهه. نتمنى أن تمتلئ أيامك فرحاً وشجاعة وحباً.';
+    }
+    if (state.dedicationType === 'dream') {
+      return 'إلى ' + state.heroName + '، اقرأ بابتسامة، واحلم أحلاماً جميلة، وتذكر دائماً أنك بطل حكايتك.';
+    }
+    return state.dedicationType === 'custom' ? state.dedicationText : '';
+  }
+
+  function acceptPhotoFiles(files, dropzone) {
+    var candidates = Array.prototype.slice.call(files || []).slice(0, 5);
+    var valid = candidates.filter(function (file) {
+      return ['image/jpeg', 'image/png', 'image/webp'].includes(file.type) && file.size <= 5 * 1024 * 1024;
+    });
+    if (!valid.length) {
+      showToast('اختاري صور JPEG أو PNG أو WebP وأقل من ٥ ميجا ✦');
+      return;
+    }
+    state.photoFiles = valid;
+    state.photoFile = valid[0];
+    state.photoUrl = null;
+    state.photoUrls = [];
+    saveWizardData();
+    renderPhotoPreviews(dropzone, valid);
+  }
+
   function setupWizard() {
     var wizardShell = document.querySelector('[data-page="wizard"] .wizard-shell');
     if (!wizardShell) return;
-
-    // Reset wizard state when entering the wizard page
-    state.wizardStep = 1;
-    state.heroName = '';
-    state.age = null;
-    state.challenge = null;
-    state.customChallenge = '';
-
+    var hasSavedWizard = restoreWizardState();
+    if (!hasSavedWizard) resetWizardStateValues();
     var nameInput = wizardShell.querySelector('#heroName');
-    if (nameInput) nameInput.value = '';
     var customChallengeInput = wizardShell.querySelector('#customChallenge');
-    if (customChallengeInput) customChallengeInput.value = '';
-    wizardShell.querySelectorAll('.age-chip').forEach(function (c) { c.classList.remove('is-active'); });
-    wizardShell.querySelectorAll('.challenge-card').forEach(function (c) { c.classList.remove('is-active'); });
-
+    var dedicationText = wizardShell.querySelector('#dedicationText');
+    var resetButton = wizardShell.querySelector('#wizardReset');
+    var promoChip = wizardShell.querySelector('#wizardPromoChip');
     var genBar = wizardShell.querySelector('#genBar');
     if (genBar) genBar.style.width = '0%';
-
-    goToWizardStep(1);
+    var generating = wizardShell.querySelector('#wizardGenerating');
+    if (generating) generating.hidden = true;
+    if (resetButton) resetButton.hidden = !hasSavedWizard;
+    var pendingCode = getPendingPromoCode();
+    if (promoChip) {
+      promoChip.hidden = !pendingCode;
+      promoChip.textContent = pendingCode ? 'خصمك محفوظ: ' + pendingCode + ' ✦' : '';
+    }
+    syncWizardControls(wizardShell);
+    goToWizardStep(state.wizardStep);
 
     if (wizardInited) return;
     wizardInited = true;
-
-    // ----- Photo upload (Step 3) -----
     var photoInput = wizardShell.querySelector('#photoInput');
     var dropzone = wizardShell.querySelector('.dropzone');
-
     if (photoInput) {
       photoInput.addEventListener('change', function (e) {
-        var files = Array.prototype.slice.call(e.target.files || []).slice(0, 5);
-        if (files.length === 0) return;
-        var validFiles = [];
-        for (var i = 0; i < files.length; i++) {
-          var file = files[i];
-          if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-            showToast('الصورة لازم تكون JPEG أو PNG أو WebP ✦');
-            continue;
-          }
-          if (file.size > 5 * 1024 * 1024) {
-            showToast('حجم كل صورة لازم يكون أقل من 5 ميجا ✦');
-            continue;
-          }
-          validFiles.push(file);
-        }
-        if (validFiles.length === 0) return;
-        state.photoFiles = validFiles;
-        state.photoFile = validFiles[0];
-        state.photoUrl = null;
-        state.photoUrls = [];
-        if (dropzone) {
-          dropzone.classList.add('has-photo');
-          var existing = dropzone.querySelector('.dz-preview');
-          if (existing) existing.remove();
-          var preview = document.createElement('div');
-          preview.className = 'dz-preview dz-preview-grid';
-          dropzone.appendChild(preview);
-          validFiles.forEach(function (previewFile) {
-            var previewReader = new FileReader();
-            previewReader.onload = function (ev) {
-              var img = document.createElement('img');
-              img.src = ev.target.result;
-              img.alt = 'صورة الطفل';
-              preview.appendChild(img);
-            };
-            previewReader.readAsDataURL(previewFile);
-          });
-        }
-        return;
+        acceptPhotoFiles(e.target.files, dropzone);
       });
     }
-
-    // Drag & drop support
     if (dropzone) {
       dropzone.addEventListener('dragover', function (e) {
         e.preventDefault();
@@ -2145,77 +2336,82 @@
       dropzone.addEventListener('drop', function (e) {
         e.preventDefault();
         dropzone.classList.remove('drag-over');
-        var droppedFiles = e.dataTransfer.files;
-        if (droppedFiles && droppedFiles.length && photoInput) {
-          // Set the file on the input for consistency
-          var dt = new DataTransfer();
-          Array.prototype.slice.call(droppedFiles).slice(0, 5).forEach(function (droppedFile) {
-            dt.items.add(droppedFile);
-          });
-          photoInput.files = dt.files;
-          photoInput.dispatchEvent(new Event('change'));
-        }
+        acceptPhotoFiles(e.dataTransfer.files, dropzone);
       });
     }
-
     wizardShell.querySelectorAll('.age-chip').forEach(function (chip) {
       chip.addEventListener('click', function () {
         wizardShell.querySelectorAll('.age-chip').forEach(function (c) { c.classList.remove('is-active'); });
         chip.classList.add('is-active');
-        // Use data-age (Latin numeral) instead of textContent (Arabic numeral)
         state.age = parseInt(chip.getAttribute('data-age') || chip.textContent.trim(), 10);
+        saveWizardData();
       });
     });
-
     if (nameInput) {
       nameInput.addEventListener('input', function (e) {
         state.heroName = e.target.value.trim();
+        saveWizardData();
       });
     }
-
+    wizardShell.querySelectorAll('[data-gender]').forEach(function (choice) {
+      choice.addEventListener('click', function () {
+        state.gender = choice.dataset.gender;
+        setExclusiveChoice(wizardShell, '[data-gender]', choice, 'aria-pressed');
+        saveWizardData();
+      });
+    });
     wizardShell.querySelectorAll('.challenge-card').forEach(function (card) {
       card.addEventListener('click', function () {
         wizardShell.querySelectorAll('.challenge-card').forEach(function (c) { c.classList.remove('is-active'); });
         card.classList.add('is-active');
         state.challenge = card.querySelector('h4') ? card.querySelector('h4').textContent : '';
+        saveWizardData();
       });
     });
-
-    var customChallengeInput = wizardShell.querySelector('#customChallenge');
     if (customChallengeInput) {
       customChallengeInput.addEventListener('input', function (e) {
         state.customChallenge = e.target.value.trim();
+        saveWizardData();
       });
     }
-
+    wizardShell.querySelectorAll('[data-dedication]').forEach(function (card) {
+      card.addEventListener('click', function () {
+        state.dedicationType = card.dataset.dedication;
+        state.dedicationText = state.dedicationType === 'custom' ? '' : dedicationForSelection();
+        setExclusiveChoice(wizardShell, '[data-dedication]', card, 'aria-checked');
+        var customBox = wizardShell.querySelector('#dedicationCustomBox');
+        if (customBox) customBox.hidden = state.dedicationType !== 'custom';
+        if (dedicationText) dedicationText.value = state.dedicationType === 'custom' ? '' : state.dedicationText;
+        saveWizardData();
+      });
+    });
+    if (dedicationText) {
+      dedicationText.addEventListener('input', function (e) {
+        state.dedicationText = e.target.value.trim();
+        saveWizardData();
+      });
+    }
     wizardShell.querySelectorAll('[data-next]').forEach(function (btn) {
       btn.addEventListener('click', function () {
+        if (!validateWizardStep(state.wizardStep, wizardShell)) return;
+        state.dedicationText = dedicationForSelection();
+        saveWizardData();
         var next = state.wizardStep + 1;
         if (next > 4) {
-          saveWizardData();
-          addCustomStoryToCart();
-          location.hash = '#/preview';
-          return;
-        }
-        if (state.wizardStep === 1 && !state.heroName) {
-          if (nameInput) {
-            nameInput.focus();
-            nameInput.classList.add('shake');
-            setTimeout(function () { nameInput.classList.remove('shake'); }, 500);
-          }
+          uploadPhotoAndGenerate();
           return;
         }
         goToWizardStep(next);
       });
     });
-
-    wizardShell.querySelector('[data-back]') && wizardShell.querySelector('[data-back]').addEventListener('click', function () {
-      if (state.wizardStep === 1) {
-        history.back();
-      } else {
-        goToWizardStep(state.wizardStep - 1);
-      }
-    });
+    if (resetButton) resetButton.addEventListener('click', function () { resetWizard(wizardShell); });
+    var backButton = wizardShell.querySelector('[data-back]');
+    if (backButton) {
+      backButton.addEventListener('click', function () {
+        if (state.wizardStep === 1) history.back();
+        else goToWizardStep(state.wizardStep - 1);
+      });
+    }
   }
 
   function goToWizardStep(n) {
@@ -2230,8 +2426,9 @@
     var bar = shell.querySelector('#wizBar');
     var label = shell.querySelector('#wizStepLabel');
     var arabicDigits = ['٠', '١', '٢', '٣', '٤'];
+    var stepNames = ['', 'بطل الحكاية', 'القيمة', 'الصورة', 'اللمسة الأخيرة'];
     if (bar) bar.style.width = n * 25 + '%';
-    if (label) label.textContent = 'الخطوة ' + arabicDigits[n] + ' من ٤';
+    if (label) label.textContent = 'الخطوة ' + arabicDigits[n] + ' من ٤ · ' + stepNames[n];
 
     // Highlight stepper dots: done (steps before n), active (n), pending (after).
     shell.querySelectorAll('.ws-dot').forEach(function (dot) {
@@ -2246,56 +2443,60 @@
     });
 
     setTimeout(initReveals, 60);
-
-    if (n === 4) {
-      // Upload photo before running generator
-      uploadPhotoAndGenerate();
-    }
+    saveWizardData();
   }
 
   function uploadPhotoAndGenerate() {
+    var shell = document.querySelector('[data-page="wizard"] .wizard-shell');
+    var generating = shell ? shell.querySelector('#wizardGenerating') : null;
+    if (shell) shell.querySelectorAll('.wizard-step').forEach(function (step) { step.hidden = true; });
+    if (generating) generating.hidden = false;
     var filesToUpload = state.photoFiles && state.photoFiles.length ? state.photoFiles : (state.photoFile ? [state.photoFile] : []);
-    if (filesToUpload.length && !(state.photoUrls && state.photoUrls.length)) {
-      state.photoUploading = true;
-      Promise.all(filesToUpload.map(function (file) {
-        var formData = new FormData();
-        formData.append('file', file);
-        return fetch('/api/upload-child-photo', {
-          method: 'POST',
-          body: formData
-        })
-          .then(function (res) { return res.json(); })
-          .then(function (data) { return data.success && data.data ? data.data : null; })
-          .catch(function () { return null; });
-      }))
+    if (!filesToUpload.length || state.photoUrls.length) {
+      saveWizardData();
+      runGenerator();
+      return;
+    }
+    state.photoUploading = true;
+    Promise.all(filesToUpload.map(uploadChildPhoto))
       .then(function (uploads) {
-        var urls = uploads.filter(Boolean).map(function (item) { return item.url; });
-        state.photoUrls = urls;
-        state.photoUrl = urls[0] || null;
+        state.photoUrls = uploads.map(function (upload) { return upload.url; });
+        state.photoUrl = state.photoUrls[0];
         state.photoUploading = false;
         saveWizardData();
         runGenerator();
       })
-      .catch(function () {
+      .catch(function (error) {
         state.photoUploading = false;
-        saveWizardData();
-        runGenerator();
+        if (generating) generating.hidden = true;
+        goToWizardStep(3);
+        showToast(error.message || 'تعذر رفع الصورة، حاولي مرة تانية ✦');
       });
-    } else {
-      saveWizardData();
-      runGenerator();
-    }
+  }
+
+  function uploadChildPhoto(file) {
+    var formData = new FormData();
+    formData.append('file', file);
+    return fetch('/api/upload-child-photo', { method: 'POST', body: formData })
+      .then(function (response) {
+        return response.json().then(function (body) {
+          if (!response.ok || !body.success || !body.data || !body.data.url) {
+            throw new Error(body.error || 'تعذر رفع الصورة');
+          }
+          return body.data;
+        });
+      });
   }
 
   function runGenerator() {
     var bar = document.querySelector('#genBar');
     var text = document.querySelector('#genText');
     var stages = [
-      'بيخترع شخصيات القصة',
-      'بيرسم الغلاف',
-      'بيكتب أول فصل',
-      'بيلون الصفحات',
-      'خلصت المغامرة!',
+      'بنراجع اختياراتك',
+      'بنجهز صور بطلنا',
+      'بنرتب تفاصيل الحكاية',
+      'بنحفظ لمستك الخاصة',
+      'الحكاية جاهزة للطلب!',
     ];
     var pct = 0;
     var stageIdx = 0;
@@ -3234,24 +3435,177 @@
   function fetchTestimonials() {
     var grid = document.getElementById('testimonialsGrid');
     if (!grid) return;
+    var section = document.getElementById('customerStories');
 
     fetch('/api/testimonials')
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        if (!data.success || !data.data || !data.data.length) return;
+        if (!data.success || !data.data || !data.data.length) {
+          if (section) section.hidden = true;
+          return;
+        }
         var html = '';
         data.data.forEach(function (t, i) {
+          var testimonialMeta = [t.location, t.childAge].filter(Boolean).map(escapeHtml).join(' · ');
+          if (t.screenshotUrl) {
+            html += '<figure class="testimonial-media-card reveal" style="--d:.' + ((i % 8) * 5 + 5) + 's">';
+            html += '<img src="' + escapeHtml(t.screenshotUrl) + '" alt="' + escapeHtml(t.screenshotAlt || ('رسالة واتساب من ' + t.name)) + '" loading="lazy"/>';
+            html += '<figcaption>' + (t.quote ? '<blockquote>“' + escapeHtml(t.quote) + '”</blockquote>' : '');
+            html += '<div class="testimonial-author"><span class="avatar" style="background:' + escapeHtml(t.avatarColor || '#6bbf3f') + '">' + escapeHtml(t.avatarInitials) + '</span>';
+            html += '<div><strong>' + escapeHtml(t.name) + '</strong>' + (testimonialMeta ? '<small>' + testimonialMeta + '</small>' : '') + '</div></div>';
+            html += '</figcaption></figure>';
+            return;
+          }
           html += '<figure class="t-card reveal" style="--d:.' + ((i % 12) * 5 + 5) + 's">';
-          html += '<blockquote>"' + escHtml(t.quote) + '"</blockquote>';
+          html += '<blockquote>"' + escapeHtml(t.quote) + '"</blockquote>';
           html += '<figcaption>';
-          html += '<span class="avatar" style="--c:' + (t.avatarColor || '#6bbf3f') + '">' + escHtml(t.avatarInitials) + '</span>';
-          html += '<div><strong>' + escHtml(t.name) + '</strong><small>' + escHtml(t.location) + ' · ' + escHtml(t.childAge) + '</small></div>';
+          html += '<span class="avatar" style="--c:' + escapeHtml(t.avatarColor || '#6bbf3f') + '">' + escapeHtml(t.avatarInitials) + '</span>';
+          html += '<div><strong>' + escapeHtml(t.name) + '</strong>' + (testimonialMeta ? '<small>' + testimonialMeta + '</small>' : '') + '</div>';
           html += '</figcaption></figure>';
         });
         grid.innerHTML = html;
         setTimeout(initReveals, 80);
-      });
+      })
+      .catch(function () { if (section) section.hidden = true; });
   }
+
+  var activePromotion = null;
+  var promotionTimer = null;
+  var promotionPreviousFocus = null;
+
+  function promotionRouteEligible() {
+    var page = parseRoute().page;
+    return ['home', 'products', 'product'].indexOf(page) !== -1;
+  }
+
+  function promotionWasDismissed() {
+    try {
+      var dismissedAt = Number(localStorage.getItem(PROMO_DISMISSED_KEY) || 0);
+      return dismissedAt > 0 && Date.now() - dismissedAt < PROMO_DISMISS_MS;
+    } catch (e) { return false; }
+  }
+
+  function promotionCanShow() {
+    if (!activePromotion || !promotionRouteEligible()) return false;
+    if (appliedCoupon || getPendingPromoCode() || promotionWasDismissed()) return false;
+    try { return sessionStorage.getItem('seraj-promo-seen') !== '1'; } catch (e) { return true; }
+  }
+
+  function schedulePromotion() {
+    if (!promotionCanShow() || promotionTimer) return;
+    promotionTimer = setTimeout(function () {
+      promotionTimer = null;
+      showPromotion();
+    }, 12000);
+  }
+
+  function promotionScrollThresholdReached() {
+    var scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    return scrollable > 0 && window.scrollY / scrollable >= 0.38;
+  }
+
+  function fetchActivePromotion() {
+    fetch('/api/promotions/active')
+      .then(function (response) { return response.json(); })
+      .then(function (body) {
+        activePromotion = body.success ? body.data : null;
+        if (promotionScrollThresholdReached()) showPromotion();
+        else schedulePromotion();
+      })
+      .catch(function () { activePromotion = null; });
+  }
+
+  function showPromotion() {
+    if (!promotionCanShow()) return;
+    var modal = document.getElementById('promoModal');
+    if (!modal) return;
+    document.getElementById('promoHeadline').textContent = activePromotion.headline;
+    document.getElementById('promoOffer').textContent = activePromotion.offerText;
+    document.getElementById('promoMessage').textContent = activePromotion.message;
+    document.getElementById('promoCode').textContent = activePromotion.code;
+    document.getElementById('promoCta').textContent = activePromotion.ctaText;
+    var expiry = document.getElementById('promoExpiry');
+    if (activePromotion.validTo) {
+      expiry.hidden = false;
+      expiry.textContent = 'صالح حتى ' + new Date(activePromotion.validTo).toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' });
+    } else {
+      expiry.hidden = true;
+    }
+    promotionPreviousFocus = document.activeElement;
+    modal.hidden = false;
+    document.body.classList.add('promo-open');
+    try { sessionStorage.setItem('seraj-promo-seen', '1'); } catch (e) { /* silent */ }
+    var closeButton = modal.querySelector('.promo-close');
+    if (closeButton) closeButton.focus();
+  }
+
+  function closePromotion(rememberDismissal) {
+    var modal = document.getElementById('promoModal');
+    if (!modal || modal.hidden) return;
+    modal.hidden = true;
+    document.body.classList.remove('promo-open');
+    if (rememberDismissal) {
+      try { localStorage.setItem(PROMO_DISMISSED_KEY, String(Date.now())); } catch (e) { /* silent */ }
+    }
+    if (promotionPreviousFocus && promotionPreviousFocus.focus) promotionPreviousFocus.focus();
+  }
+
+  function copyPromotionCode() {
+    if (!activePromotion) return;
+    savePendingPromoCode(activePromotion.code);
+    var copyButton = document.getElementById('promoCopy');
+    var copied = function () {
+      if (copyButton) copyButton.textContent = 'تم النسخ ✓';
+      showToast('تم حفظ كود الخصم لطلبك ✦');
+    };
+    var saved = function () {
+      if (copyButton) copyButton.textContent = 'تم الحفظ ✓';
+      showToast('تم حفظ كود الخصم وسيُطبّق عند الطلب ✦');
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(activePromotion.code).then(copied, saved);
+    } else {
+      saved();
+    }
+  }
+
+  document.addEventListener('click', function (event) {
+    if (event.target.closest('[data-promo-close]')) closePromotion(true);
+    if (event.target.closest('#promoCopy')) copyPromotionCode();
+    if (event.target.closest('#promoCta') && activePromotion) {
+      savePendingPromoCode(activePromotion.code);
+      closePromotion(false);
+      location.hash = '#/wizard';
+    }
+  });
+
+  document.addEventListener('click', function (event) {
+    if (!event.target.closest('[data-edit-story]')) return;
+    state.wizardStep = 1;
+    saveWizardData();
+    location.hash = '#/wizard';
+  });
+
+  document.addEventListener('keydown', function (event) {
+    var modal = document.getElementById('promoModal');
+    if (!modal || modal.hidden) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closePromotion(true);
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    var focusable = Array.prototype.slice.call(modal.querySelectorAll('button:not([disabled])'));
+    if (!focusable.length) return;
+    var first = focusable[0];
+    var last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  });
+
+  window.addEventListener('scroll', function () {
+    if (promotionScrollThresholdReached()) showPromotion();
+  }, { passive: true });
 
   // ---------------------------------------------------------
   // CMS CONTENT / DOM INJECTION
@@ -3387,6 +3741,7 @@
     fetchConfig();
     fetchSiteContent();
     fetchTestimonials();
+    fetchActivePromotion();
     if (!location.hash) location.hash = '#/home';
 
     var didInitialRender = false;
