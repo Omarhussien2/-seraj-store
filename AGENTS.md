@@ -22,6 +22,10 @@ search platforms, or AI-search discoverability, read `SEO-HANDOFF.md` in full.
 It is the source of truth for verified external-service state, pending work,
 account ownership, and the files that must stay synchronized.
 
+Before drafting or changing public positioning, product copy, search landing
+pages, AI-discovery content, or personalized-story claims, also read
+`SEO-CONTENT-STRATEGY.md` in full.
+
 ## Guard Skills
 
 The `amElnagdy/guard-skills` package is installed in Codex:
