@@ -574,7 +574,7 @@
     <section class="page" data-page="wizard">
       <div class="wizard-shell">
         <header class="wizard-top">
-          <button class="icon-btn" data-back>
+          <button type="button" class="icon-btn" data-back>
             <svg viewBox="0 0 24 24" width="22" height="22"><path d="M10 6l-6 6 6 6M4 12h16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <div class="wizard-progress">
@@ -731,7 +731,7 @@
           <div class="wizard-character">
             <img src="assets/huda-bird.webp" alt="الحمامة هدى" loading="lazy"/>
             <div class="speech big pop">
-              <span>ارفع صورة بطلنا هنا.. وأنا هطير بيها لورشة سِراج فوراً!</span>
+              <span>اختاري صورة واضحة وقريبة لبطل الحكاية.</span>
               <i></i>
             </div>
           </div>
@@ -760,7 +760,7 @@
                 <span>بدون نظارة تغطي العين</span>
               </div>
             </div>
-            <p class="photo-privacy-note">صورتك بنستخدمها لتجهيز القصة فقط، وفريق سراج هيراجعها قبل بدء التصميم.</p>
+            <p class="photo-privacy-note">بنستخدم الصور داخل قصتك المخصصة فقط.</p>
           </section>
 
           <label class="dropzone reveal" for="photoInput">
@@ -782,7 +782,7 @@
           <div class="wizard-character compact">
             <img src="assets/layla.webp" alt="ليلى" loading="lazy"/>
             <div class="speech big pop">
-              <span>آخر لمسة.. تحبي نكتب إهداء لبطلنا جوه القصة؟</span>
+              <span>آخر لمسة.. اختاري الإهداء ومين هيستلم القصة.</span>
               <i></i>
             </div>
           </div>
@@ -812,7 +812,35 @@
             <textarea id="dedicationText" class="custom-challenge-input" rows="4" maxlength="500" placeholder="اكتبي رسالة قصيرة تظهر في بداية القصة..."></textarea>
           </label>
 
-          <button type="button" class="btn btn-primary btn-xl btn-fullrow" data-next>راجعي القصة وكملي الطلب</button>
+          <section class="recipient-section reveal" aria-labelledby="recipientTitle">
+            <h3 id="recipientTitle">مين هيستلم القصة؟</h3>
+            <div class="recipient-options" role="radiogroup" aria-label="اختيار مستلم القصة">
+              <button type="button" class="dedication-card is-active" data-recipient-type="customer" role="radio" aria-checked="true">
+                <strong>أنا المستلم</strong><span>اكتبي بيانات التوصيل في الخطوة التالية</span>
+              </button>
+              <button type="button" class="dedication-card" data-recipient-type="other" role="radio" aria-checked="false">
+                <strong>شخص آخر</strong><span>القصة هتتوصّل مباشرةً له</span>
+              </button>
+            </div>
+
+            <div class="recipient-fields" id="recipientFields" hidden>
+              <label class="field">
+                <span>اسم المستلم <small>*</small></span>
+                <input type="text" id="recipientName" maxlength="120" autocomplete="name" placeholder="الاسم بالكامل"/>
+              </label>
+              <label class="field">
+                <span>رقم موبايل المستلم <small>*</small></span>
+                <input type="tel" id="recipientPhone" maxlength="11" inputmode="numeric" autocomplete="tel" dir="ltr" placeholder="01xxxxxxxxx"/>
+              </label>
+              <label class="field">
+                <span>عنوان توصيل القصة <small>*</small></span>
+                <textarea id="recipientAddress" rows="3" maxlength="500" autocomplete="street-address" placeholder="المحافظة، المنطقة، الشارع ورقم المبنى..."></textarea>
+              </label>
+              <p>هنستخدم البيانات دي للتوصيل والتواصل مع المستلم فقط.</p>
+            </div>
+          </section>
+
+          <button type="button" class="btn btn-primary btn-xl btn-fullrow" data-next>راجعي التفاصيل وكملي الطلب</button>
         </section>
 
         <section class="generating" id="wizardGenerating" hidden aria-live="polite">
@@ -835,8 +863,8 @@
     <section class="page" data-page="preview">
       <div class="page-head tight" style="text-align:center;padding-top:60px">
         <img src="assets/seraj.webp" alt="سِراج" style="width:120px;margin-bottom:20px" loading="lazy"/>
-        <h2 style="font-size:28px;line-height:1.6"><span id="previewName">بطلنا</span> دخل ورشة سِراج ✨</h2>
-        <p style="font-size:18px;color:var(--ink-mute);margin-top:8px">وجاري تجهيز القصة المخصصة ليه!</p>
+        <h2 style="font-size:28px;line-height:1.6">تفاصيل قصة <span id="previewName">بطلنا</span> جاهزة للمراجعة ✨</h2>
+        <p style="font-size:18px;color:var(--ink-mute);margin-top:8px">راجعي اختياراتك، وبعدها كمّلي بيانات الطلب والدفع.</p>
       </div>
 
       <div style="padding:20px;max-width:500px;margin:0 auto">

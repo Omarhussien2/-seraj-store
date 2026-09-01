@@ -32,6 +32,14 @@ const CustomStorySchema = new mongoose.Schema(
       enum: ["none", "warm", "dream", "custom"],
     },
     dedicationText: { type: String },
+    deliveryRecipientType: {
+      type: String,
+      default: "customer",
+      enum: ["customer", "other"],
+    },
+    recipientName: { type: String, trim: true },
+    recipientPhone: { type: String, trim: true },
+    recipientAddress: { type: String, trim: true },
     photoUrl: { type: String },
     photoUrls: [{ type: String }],
     storyStatus: {
@@ -87,6 +95,10 @@ export interface IOrder extends Document {
     language: "ar";
     dedicationType: "none" | "warm" | "dream" | "custom";
     dedicationText?: string;
+    deliveryRecipientType: "customer" | "other";
+    recipientName?: string;
+    recipientPhone?: string;
+    recipientAddress?: string;
     photoUrl?: string;
     photoUrls?: string[];
     storyStatus: "pending" | "reviewed" | "sent_to_print" | "delivered";

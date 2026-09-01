@@ -43,6 +43,10 @@ interface CustomStory {
   language?: "ar";
   dedicationType?: "none" | "warm" | "dream" | "custom";
   dedicationText?: string;
+  deliveryRecipientType?: "customer" | "other";
+  recipientName?: string;
+  recipientPhone?: string;
+  recipientAddress?: string;
   photoUrl?: string;
   photoUrls?: string[];
 }
@@ -633,6 +637,14 @@ export default function AdminOrdersPage() {
                     )}
                     {selectedOrder.customStory.dedicationText && (
                       <p><strong>الإهداء:</strong> {selectedOrder.customStory.dedicationText}</p>
+                    )}
+                    {selectedOrder.customStory.deliveryRecipientType === "other" && (
+                      <div className="rounded-lg border bg-green-50 p-3 space-y-1">
+                        <p className="font-semibold text-green-800">التوصيل لشخص آخر</p>
+                        <p><strong>اسم المستلم:</strong> {selectedOrder.customStory.recipientName}</p>
+                        <p><strong>موبايل المستلم:</strong> {selectedOrder.customStory.recipientPhone}</p>
+                        <p><strong>عنوان المستلم:</strong> {selectedOrder.customStory.recipientAddress}</p>
+                      </div>
                     )}
                     {(selectedOrder.customStory.photoUrls?.length || selectedOrder.customStory.photoUrl) && (
                       <div>

@@ -69,11 +69,49 @@ test('customer completes the personalized story steps and reviews the saved deta
   await expect(page.locator('#wizStepLabel')).toContainText('اللمسة الأخيرة');
 
   await page.locator('[data-dedication="warm"]').click();
+  await page.locator('[data-recipient-type="other"]').click();
+  await page.locator('.wizard-step[data-step="4"] [data-next]').click();
+  await expect(page).toHaveURL(/#\/wizard$/);
+  await expect(page.locator('#recipientName')).toBeFocused();
+  await page.locator('#recipientName').fill('منى أحمد');
+  await page.locator('#recipientPhone').fill('01012345678');
+  await page.locator('#recipientAddress').fill('القاهرة، مدينة نصر، شارع الطيران');
   await page.locator('.wizard-step[data-step="4"] [data-next]').click();
   await expect(page).toHaveURL(/#\/preview$/, { timeout: 10000 });
   await expect(page.locator('#storyReview')).toContainText('ليلى');
   await expect(page.locator('#storyReview')).toContainText('بطلة');
   await expect(page.locator('#storyReview')).toContainText('إهداء');
+  await expect(page.locator('#storyReview')).toContainText('منى أحمد');
+  await expect(page.locator('#storyReview')).toContainText('01012345678');
+});
+
+test('photo upload server failure returns the customer to the photo step with a useful message', async ({ page }) => {
+  await stubStoreApis(page);
+  await page.route('**/api/upload-child-photo', route => route.fulfill({
+    status: 500,
+    contentType: 'text/html',
+    body: '<html><body>Server error</body></html>',
+  }));
+  await page.addInitScript(() => {
+    localStorage.setItem('seraj-wizard', JSON.stringify({
+      heroName: 'سلمى',
+      age: 6,
+      gender: 'girl',
+      challenge: 'شجاعة',
+      language: 'ar',
+      dedicationType: 'none',
+      deliveryRecipientType: 'customer',
+      photoUrls: [],
+      wizardStep: 3,
+    }));
+  });
+  await page.goto('http://127.0.0.1:3000/#/wizard', { waitUntil: 'domcontentloaded' });
+  await page.locator('#photoInput').setInputFiles(path.join(process.cwd(), 'public/assets/seraj.webp'));
+  await page.locator('.wizard-step[data-step="3"] [data-next]').click();
+  await page.locator('.wizard-step[data-step="4"] [data-next]').click();
+
+  await expect(page.locator('#photoGuideTitle')).toBeVisible();
+  await expect(page.locator('#gsdToast')).toContainText('تعذر رفع الصورة الآن');
 });
 
 test('featured promotion is saved before the customer enters the story builder', async ({ page }) => {
@@ -135,7 +173,7 @@ test('WhatsApp testimonial screenshots render with their accessible description'
 });
 
 for (const width of [320, 360, 390, 430]) {
-  test(`story photo guidance has no horizontal overflow at ${width}px`, async ({ page }) => {
+  test(`story builder has no horizontal overflow at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     await stubStoreApis(page);
     await page.addInitScript(() => {
@@ -146,7 +184,8 @@ for (const width of [320, 360, 390, 430]) {
         challenge: 'شجاعة',
         language: 'ar',
         dedicationType: 'none',
-        photoUrls: [],
+        deliveryRecipientType: 'customer',
+        photoUrls: ['https://example.com/child.webp'],
         wizardStep: 3,
       }));
     });
@@ -157,5 +196,14 @@ for (const width of [320, 360, 390, 430]) {
       document: document.documentElement.scrollWidth,
     }));
     expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport);
+
+    await page.locator('.wizard-step[data-step="3"] [data-next]').click();
+    await page.locator('[data-recipient-type="other"]').click();
+    await expect(page.locator('#recipientFields')).toBeVisible();
+    const recipientDimensions = await page.evaluate(() => ({
+      viewport: window.innerWidth,
+      document: document.documentElement.scrollWidth,
+    }));
+    expect(recipientDimensions.document).toBeLessThanOrEqual(recipientDimensions.viewport);
   });
 }

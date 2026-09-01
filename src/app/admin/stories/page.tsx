@@ -39,6 +39,10 @@ interface Order {
     photoUrls?: string[];
     dedicationType?: "none" | "warm" | "dream" | "custom";
     dedicationText?: string;
+    deliveryRecipientType?: "customer" | "other";
+    recipientName?: string;
+    recipientPhone?: string;
+    recipientAddress?: string;
     storyStatus: "pending" | "reviewed" | "sent_to_print" | "delivered";
   };
   customerName: string;
@@ -248,6 +252,14 @@ export default function AdminStoriesPage() {
                       <strong>الإهداء:</strong>{" "}
                       {selectedOrder.customStory.dedicationText}
                     </p>
+                  )}
+                  {selectedOrder.customStory.deliveryRecipientType === "other" && (
+                    <div className="rounded-lg border bg-green-50 p-3 space-y-1">
+                      <p className="font-semibold text-green-800">التوصيل لشخص آخر</p>
+                      <p><strong>اسم المستلم:</strong> {selectedOrder.customStory.recipientName}</p>
+                      <p><strong>موبايل المستلم:</strong> {selectedOrder.customStory.recipientPhone}</p>
+                      <p><strong>عنوان المستلم:</strong> {selectedOrder.customStory.recipientAddress}</p>
+                    </div>
                   )}
                   <p>
                     <strong>حالة القصة:</strong>{" "}

@@ -42,6 +42,10 @@
     language: 'ar',
     dedicationType: 'none',
     dedicationText: '',
+    deliveryRecipientType: 'customer',
+    recipientName: '',
+    recipientPhone: '',
+    recipientAddress: '',
     photoUrl: null,
     photoUrls: [],
     photoFile: null,
@@ -490,6 +494,10 @@
         language: 'ar',
         dedicationType: state.dedicationType || 'none',
         dedicationText: state.dedicationText || '',
+        deliveryRecipientType: state.deliveryRecipientType || 'customer',
+        recipientName: state.recipientName || '',
+        recipientPhone: state.recipientPhone || '',
+        recipientAddress: state.recipientAddress || '',
         photoUrl: state.photoUrl || null,
         photoUrls: state.photoUrls || [],
         wizardStep: state.wizardStep
@@ -799,7 +807,7 @@
       h += '</div></div>';
       h += '<div class="zz-text"><span class="zz-num">٣</span>';
       h += '<h3>القصة هتجيلك مطبوعة بجودة عالية لحد باب البيت</h3>';
-      h += '<p>غلاف مقوّى، ورق سميك، ورسوم أصلية.. قصة حقيقية يستاهلها بطلنا.</p>';
+      h += '<p>القصة بتتطبع بجودة عالية وتوصلك لحد باب البيت.</p>';
       h += '</div></article>';
       h += '<div class="zz-cta reveal" style="--d:.2s">';
       h += '<a href="#/wizard" data-link class="btn btn-primary"><span>يلا نبدأ الحكاية</span>';
@@ -1445,6 +1453,9 @@
     var pendingPromoCode = currentCoupon ? '' : getPendingPromoCode();
     var discount = currentCoupon ? currentCoupon.discountTotal : 0;
     var grandTotal = Math.max(0, total + shipping - discount);
+    var checkoutStory = loadWizardData();
+    var deliversToAnotherPerson = checkoutStory && checkoutStory.deliveryRecipientType === 'other';
+    var savedDeliveryAddress = deliversToAnotherPerson ? checkoutStory.recipientAddress || '' : '';
 
     var h = '';
 
@@ -1541,17 +1552,21 @@
 
     // Customer form
     h += '<div class="checkout-form-section">';
-    h += '<h3 style="font-size:18px;margin-bottom:16px">بيانات التوصيل</h3>';
+    h += '<h3 style="font-size:18px;margin-bottom:16px">' + (deliversToAnotherPerson ? 'بيانات طالب القصة والتوصيل' : 'بيانات التوصيل') + '</h3>';
+    if (deliversToAnotherPerson) {
+      h += '<div class="checkout-recipient-summary"><strong>المستلم: ' + escapeHtml(checkoutStory.recipientName) + '</strong>' +
+        '<span dir="ltr">' + escapeHtml(checkoutStory.recipientPhone) + '</span></div>';
+    }
     h += '<form id="checkoutForm" class="checkout-form" onsubmit="return false">';
-    h += '<label class="field"><span>الاسم <small style="color:var(--ember)">*</small></span>';
+    h += '<label class="field"><span>' + (deliversToAnotherPerson ? 'اسم طالب القصة' : 'الاسم') + ' <small style="color:var(--ember)">*</small></span>';
     h += '<input type="text" id="custName" required placeholder="الاسم بالكامل" autocomplete="name"/></label>';
-    h += '<label class="field"><span>رقم الموبايل (واتساب) <small style="color:var(--ember)">*</small></span>';
+    h += '<label class="field"><span>' + (deliversToAnotherPerson ? 'رقم موبايل طالب القصة' : 'رقم الموبايل') + ' (واتساب) <small style="color:var(--ember)">*</small></span>';
     h += '<div style="position:relative">';
     h += '<span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--ink-mute);font-weight:600;pointer-events:none">🇪🇬</span>';
     h += '<input type="tel" id="custPhone" required pattern="01[0-9]{9}" placeholder="01xxxxxxxxx" autocomplete="tel" dir="ltr" style="text-align:left;padding-left:48px"/>';
     h += '</div></label>';
-    h += '<label class="field" style="margin-top:16px;"><span>العنوان <small style="color:var(--ember)">*</small></span>';
-    h += '<textarea id="custAddress" required placeholder="العنوان بالتفصيل: المدينة، المنطقة، الشارع..." rows="2"></textarea></label>';
+    h += '<label class="field" style="margin-top:16px;"><span>' + (deliversToAnotherPerson ? 'عنوان توصيل القصة' : 'العنوان') + ' <small style="color:var(--ember)">*</small></span>';
+    h += '<textarea id="custAddress" required placeholder="العنوان بالتفصيل: المدينة، المنطقة، الشارع..." rows="2">' + escapeHtml(savedDeliveryAddress) + '</textarea></label>';
     h += '<label class="field"><span>ملاحظات <small style="color:var(--ink-mute)">(اختياري)</small></span>';
     h += '<textarea id="custNotes" placeholder="أي ملاحظات تانية..." rows="2"></textarea></label>';
     h += '</form></div>';
@@ -1733,7 +1748,8 @@
     var hasCustomStory = cart.some(function (item) { return item.slug === getWizardSlug(); });
     var wizardData = loadWizardData();
     var hasWizardPhoto = wizardData && ((wizardData.photoUrls && wizardData.photoUrls.length) || wizardData.photoUrl);
-    var storyReady = wizardData && wizardData.heroName && wizardData.age && wizardData.gender && wizardData.challenge && hasWizardPhoto;
+    var recipientReady = wizardData && (wizardData.deliveryRecipientType !== 'other' || (wizardData.recipientName && /^01[0-9]{9}$/.test(wizardData.recipientPhone) && wizardData.recipientAddress));
+    var storyReady = wizardData && wizardData.heroName && wizardData.age && wizardData.gender && wizardData.challenge && hasWizardPhoto && recipientReady;
     if (hasCustomStory && !storyReady) {
       showToast('كمّلي بيانات القصة وصورة بطلنا الأول ✦');
       location.hash = '#/wizard';
@@ -1750,6 +1766,10 @@
         language: 'ar',
         dedicationType: wizardData.dedicationType || 'none',
         dedicationText: wizardData.dedicationText || undefined,
+        deliveryRecipientType: wizardData.deliveryRecipientType || 'customer',
+        recipientName: wizardData.deliveryRecipientType === 'other' ? wizardData.recipientName : undefined,
+        recipientPhone: wizardData.deliveryRecipientType === 'other' ? wizardData.recipientPhone : undefined,
+        recipientAddress: wizardData.deliveryRecipientType === 'other' ? addressEl.value.trim() : undefined,
         photoUrl: wizardData.photoUrl || undefined,
         photoUrls: wizardData.photoUrls || (wizardData.photoUrl ? [wizardData.photoUrl] : undefined)
       };
@@ -2023,12 +2043,16 @@
     var saved = loadWizardData();
     if (!saved) { review.innerHTML = ''; return; }
     var dedicationLabel = saved.dedicationText || 'بدون إهداء';
+    var recipientLabel = saved.deliveryRecipientType === 'other'
+      ? escapeHtml(saved.recipientName) + ' · ' + escapeHtml(saved.recipientPhone) + ' · ' + escapeHtml(saved.recipientAddress)
+      : 'بيانات التوصيل تُستكمل في الطلب';
     var imageCount = saved.photoUrls && saved.photoUrls.length ? saved.photoUrls.length : (saved.photoUrl ? 1 : 0);
     review.innerHTML =
       '<div class="story-review-row"><span>بطل الحكاية</span><strong>' + escapeHtml(saved.heroName) + ' · ' + toArabicNum(saved.age) + ' سنوات · ' + (saved.gender === 'girl' ? 'بطلة' : 'بطل') + '</strong></div>' +
       '<div class="story-review-row"><span>القيمة</span><strong>' + escapeHtml(saved.challenge) + '</strong></div>' +
       '<div class="story-review-row"><span>الصور</span><strong>' + toArabicNum(imageCount) + ' صورة</strong></div>' +
       '<div class="story-review-row"><span>الإهداء</span><strong>' + escapeHtml(dedicationLabel) + '</strong></div>' +
+      '<div class="story-review-row"><span>التوصيل</span><strong>' + recipientLabel + '</strong></div>' +
       '<button type="button" class="story-review-edit" data-edit-story>تعديل بيانات القصة</button>';
   }
 
@@ -2137,6 +2161,10 @@
     state.language = 'ar';
     state.dedicationType = saved.dedicationType || 'none';
     state.dedicationText = saved.dedicationText || '';
+    state.deliveryRecipientType = saved.deliveryRecipientType || 'customer';
+    state.recipientName = saved.recipientName || '';
+    state.recipientPhone = saved.recipientPhone || '';
+    state.recipientAddress = saved.recipientAddress || '';
     state.photoUrl = saved.photoUrl || null;
     state.photoUrls = saved.photoUrls || (saved.photoUrl ? [saved.photoUrl] : []);
     state.wizardStep = Math.min(4, Math.max(1, Number(saved.wizardStep) || 1));
@@ -2181,9 +2209,15 @@
     var nameInput = shell.querySelector('#heroName');
     var customChallengeInput = shell.querySelector('#customChallenge');
     var dedicationText = shell.querySelector('#dedicationText');
+    var recipientName = shell.querySelector('#recipientName');
+    var recipientPhone = shell.querySelector('#recipientPhone');
+    var recipientAddress = shell.querySelector('#recipientAddress');
     if (nameInput) nameInput.value = state.heroName;
     if (customChallengeInput) customChallengeInput.value = state.customChallenge;
     if (dedicationText) dedicationText.value = state.dedicationType === 'custom' ? state.dedicationText : '';
+    if (recipientName) recipientName.value = state.recipientName;
+    if (recipientPhone) recipientPhone.value = state.recipientPhone;
+    if (recipientAddress) recipientAddress.value = state.recipientAddress;
     shell.querySelectorAll('.age-chip').forEach(function (chip) {
       chip.classList.toggle('is-active', Number(chip.dataset.age) === Number(state.age));
     });
@@ -2203,6 +2237,13 @@
     });
     var customBox = shell.querySelector('#dedicationCustomBox');
     if (customBox) customBox.hidden = state.dedicationType !== 'custom';
+    shell.querySelectorAll('[data-recipient-type]').forEach(function (choice) {
+      var active = choice.dataset.recipientType === state.deliveryRecipientType;
+      choice.classList.toggle('is-active', active);
+      choice.setAttribute('aria-checked', active ? 'true' : 'false');
+    });
+    var recipientFields = shell.querySelector('#recipientFields');
+    if (recipientFields) recipientFields.hidden = state.deliveryRecipientType !== 'other';
     renderPhotoPreviews(shell.querySelector('.dropzone'), state.photoUrls);
   }
 
@@ -2215,6 +2256,10 @@
     state.language = 'ar';
     state.dedicationType = 'none';
     state.dedicationText = '';
+    state.deliveryRecipientType = 'customer';
+    state.recipientName = '';
+    state.recipientPhone = '';
+    state.recipientAddress = '';
     state.photoUrl = null;
     state.photoUrls = [];
     state.photoFile = null;
@@ -2263,6 +2308,21 @@
       showToast('اكتبي نص الإهداء الخاص ✦');
       return false;
     }
+    if (step === 4 && state.deliveryRecipientType === 'other' && !state.recipientName) {
+      shell.querySelector('#recipientName').focus();
+      showToast('اكتبي اسم الشخص اللي هيستلم القصة ✦');
+      return false;
+    }
+    if (step === 4 && state.deliveryRecipientType === 'other' && !/^01[0-9]{9}$/.test(state.recipientPhone)) {
+      shell.querySelector('#recipientPhone').focus();
+      showToast('اكتبي رقم موبايل مصري صحيح للمستلم ✦');
+      return false;
+    }
+    if (step === 4 && state.deliveryRecipientType === 'other' && !state.recipientAddress) {
+      shell.querySelector('#recipientAddress').focus();
+      showToast('اكتبي عنوان توصيل القصة للمستلم ✦');
+      return false;
+    }
     return true;
   }
 
@@ -2301,6 +2361,9 @@
     var nameInput = wizardShell.querySelector('#heroName');
     var customChallengeInput = wizardShell.querySelector('#customChallenge');
     var dedicationText = wizardShell.querySelector('#dedicationText');
+    var recipientName = wizardShell.querySelector('#recipientName');
+    var recipientPhone = wizardShell.querySelector('#recipientPhone');
+    var recipientAddress = wizardShell.querySelector('#recipientAddress');
     var resetButton = wizardShell.querySelector('#wizardReset');
     var promoChip = wizardShell.querySelector('#wizardPromoChip');
     var genBar = wizardShell.querySelector('#genBar');
@@ -2391,6 +2454,28 @@
         saveWizardData();
       });
     }
+    wizardShell.querySelectorAll('[data-recipient-type]').forEach(function (choice) {
+      choice.addEventListener('click', function () {
+        state.deliveryRecipientType = choice.dataset.recipientType;
+        setExclusiveChoice(wizardShell, '[data-recipient-type]', choice, 'aria-checked');
+        var recipientFields = wizardShell.querySelector('#recipientFields');
+        if (recipientFields) recipientFields.hidden = state.deliveryRecipientType !== 'other';
+        saveWizardData();
+      });
+    });
+    if (recipientName) recipientName.addEventListener('input', function (event) {
+      state.recipientName = event.target.value.trim();
+      saveWizardData();
+    });
+    if (recipientPhone) recipientPhone.addEventListener('input', function (event) {
+      state.recipientPhone = event.target.value.replace(/\D/g, '').slice(0, 11);
+      event.target.value = state.recipientPhone;
+      saveWizardData();
+    });
+    if (recipientAddress) recipientAddress.addEventListener('input', function (event) {
+      state.recipientAddress = event.target.value.trim();
+      saveWizardData();
+    });
     wizardShell.querySelectorAll('[data-next]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         if (!validateWizardStep(state.wizardStep, wizardShell)) return;
@@ -2479,9 +2564,9 @@
     formData.append('file', file);
     return fetch('/api/upload-child-photo', { method: 'POST', body: formData })
       .then(function (response) {
-        return response.json().then(function (body) {
-          if (!response.ok || !body.success || !body.data || !body.data.url) {
-            throw new Error(body.error || 'تعذر رفع الصورة');
+        return response.json().catch(function () { return null; }).then(function (body) {
+          if (!response.ok || !body || !body.success || !body.data || !body.data.url) {
+            throw new Error(body && body.error ? body.error : 'تعذر رفع الصورة الآن، حاولي مرة تانية');
           }
           return body.data;
         });

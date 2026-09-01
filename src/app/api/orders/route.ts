@@ -51,6 +51,10 @@ const CustomStorySchema = z
     language: z.literal("ar").default("ar"),
     dedicationType: z.enum(["none", "warm", "dream", "custom"]).default("none"),
     dedicationText: z.string().trim().max(500).optional(),
+    deliveryRecipientType: z.enum(["customer", "other"]).default("customer"),
+    recipientName: z.string().trim().max(120).optional(),
+    recipientPhone: z.string().regex(/^01[0-9]{9}$/).optional(),
+    recipientAddress: z.string().trim().max(500).optional(),
     photoUrl: z.string().url().optional().nullable(),
     photoUrls: z.array(z.string().url()).max(5).optional().nullable(),
   })
@@ -68,6 +72,29 @@ const CustomStorySchema = z
         message: "نص الإهداء المخصص مطلوب",
         path: ["dedicationText"],
       });
+    }
+    if (story.deliveryRecipientType === "other") {
+      if (!story.recipientName) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "اسم مستلم القصة مطلوب",
+          path: ["recipientName"],
+        });
+      }
+      if (!story.recipientPhone) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "رقم موبايل مستلم القصة مطلوب",
+          path: ["recipientPhone"],
+        });
+      }
+      if (!story.recipientAddress) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "عنوان مستلم القصة مطلوب",
+          path: ["recipientAddress"],
+        });
+      }
     }
   });
 
@@ -329,11 +356,19 @@ export async function POST(request: Request) {
               challenge: validated.customStory.challenge,
               language: validated.customStory.language,
               dedicationType: validated.customStory.dedicationType,
+              deliveryRecipientType: validated.customStory.deliveryRecipientType,
               ...(validated.customStory.dedicationText
                 ? { dedicationText: validated.customStory.dedicationText }
                 : {}),
               ...(validated.customStory.customChallenge
                 ? { customChallenge: validated.customStory.customChallenge }
+                : {}),
+              ...(validated.customStory.deliveryRecipientType === "other"
+                ? {
+                    recipientName: validated.customStory.recipientName,
+                    recipientPhone: validated.customStory.recipientPhone,
+                    recipientAddress: validated.customStory.recipientAddress,
+                  }
                 : {}),
               ...(validated.customStory.photoUrl
                 ? { photoUrl: validated.customStory.photoUrl }
