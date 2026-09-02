@@ -61,6 +61,13 @@ relevant source above in the same pull request.
 - Validation for the 9 discovered-but-not-indexed pages was started on
   2026-09-01 after their production responses, metadata, canonicals, and
   structured data were rechecked.
+- On 2026-09-02 the correct account was confirmed in the browser through
+  `authuser=1`. URL Inspection reported
+  `/how-personalized-stories-work` as **URL is unknown to Google**. The ensuing
+  indexing request was rejected with **Quota Exceeded**, so neither new landing
+  page was submitted to Google that day. The active search-monitor automation
+  is instructed to retry both pages once on or after 2026-09-03 and to verify
+  Google's acknowledgement for each request.
 - Manual indexing requests reached Google's daily quota on 2026-09-01. This was
   a quota response, not a page failure.
 - Manual Actions and Security Issues both reported **No issues detected**.
@@ -215,11 +222,11 @@ Remaining external follow-up:
 
 - Request indexing of `/how-personalized-stories-work` and
   `/personalized-gifts-for-children` in Search Console while signed in as
-  `hussien.impression@gmail.com`. The available browser session on 2026-09-02
-  was signed in as the disallowed `samawah.pod@gmail.com`, so it was not used.
-  Bing submission is complete. Both URLs are already present in the production
-  sitemap and pass the technical crawl checks; Google indexing is an external
-  processing step, not a code blocker.
+  `hussien.impression@gmail.com` after the daily request quota resets. The
+  account is available through `authuser=1`; do not use the default
+  `samawah.pod@gmail.com` session. Bing submission is complete. Both URLs are
+  already present in the production sitemap and pass the technical crawl
+  checks; Google indexing is an external processing step, not a code blocker.
 
 Intentionally not implemented (blocked, see SEO-CONTENT-STRATEGY.md gates):
 
