@@ -84,6 +84,11 @@ relevant source above in the same pull request.
 - All 56 URLs known on 2026-09-01 were submitted through URL Submission. Bing
   showed 56 URLs submitted that day and said new reports could take up to 48
   hours to process.
+- On 2026-09-02, the two new production landing pages were submitted through
+  URL Submission:
+  `/how-personalized-stories-work` and
+  `/personalized-gifts-for-children`. Bing confirmed **2 URLs submitted
+  successfully**.
 - Bing AI Performance was available for the property but showed 0 citations and
   0 cited pages before the new property data had finished processing. Treat this
   as a dated baseline, not evidence that the site is excluded from Copilot.
@@ -208,10 +213,12 @@ Completed rollout actions:
 
 Remaining external follow-up:
 
-- Submit or request recrawl of `/how-personalized-stories-work` and
-  `/personalized-gifts-for-children` in the verified Search Console and Bing
-  accounts. Both URLs are already present in the production sitemap and pass
-  the technical crawl checks; dashboard submission/indexing is an external
+- Request indexing of `/how-personalized-stories-work` and
+  `/personalized-gifts-for-children` in Search Console while signed in as
+  `hussien.impression@gmail.com`. The available browser session on 2026-09-02
+  was signed in as the disallowed `samawah.pod@gmail.com`, so it was not used.
+  Bing submission is complete. Both URLs are already present in the production
+  sitemap and pass the technical crawl checks; Google indexing is an external
   processing step, not a code blocker.
 
 Intentionally not implemented (blocked, see SEO-CONTENT-STRATEGY.md gates):
