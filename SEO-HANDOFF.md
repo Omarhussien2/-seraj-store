@@ -134,11 +134,28 @@ relevant source above in the same pull request.
   deliberate policy; this does not block Google Search AI inclusion.
 - Production build, targeted ESLint, desktop rendering, and 320px no-overflow
   checks passed for the policy release merged in PR #48.
+- PR #53 was squash-merged to `master` as commit
+  `81d0c9fccb7cd673fca23f02b453cc2940873c03` and deployed successfully to
+  production on 2026-09-02.
+- The production content migration was first run as a dry run, then applied.
+  The new semantic homepage/showcase keys and approved `custom-story` copy are
+  now present in the database. Price, availability, and media were deliberately
+  left unchanged; the live custom-story price remained `310 EGP`.
+- A fresh production crawl on 2026-09-02 checked all 58 current sitemap URLs.
+  Every URL returned HTTP 200, had a non-empty title and meta description, used
+  its own canonical URL, exposed at least one parseable JSON-LD block, and had
+  no crawl failures.
+- Production browser verification confirmed the homepage H1, semantic CTA
+  labels/destinations, custom-story showcase, and approved SPA product copy.
+  Horizontal overflow remained zero at 320, 360, 390, and 430px.
+- `/api/products` and `merchant-feed.xml` expose the approved custom-story
+  title and description while retaining the live `310 EGP` price.
 
 ## Content rollout implementation status (2026-09-02)
 
-Implemented on branch `codex/seo-content-implementation` (not yet deployed;
-production state above predates this work). Verified with `npm run build`,
+Implemented on branch `codex/seo-content-implementation`, merged in PR #53,
+and verified in production on 2026-09-02. Pre-merge verification included
+`npm run build`,
 targeted ESLint (`npx eslint public/app.js`: 0 errors, 30 pre-existing
 warnings), product catalog contract tests (7/7 pass), SEO content contract tests
 (3/3 pass), SEO Playwright tests (3/3 pass), and the existing homepage ordering
@@ -147,7 +164,7 @@ overflow, valid JSON-LD, self-canonicals, semantic CTA destinations, and stale
 CMS/product API responses. No broken internal links were found across the
 touched pages.
 
-Published code changes (visible after deploy):
+Published code changes (live in production):
 
 - New canonical page `/how-personalized-stories-work` (how-it-works,
   WebPage + BreadcrumbList JSON-LD, live price from the products API).
@@ -180,21 +197,22 @@ Published code changes (visible after deploy):
   `showcase.custom_story.*`). This prevents the legacy positional keys from
   swapping CTA labels and destinations while rollout data is being migrated.
 
-Required follow-up after merge/deploy (owner/admin action):
+Completed rollout actions:
 
-- Do not update production content before the matching code is deployed. After
-  deployment, run `npm run migrate:seo-content -- --apply` with the production
-  `.env.local`. The migration upserts the new semantic `SiteContent` keys and
-  synchronizes the `custom-story` name, short description, long description,
-  and features used by `/api/products` and the Merchant feed. Running the
-  command without `--apply` is a read-only dry run.
-- Verify the rendered homepage after `/api/content` finishes: "ابدأ قصة طفلك"
-  must open `#/product/custom-story`, and "استكشف عالم سراج" must open
-  `#/products`. Also verify `/api/products`, the SPA product page, the canonical
-  `/product/custom-story` page, and `merchant-feed.xml` expose the synchronized
-  product copy and unchanged live price.
-- Resubmit/refresh the two new URLs (sitemap already lists them; consider
-  IndexNow per the strategy) only after production HTML is verified.
+- `npm run migrate:seo-content` completed as a read-only production dry run,
+  followed by `npm run migrate:seo-content -- --apply` after the output was
+  reviewed. The command remains safe-by-default for future environments.
+- The rendered homepage, `/api/products`, SPA and canonical custom-story pages,
+  and `merchant-feed.xml` were verified after deployment. CTA destinations,
+  synchronized product copy, and the unchanged live price were all confirmed.
+
+Remaining external follow-up:
+
+- Submit or request recrawl of `/how-personalized-stories-work` and
+  `/personalized-gifts-for-children` in the verified Search Console and Bing
+  accounts. Both URLs are already present in the production sitemap and pass
+  the technical crawl checks; dashboard submission/indexing is an external
+  processing step, not a code blocker.
 
 Intentionally not implemented (blocked, see SEO-CONTENT-STRATEGY.md gates):
 
