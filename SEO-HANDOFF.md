@@ -135,6 +135,80 @@ relevant source above in the same pull request.
 - Production build, targeted ESLint, desktop rendering, and 320px no-overflow
   checks passed for the policy release merged in PR #48.
 
+## Content rollout implementation status (2026-09-02)
+
+Implemented on branch `codex/seo-content-implementation` (not yet deployed;
+production state above predates this work). Verified with `npm run build`,
+targeted ESLint (`npx eslint public/app.js`: 0 errors, 30 pre-existing
+warnings), product catalog contract tests (7/7 pass), SEO content contract tests
+(3/3 pass), SEO Playwright tests (3/3 pass), and the existing homepage ordering
+test (1/1 pass). Browser checks cover 320/360/390/430px with no horizontal
+overflow, valid JSON-LD, self-canonicals, semantic CTA destinations, and stale
+CMS/product API responses. No broken internal links were found across the
+touched pages.
+
+Published code changes (visible after deploy):
+
+- New canonical page `/how-personalized-stories-work` (how-it-works,
+  WebPage + BreadcrumbList JSON-LD, live price from the products API).
+- New canonical page `/personalized-gifts-for-children` (gifting, dedication,
+  direct delivery; explicit note that personalized items have different
+  return conditions with a link to `/returns`).
+- `/product/custom-story` now uses the strategy title/H1, adds a confirmed
+  facts section, buyer-supply summary, visible FAQ, and internal links to the
+  two new pages and `/returns`.
+- `/category/personalized-stories` copy now states the owner-confirmed offer
+  (guardian-led story, character sheet, approval sample, dedication, direct
+  delivery) with related-links nav; other categories unchanged.
+- `/about` (Next.js and SPA banner) updated with the positioning and links.
+- SPA homepage hero (heading, supporting copy, primary/secondary CTAs, four
+  proof points), title/meta/OG wording, wizard "how it works" accordion
+  (now six confirmed steps), custom-story zigzag steps, success-page wording
+  ("عينة الشخصية" instead of "البروفة"), showcase section, and footer links
+  to the new pages.
+- `public/app.js` fallback `custom-story` record and
+  `src/lib/seed/contentDefaults.ts` hero/showcase defaults aligned with the
+  strategy; sitemap includes the two new routes.
+- Shared confirmed facts centralized in `src/lib/personalizedStoryContent.ts`
+  to keep all pages consistent.
+- SEO-critical custom-story wording is code-controlled in both the SPA and the
+  canonical product page. Product API data continues to own price,
+  availability, and media, but stale database copy cannot silently restore old
+  positioning or unconfirmed claims in the storefront.
+- The personalized-story hero and showcase use semantic CMS keys
+  (`hero.story_*`, `hero.cta_custom_story`, `hero.cta_products`, and
+  `showcase.custom_story.*`). This prevents the legacy positional keys from
+  swapping CTA labels and destinations while rollout data is being migrated.
+
+Required follow-up after merge/deploy (owner/admin action):
+
+- Do not update production content before the matching code is deployed. After
+  deployment, run `npm run migrate:seo-content -- --apply` with the production
+  `.env.local`. The migration upserts the new semantic `SiteContent` keys and
+  synchronizes the `custom-story` name, short description, long description,
+  and features used by `/api/products` and the Merchant feed. Running the
+  command without `--apply` is a read-only dry run.
+- Verify the rendered homepage after `/api/content` finishes: "ابدأ قصة طفلك"
+  must open `#/product/custom-story`, and "استكشف عالم سراج" must open
+  `#/products`. Also verify `/api/products`, the SPA product page, the canonical
+  `/product/custom-story` page, and `merchant-feed.xml` expose the synchronized
+  product copy and unchanged live price.
+- Resubmit/refresh the two new URLs (sitemap already lists them; consider
+  IndexNow per the strategy) only after production HTML is verified.
+
+Intentionally not implemented (blocked, see SEO-CONTENT-STRATEGY.md gates):
+
+- `/child-photo-privacy`: requires owner-confirmed storage/retention/deletion
+  facts; the wizard photo note keeps its existing production wording until
+  the policy is approved.
+- Evidence gallery, before/after resemblance examples, and first-hand case
+  study: require approved visual assets and guardian consent.
+- Buyer's guide and any landing pages for extra goals/occasions: require
+  confirmed package specifications (page count, materials, production time,
+  revision rounds) that are still pending owner confirmation.
+- No new FAQPage or HowTo markup was added (per strategy guidance); FAQ
+  content is visible text only.
+
 ## Unfinished work
 
 ### Near-term business-data revision

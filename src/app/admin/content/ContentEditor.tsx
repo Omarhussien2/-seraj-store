@@ -34,10 +34,10 @@ const SECTION_ORDER = [
 // Human-readable labels for each key, grouped by section
 const KEY_LABELS: Record<string, string> = {
   // Hero
-  "hero.title": "العنوان الرئيسي",
-  "hero.subtitle": "العنوان الفرعي",
-  "hero.cta_primary": "الزر الأساسي (استكشف)",
-  "hero.cta_secondary": "الزر الثانوي (اصنع قصة)",
+  "hero.story_title": "عنوان القصة المخصصة الرئيسي",
+  "hero.story_subtitle": "وصف القصة المخصصة الرئيسي",
+  "hero.cta_custom_story": "زر بدء القصة المخصصة",
+  "hero.cta_products": "زر استكشاف المنتجات",
   "hero.marquee": "الشريط المتحرك (مفصول بـ ✦)",
 
   // Products
@@ -51,8 +51,8 @@ const KEY_LABELS: Record<string, string> = {
   "showcase.cat1.title": "القسم ١: العنوان (قصص الفتوحات)",
   "showcase.cat1.desc": "القسم ١: الوصف",
   "showcase.cat1.cta": "القسم ١: نص الزر",
-  "showcase.cat2.title": "القسم ٢: العنوان (القصة المخصصة)",
-  "showcase.cat2.desc": "القسم ٢: الوصف",
+  "showcase.custom_story.title": "القسم ٢: العنوان (القصة المخصصة)",
+  "showcase.custom_story.desc": "القسم ٢: الوصف",
   "showcase.cat2.cta": "القسم ٢: نص الزر",
   "showcase.cat3.title": "القسم ٣: العنوان (ألعاب سراج)",
   "showcase.cat3.desc": "القسم ٣: الوصف",
@@ -140,7 +140,7 @@ const KEY_LABELS: Record<string, string> = {
 
 // Short single-line fields
 const SHORT_KEYS = new Set([
-  "hero.cta_primary", "hero.cta_secondary",
+  "hero.cta_custom_story", "hero.cta_products",
   "showcase.cat1.cta", "showcase.cat2.cta", "showcase.cat3.cta", "showcase.cat4.cta", "showcase.cat5.cta",
   "ribbon.cta",
   "nav.mama", "nav.products", "nav.about",
@@ -148,12 +148,21 @@ const SHORT_KEYS = new Set([
   "footer.whatsapp", "footer.email", "footer.instagram",
 ]);
 
+const LEGACY_POSITIONAL_KEYS = new Set([
+  "hero.title",
+  "hero.subtitle",
+  "hero.cta_primary",
+  "hero.cta_secondary",
+  "showcase.cat2.title",
+  "showcase.cat2.desc",
+]);
+
 // Section-level grouping hints for visual separators
 const GROUP_SEPARATORS: Record<string, Record<string, string>> = {
   showcase: {
     "showcase.kicker": "عنوان القسم",
     "showcase.cat1.title": "🐴 القسم ١ — قصص الفتوحات",
-    "showcase.cat2.title": "⭐ القسم ٢ — القصة المخصصة",
+    "showcase.custom_story.title": "⭐ القسم ٢ — القصة المخصصة",
     "showcase.cat3.title": "🧩 القسم ٣ — ألعاب سراج",
     "showcase.cat4.title": "👩‍👧‍👦 القسم ٤ — عالم ماما وبابا",
     "showcase.cat5.title": "🐰 القسم ٥ — مغامرات سراج",
@@ -277,13 +286,15 @@ export default function ContentEditor({ initialData }: { initialData: Record<str
         </TabsList>
 
         {sections.map((sec) => {
-          const entries = Object.entries(data[sec]);
+          const entries = Object.entries(data[sec]).filter(
+            ([key]) => !LEGACY_POSITIONAL_KEYS.has(key)
+          );
           const separators = GROUP_SEPARATORS[sec];
 
           return (
             <TabsContent key={sec} value={sec}>
               <div className="space-y-5">
-                {entries.map(([key, val], idx) => {
+                {entries.map(([key, val]) => {
                   const separatorLabel = separators?.[key];
                   return (
                     <div key={key}>

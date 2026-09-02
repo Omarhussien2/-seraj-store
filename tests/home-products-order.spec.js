@@ -91,7 +91,7 @@ test.describe('home product ordering', () => {
     await expect(names.first()).toHaveText('بوكس القصص والبازل');
     await expect(names).toHaveText([
       'بوكس القصص والبازل',
-      'القصة المخصصة',
+      'قصة مخصصة بطلها طفلك',
       'قصة خالد',
     ]);
   });

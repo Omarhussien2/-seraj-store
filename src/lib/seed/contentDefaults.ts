@@ -1,9 +1,8 @@
+import { personalizedStorySiteContent } from "@/lib/personalizedStoryContent";
+
 export const DEFAULT_CONTENT = [
   // Hero
-  { key: "hero.title", section: "hero", value: "متعة القراءة واللعب.. بطلها ابنك!" },
-  { key: "hero.subtitle", section: "hero", value: "قصص وتجارب مخصصة<br/>تنمّي <span class=\"highlight\">مهاراته</span> وتبني <span class=\"highlight\">شخصيته</span>" },
-  { key: "hero.cta_primary", section: "hero", value: "استكشف عالم سراج" },
-  { key: "hero.cta_secondary", section: "hero", value: "اصنع قصة لابنك" },
+  ...personalizedStorySiteContent.filter((item) => item.section === "hero"),
   
   // Products
   { key: "products.kicker", section: "products", value: "أبطالنا الصغار بيحبوهم" },
@@ -98,8 +97,7 @@ export const DEFAULT_CONTENT = [
   { key: "showcase.cat1.cta", section: "showcase", value: "اكتشف قصص الأبطال" },
 
   // Category 2: القصة المخصصة
-  { key: "showcase.cat2.title", section: "showcase", value: "🌟 قصة مخصوصة.. باسم وصورة طفلك!" },
-  { key: "showcase.cat2.desc", section: "showcase", value: "عايز تفاجئ طفلك بهدية عمره ما هينساها؟ بخطوات بسيطة جداً، سراج هيدخل ورشه ويألف قصة بطلها هو طفلك نفسه (باسمه وصورته)! قصة ممتعة بتعلمهم قيم وأخلاق بطريقة تفاعلية، وهتجيلك مطبوعة بجودة عالية لحد باب البيت. خلي طفلك يشوف نفسه بطل حقيقي!" },
+  ...personalizedStorySiteContent.filter((item) => item.section === "showcase"),
   { key: "showcase.cat2.cta", section: "showcase", value: "اصنع قصة لطفلك" },
 
   // Category 3: ألعاب سراج

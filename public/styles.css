@@ -357,6 +357,35 @@ input, textarea { font-family: inherit; }
   .hero-ctas { gap: 12px; margin: 20px 0; }
 }
 
+/* Hero proof points — confirmed offer facts */
+.hero-points {
+  list-style: none;
+  padding: 0;
+  margin: 14px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 560px;
+}
+.hero-points li {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  background: var(--paper);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  padding: 6px 12px;
+  line-height: 1.5;
+}
+.hero-points li::before {
+  content: "✦";
+  color: var(--seraj);
+  font-size: 11px;
+}
+
 .trust-row {
   list-style: none;
   padding: 0;
