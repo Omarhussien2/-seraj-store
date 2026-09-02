@@ -140,9 +140,12 @@ relevant source above in the same pull request.
 Implemented on branch `codex/seo-content-implementation` (not yet deployed;
 production state above predates this work). Verified with `npm run build`,
 targeted ESLint (`npx eslint public/app.js`: 0 errors, 30 pre-existing
-warnings), product catalog contract tests (6/6 pass), DOM-based visual checks
-at 1280px and 320/360/390/430px (no horizontal overflow), valid JSON-LD,
-self-canonicals, and no broken internal links across the touched pages.
+warnings), product catalog contract tests (7/7 pass), SEO content contract tests
+(3/3 pass), SEO Playwright tests (3/3 pass), and the existing homepage ordering
+test (1/1 pass). Browser checks cover 320/360/390/430px with no horizontal
+overflow, valid JSON-LD, self-canonicals, semantic CTA destinations, and stale
+CMS/product API responses. No broken internal links were found across the
+touched pages.
 
 Published code changes (visible after deploy):
 
@@ -168,13 +171,28 @@ Published code changes (visible after deploy):
   strategy; sitemap includes the two new routes.
 - Shared confirmed facts centralized in `src/lib/personalizedStoryContent.ts`
   to keep all pages consistent.
+- SEO-critical custom-story wording is code-controlled in both the SPA and the
+  canonical product page. Product API data continues to own price,
+  availability, and media, but stale database copy cannot silently restore old
+  positioning or unconfirmed claims in the storefront.
+- The personalized-story hero and showcase use semantic CMS keys
+  (`hero.story_*`, `hero.cta_custom_story`, `hero.cta_products`, and
+  `showcase.custom_story.*`). This prevents the legacy positional keys from
+  swapping CTA labels and destinations while rollout data is being migrated.
 
 Required follow-up after merge/deploy (owner/admin action):
 
-- Update `SiteContent` via `/admin/content`: the live DB values for
-  `hero.title`, `hero.cta_primary`, `hero.cta_secondary`, and
-  `showcase.cat2.title`/`showcase.cat2.desc` still override the new defaults
-  with the old hero wording until updated. Code defaults are ready.
+- Do not update production content before the matching code is deployed. After
+  deployment, run `npm run migrate:seo-content -- --apply` with the production
+  `.env.local`. The migration upserts the new semantic `SiteContent` keys and
+  synchronizes the `custom-story` name, short description, long description,
+  and features used by `/api/products` and the Merchant feed. Running the
+  command without `--apply` is a read-only dry run.
+- Verify the rendered homepage after `/api/content` finishes: "ابدأ قصة طفلك"
+  must open `#/product/custom-story`, and "استكشف عالم سراج" must open
+  `#/products`. Also verify `/api/products`, the SPA product page, the canonical
+  `/product/custom-story` page, and `merchant-feed.xml` expose the synchronized
+  product copy and unchanged live price.
 - Resubmit/refresh the two new URLs (sitemap already lists them; consider
   IndexNow per the strategy) only after production HTML is verified.
 

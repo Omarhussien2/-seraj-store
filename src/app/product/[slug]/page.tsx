@@ -16,6 +16,7 @@ import {
   HOW_IT_WORKS_PATH,
   personalizedStoryFaqs,
   personalizedStoryProofPoints,
+  personalizedStoryProductCopy,
 } from "@/lib/personalizedStoryContent";
 import {
   encodedPath,
@@ -86,6 +87,13 @@ export default async function ProductSeoPage({ params }: ProductPageProps) {
   const googleCategoryId = googleProductCategoryId(product);
   const image = productImageUrl(product);
   const isCustomStory = product.slug === CUSTOM_STORY_SLUG;
+  const displayName = isCustomStory ? personalizedStoryProductCopy.name : product.name;
+  const displayLongDescription = isCustomStory
+    ? personalizedStoryProductCopy.longDescription
+    : product.longDesc;
+  const displayFeatures = isCustomStory
+    ? personalizedStoryProductCopy.features
+    : product.features;
   const description = isCustomStory
     ? "قصة سراج المخصصة: بتتكتب لطفلك من البداية حسب القيمة اللي تختارها، مع تصميم شخصية متكامل وعينة تعتمدها قبل استكمال القصة، وإهداء وتوصيل داخل مصر."
     : productDescription(product);
@@ -114,7 +122,7 @@ export default async function ProductSeoPage({ params }: ProductPageProps) {
       {
         "@type": "Product",
         "@id": `${siteUrl(productPath)}#product`,
-        name: product.name,
+        name: displayName,
         sku: product.slug,
         description,
         image: [image],
@@ -145,7 +153,7 @@ export default async function ProductSeoPage({ params }: ProductPageProps) {
           {
             "@type": "ListItem",
             position: category ? 4 : 3,
-            name: product.name,
+            name: displayName,
             item: siteUrl(productPath),
           },
         ],
@@ -171,7 +179,7 @@ export default async function ProductSeoPage({ params }: ProductPageProps) {
             )}
           </nav>
           <div className="overflow-hidden rounded-lg border border-[#dcc9ad] bg-white shadow-sm">
-            <img alt={product.name} className="w-full object-cover" src={image} />
+            <img alt={displayName} className="w-full object-cover" src={image} />
           </div>
         </section>
 
@@ -181,7 +189,7 @@ export default async function ProductSeoPage({ params }: ProductPageProps) {
               <p className="text-sm font-bold text-[#a15c1b]">{product.badge}</p>
             )}
             <h1 className="text-3xl font-extrabold leading-tight md:text-5xl">
-              {isCustomStory ? CUSTOM_STORY_H1 : product.name}
+              {isCustomStory ? CUSTOM_STORY_H1 : displayName}
             </h1>
             <p className="max-w-2xl text-lg leading-8 text-[#5f5044]">
               {isCustomStory
@@ -204,20 +212,20 @@ export default async function ProductSeoPage({ params }: ProductPageProps) {
             </div>
           </div>
 
-          {product.longDesc && (
+          {displayLongDescription && (
             <section className="space-y-2">
               <h2 className="text-2xl font-extrabold">عن المنتج</h2>
               <p className="whitespace-pre-line leading-8 text-[#4f4036]">
-                {product.longDesc}
+                {displayLongDescription}
               </p>
             </section>
           )}
 
-          {Boolean(product.features?.length) && (
+          {Boolean(displayFeatures?.length) && (
             <section className="space-y-3">
               <h2 className="text-2xl font-extrabold">مميزات المنتج</h2>
               <ul className="grid gap-2 sm:grid-cols-2">
-                {product.features?.map((feature) => (
+                {displayFeatures?.map((feature) => (
                   <li className="rounded-md bg-white px-4 py-3 shadow-sm" key={feature}>
                     {feature}
                   </li>

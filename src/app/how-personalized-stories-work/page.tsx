@@ -73,7 +73,10 @@ const howItWorksJsonLd = {
 };
 
 export default async function HowPersonalizedStoriesWorkPage() {
-  const customStory = await getActiveProduct(CUSTOM_STORY_SLUG);
+  const customStory = await getActiveProduct(CUSTOM_STORY_SLUG).catch((error) => {
+    console.error("Failed to load custom-story price for the how-it-works page:", error);
+    return null;
+  });
 
   return (
     <main className="min-h-screen bg-[#f7f1e7] px-4 py-8 text-[#26170f]" dir="rtl">
@@ -155,15 +158,15 @@ export default async function HowPersonalizedStoriesWorkPage() {
               <h3 className="text-lg font-extrabold">تصميم شخصية متكامل</h3>
               <p className="mt-2 leading-8 text-[#4f4036]">
                 قبل كتابة وتنفيذ القصة كاملة، نجهز تصميم شخصية متكامل
-                (Character Sheet) لطفلك. التصميم ده هو المرجع اللي بيخلي ملامح
-                بطل الحكاية ثابتة من أول صفحة لآخر صفحة.
+                (Character Sheet) لطفلك. التصميم ده هو المرجع اللي بيساعدنا نحافظ
+                على اتساق شكل البطل وملامحه عبر مشاهد القصة.
               </p>
             </div>
             <div className="rounded-lg border border-[#dcc9ad] bg-white p-5 shadow-sm">
               <h3 className="text-lg font-extrabold">عينة الشخصية للاعتماد</h3>
               <p className="mt-2 leading-8 text-[#4f4036]">
                 نرسل لولي الأمر عينة من تصميم الشخصية للمراجعة قبل استكمال
-                القصة، ومستكملين التنفيذ بعد اعتمادك. عينة الشخصية دي نقطة
+                القصة، ونستكمل التنفيذ بعد اعتمادك. عينة الشخصية دي نقطة
                 المراجعة الأساسية في رحلة الطلب.
               </p>
             </div>

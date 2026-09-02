@@ -101,9 +101,9 @@
       originalPriceText: '340 ج.م',
       category: 'قصص مخصصة',
       section: 'custom-stories',
-      shortDesc: 'قصة كاملة بتتكتب لطفلك من البداية (+2)',
-      longDesc: 'في "سراج"، القصة المخصصة مش مجرد اسم وصورة داخل حكاية جاهزة: احكيلنا عن طفلك والرسالة اللي تهمك — شجاعة، ثقة، صبر، حب تعلم، أو موقف خاص — وارفع صوره. نجهز له تصميم شخصية متكامل (Character Sheet)، ونرسل لك عينة لاعتمادها قبل استكمال القصة، وبعدها نحولها لحكاية عربية بطلها هو. ممكن كمان نضيف إهداء باسمك ونوصل الكتاب مباشرةً لمستلم الهدية داخل مصر.',
-      features: ['قصة تُبنى على أولوية ولي الأمر، ليست مجرد تبديل الاسم', 'تصميم شخصية متكامل (Character Sheet) لطفلك', 'عينة الشخصية للاعتماد قبل استكمال القصة', 'إهداء باسم المرسل وتوصيل مباشر لمستلم الهدية'],
+      shortDesc: 'قصة كاملة بتتكتب لطفلك من البداية',
+      longDesc: 'في سراج، القصة المخصصة مش مجرد اسم وصورة داخل حكاية جاهزة: احكيلنا عن طفلك والرسالة اللي تهمك — شجاعة، ثقة، صبر، حب تعلم، أو موقف خاص — وارفع صوره. نجهز له تصميم شخصية متكامل (Character Sheet) يساعدنا نحافظ على اتساق شكل البطل وملامحه عبر المشاهد، ونرسل لك عينة لاعتمادها قبل استكمال القصة. بعدها نحولها لحكاية عربية بطلها هو، وممكن نضيف إهداء ونوصل الكتاب مباشرةً لمستلم الهدية داخل مصر.',
+      features: ['قصة تُبنى على أولوية ولي الأمر، وليست مجرد تبديل الاسم', 'تصميم شخصية متكامل (Character Sheet) يساعد على اتساق شكل البطل', 'عينة الشخصية للاعتماد قبل استكمال القصة', 'إهداء وتوصيل مباشر لمستلم الهدية داخل مصر'],
       media: { type: 'book3d', image: 'assets/seraj.png', title: 'حكاية<br/>بطلنا', bg: 'emerald' },
       action: 'wizard',
       ctaText: 'ابدأ القصة',
@@ -326,6 +326,15 @@
       p.gallery = p.gallery && p.gallery.length > 0 ? p.gallery : fallback.gallery || [];
       p.action = p.action || fallback.action || 'cart';
       p.imageUrl = p.imageUrl || fallback.imageUrl;
+      // SEO-critical custom-story claims are code-controlled. The API still
+      // owns price, availability, and media, while stale DB copy cannot
+      // restore superseded promises or positioning in the storefront.
+      if (p.slug === 'custom-story' && fallback) {
+        p.name = fallback.name;
+        p.shortDesc = fallback.shortDesc;
+        p.longDesc = fallback.longDesc;
+        p.features = fallback.features;
+      }
       merged[p.slug] = p;
     });
     return merged;
@@ -785,7 +794,7 @@
       h += '</div></div>';
       h += '<div class="zz-text"><span class="zz-num">٢</span>';
       h += '<h3>نجهز تصميم شخصية متكاملة ونرسل لك عينة</h3>';
-      h += '<p>تصميم شخصية متكامل (Character Sheet) بيثبت ملامح طفلك عبر المشاهد، وبنبعت لك عينة تعتمدها قبل استكمال القصة.</p>';
+      h += '<p>تصميم شخصية متكامل (Character Sheet) يساعدنا نحافظ على اتساق شكل البطل وملامحه عبر المشاهد، وبنبعت لك عينة تعتمدها قبل استكمال القصة.</p>';
       h += '</div></article>';
       // Step 3
       h += '<article class="zz-row reveal" style="--d:.15s">';
@@ -3685,7 +3694,7 @@
   // CMS CONTENT / DOM INJECTION
   // ---------------------------------------------------------
   var SITE_CONTENT = {};
-  var HTML_KEYS = ['hero.title', 'hero.subtitle', 'about.quote', 'showcase.cat1.title', 'showcase.cat1.desc', 'showcase.cat2.title', 'showcase.cat2.desc', 'showcase.cat3.title', 'showcase.cat3.desc', 'showcase.cat4.title', 'showcase.cat4.desc', 'showcase.cat5.title', 'showcase.cat5.desc'];
+  var HTML_KEYS = ['hero.story_title', 'hero.story_subtitle', 'about.quote', 'showcase.cat1.title', 'showcase.cat1.desc', 'showcase.custom_story.title', 'showcase.custom_story.desc', 'showcase.cat3.title', 'showcase.cat3.desc', 'showcase.cat4.title', 'showcase.cat4.desc', 'showcase.cat5.title', 'showcase.cat5.desc'];
   var MARKDOWN_KEYS = ['faq.content', 'shipping.content', 'returns.content', 'about.story'];
 
   function fetchSiteContent() {

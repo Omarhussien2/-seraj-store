@@ -105,6 +105,29 @@ test("fallback and seed product truth use the current custom story price", () =>
   }
 });
 
+test("fallback and seed product truth keep the approved custom story positioning", () => {
+  for (const path of CUSTOM_STORY_PRODUCT_FILES) {
+    const customStoryRecord =
+      readRepoFile(path).match(CUSTOM_STORY_RECORD)?.[0] || "";
+
+    assert.match(
+      customStoryRecord,
+      /قصة مخصصة بطلها طفلك/,
+      `${path} must use the approved custom-story name`
+    );
+    assert.match(
+      customStoryRecord,
+      /ليست مجرد تبديل الاسم/,
+      `${path} must explain the approved custom-story distinction`
+    );
+    assert.doesNotMatch(
+      customStoryRecord,
+      /خلي طفلك بطل القصة الحقيقي|قصة كاملة باسم طفلك وصورته/,
+      `${path} must not restore the superseded custom-story positioning`
+    );
+  }
+});
+
 test("fallback and seed product truth avoid stale specs and unverified review copy", () => {
   const staleCustomStoryClaims = [
     "٢٤ صفحة",

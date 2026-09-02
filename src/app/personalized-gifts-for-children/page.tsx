@@ -72,7 +72,10 @@ const giftPageJsonLd = {
 };
 
 export default async function PersonalizedGiftsPage() {
-  const customStory = await getActiveProduct(CUSTOM_STORY_SLUG);
+  const customStory = await getActiveProduct(CUSTOM_STORY_SLUG).catch((error) => {
+    console.error("Failed to load custom-story price for the gift page:", error);
+    return null;
+  });
 
   return (
     <main className="min-h-screen bg-[#f7f1e7] px-4 py-8 text-[#26170f]" dir="rtl">
@@ -185,7 +188,7 @@ export default async function PersonalizedGiftsPage() {
 
         {customStory && (
           <section className="rounded-lg bg-[#26170f] p-6 text-white">
-            <h2 className="text-2xl font-extrabold">جرب هدية ها تتذكر</h2>
+            <h2 className="text-2xl font-extrabold">قدّم له هدية هيفضل فاكرها</h2>
             <p className="mt-2 max-w-2xl leading-8 text-white/80">
               ابدأ الطلب دلوقتي: القصة المخصصة حاليًا بـ{" "}
               {customStory.priceText || `${customStory.price} ج.م`}
