@@ -78,8 +78,12 @@ export default function AboutPage() {
         <section className="space-y-4 rounded-2xl bg-[#e9f4df] p-6 md:p-8">
           <h2 className="text-2xl font-extrabold">ماذا نصنع في سراج؟</h2>
           <p className="max-w-4xl leading-8 text-[#5f5044]">
-            نصنع قصصًا عربية مخصصة باسم وصورة الطفل، وكتبًا جاهزة، وأنشطة
-            تعليمية تساعده على حب القراءة وبناء شخصيته بطريقة دافئة وممتعة.
+            في خدمة القصة المخصصة، بنكتب لطفلك قصة من البداية حسب الرسالة اللي
+            تهمك — شجاعة، ثقة، صبر، حب تعلم، أو موقف خاص — ونجهز له تصميم شخصية
+            متكامل (Character Sheet)، ونرسل لك عينة للاعتماد قبل استكمال القصة،
+            ونقدر نضيف إهداء ونوصل الكتاب مباشرةً لمستلم الهدية. وكل ده جنب
+            عالمنا العربي الأصلي: كتب جاهزة وأنشطة تعليمية تساعد الطفل يحب
+            القراءة ويبني شخصيته بطريقة دافئة وممتعة.
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
             <Link
@@ -87,6 +91,12 @@ export default function AboutPage() {
               href="/products"
             >
               استكشف المنتجات
+            </Link>
+            <Link
+              className="rounded-md border border-[#1f7a5c] px-5 py-3 font-bold text-[#1f7a5c]"
+              href="/how-personalized-stories-work"
+            >
+              كيف نصنع قصة طفلك؟
             </Link>
             <Link
               className="rounded-md border border-[#1f7a5c] px-5 py-3 font-bold text-[#1f7a5c]"

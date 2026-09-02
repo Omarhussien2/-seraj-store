@@ -190,6 +190,23 @@ export default async function CategorySeoPage({ params }: CategoryPageProps) {
           </div>
         </section>
 
+        {Boolean(category.relatedLinks?.length) && (
+          <nav
+            aria-label="صفحات مرتبطة"
+            className="flex flex-wrap gap-3 rounded-lg border border-[#dcc9ad] bg-white p-5 shadow-sm"
+          >
+            {category.relatedLinks?.map((link) => (
+              <Link
+                className="rounded-md border border-[#1f7a5c] px-4 py-2 font-bold text-[#1f7a5c]"
+                href={link.href}
+                key={link.href}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        )}
+
         <div className="rounded-lg bg-[#26170f] p-6 text-white">
           <h2 className="text-2xl font-extrabold">اختَر التجربة المناسبة لطفلك</h2>
           <p className="mt-2 max-w-2xl leading-8 text-white/80">

@@ -93,7 +93,7 @@
       related: ['story-khaled', 'custom-story', 'bundle']
     },
     'custom-story': {
-      name: 'خلي طفلك بطل القصة الحقيقي',
+      name: 'قصة مخصصة بطلها طفلك',
       badge: 'مخصصة باسم بطلنا',
       price: 310,
       originalPrice: 340,
@@ -101,9 +101,9 @@
       originalPriceText: '340 ج.م',
       category: 'قصص مخصصة',
       section: 'custom-stories',
-      shortDesc: 'قصة كاملة باسم طفلك وصورته ( +2)',
-      longDesc: 'هل تخيلت يوماً فرحة طفلك وهو يرى نفسه بطلاً في كتاب حقيقي؟ في "سراج"، بنقدم تجربة قراءة تفاعلية ومختلفة. بنصمم قصة مخصصة لطفلك، اسمه موجود في كل صفحة مع شخصية تقرب من ملامحه، عشان يعيش القصة بنفسه ويتحول البطل اللي بيتعلم منه. القصص مبنية بذكاء عشان تغرس قيم يومية مهمة من غير توجيه مباشر أو كلام إنشائي، هدية ستعيش معه وتزرع فيه حب القراءة منذ الصغر.',
-      features: ['اسم طفلك وملامحه جوه القصة', 'قيم بذكاء وبدون توجيه', 'بديل ذكي للشاشات', 'خامات عملية تعيش', 'هدية جاهزة وقيمة'],
+      shortDesc: 'قصة كاملة بتتكتب لطفلك من البداية (+2)',
+      longDesc: 'في "سراج"، القصة المخصصة مش مجرد اسم وصورة داخل حكاية جاهزة: احكيلنا عن طفلك والرسالة اللي تهمك — شجاعة، ثقة، صبر، حب تعلم، أو موقف خاص — وارفع صوره. نجهز له تصميم شخصية متكامل (Character Sheet)، ونرسل لك عينة لاعتمادها قبل استكمال القصة، وبعدها نحولها لحكاية عربية بطلها هو. ممكن كمان نضيف إهداء باسمك ونوصل الكتاب مباشرةً لمستلم الهدية داخل مصر.',
+      features: ['قصة تُبنى على أولوية ولي الأمر، ليست مجرد تبديل الاسم', 'تصميم شخصية متكامل (Character Sheet) لطفلك', 'عينة الشخصية للاعتماد قبل استكمال القصة', 'إهداء باسم المرسل وتوصيل مباشر لمستلم الهدية'],
       media: { type: 'book3d', image: 'assets/seraj.png', title: 'حكاية<br/>بطلنا', bg: 'emerald' },
       action: 'wizard',
       ctaText: 'ابدأ القصة',
@@ -766,8 +766,8 @@
       // How it works — zig-zag
       h += '<section class="section zigzag-section" id="how-it-works">';
       h += '<header class="section-head reveal">';
-      h += '<span class="kicker">٣ خطوات بس</span>';
-      h += '<h2>إزاي سراج بيعمل قصة بصورة ابنك؟</h2>';
+      h += '<span class="kicker">من طفلك للبطل</span>';
+      h += '<h2>إزاي سراج بيصنع قصة طفلك؟</h2>';
       h += '</header>';
       // Step 1
       h += '<article class="zz-row reveal" style="--d:.05s">';
@@ -775,8 +775,8 @@
       h += '<video class="zz-video" data-src="assets/1-.mp4" muted loop playsinline preload="none" poster="assets/seraj.webp" aria-label="الخطوة ١"></video>';
       h += '</div></div>';
       h += '<div class="zz-text"><span class="zz-num">١</span>';
-      h += '<h3>قول لسراج اسم بطلنا وسنه</h3>';
-      h += '<p>ادخل اسم طفلك وسنّه، واختار القيمة اللي عايزه يتعلمها.. وسراج هيبدأ الشغل.</p>';
+      h += '<h3>احكيلنا عن طفلك والقيمة اللي تهمك</h3>';
+      h += '<p>الاسم والعمر والرسالة أو الموقف اللي تحب القصة تساعده فيه.. وسراج هيبدأ الشغل.</p>';
       h += '</div></article>';
       // Step 2
       h += '<article class="zz-row zz-reversed reveal" style="--d:.1s">';
@@ -784,8 +784,8 @@
       h += '<video class="zz-video" data-src="assets/2.mp4" muted loop playsinline preload="none" poster="assets/seraj.webp" aria-label="الخطوة ٢"></video>';
       h += '</div></div>';
       h += '<div class="zz-text"><span class="zz-num">٢</span>';
-      h += '<h3>سراج هيدخل ورشه السحرية يكتب ويرسم القصة مخصوص ليه</h3>';
-      h += '<p>في الورشة، سراج بيكتب القصة باسم بطلك ويرسمها برسومات أصلية مبهجة.. كل حاجة مخصوصة.</p>';
+      h += '<h3>نجهز تصميم شخصية متكاملة ونرسل لك عينة</h3>';
+      h += '<p>تصميم شخصية متكامل (Character Sheet) بيثبت ملامح طفلك عبر المشاهد، وبنبعت لك عينة تعتمدها قبل استكمال القصة.</p>';
       h += '</div></article>';
       // Step 3
       h += '<article class="zz-row reveal" style="--d:.15s">';
@@ -793,12 +793,14 @@
       h += '<video class="zz-video" data-src="assets/3.mp4" muted loop playsinline preload="none" poster="assets/seraj.webp" aria-label="الخطوة ٣"></video>';
       h += '</div></div>';
       h += '<div class="zz-text"><span class="zz-num">٣</span>';
-      h += '<h3>القصة هتجيلك مطبوعة بجودة عالية لحد باب البيت</h3>';
-      h += '<p>القصة بتتطبع بجودة عالية وتوصلك لحد باب البيت.</p>';
+      h += '<h3>نكمل الحكاية ونجهزها هدية توصل لمستلمها</h3>';
+      h += '<p>نكتب ونرسم أحداث القصة حول طفلك، ونضيف الإهداء المتفق عليه، ونوصل الكتاب لحد باب البيت أو مباشرةً لمستلم الهدية.</p>';
       h += '</div></article>';
       h += '<div class="zz-cta reveal" style="--d:.2s">';
       h += '<a href="#/wizard" data-link class="btn btn-primary"><span>يلا نبدأ الحكاية</span>';
-      h += '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>';
+      h += '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a>';
+      h += '<p style="margin-top:14px;font-weight:800"><a href="/how-personalized-stories-work" style="color:var(--seraj-deep, #1f7a5c)">شوف الخطوات الست بالتفصيل</a></p>';
+      h += '</div>';
       h += '</section>';
 
       // Values

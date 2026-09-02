@@ -135,6 +135,62 @@ relevant source above in the same pull request.
 - Production build, targeted ESLint, desktop rendering, and 320px no-overflow
   checks passed for the policy release merged in PR #48.
 
+## Content rollout implementation status (2026-09-02)
+
+Implemented on branch `codex/seo-content-implementation` (not yet deployed;
+production state above predates this work). Verified with `npm run build`,
+targeted ESLint (`npx eslint public/app.js`: 0 errors, 30 pre-existing
+warnings), product catalog contract tests (6/6 pass), DOM-based visual checks
+at 1280px and 320/360/390/430px (no horizontal overflow), valid JSON-LD,
+self-canonicals, and no broken internal links across the touched pages.
+
+Published code changes (visible after deploy):
+
+- New canonical page `/how-personalized-stories-work` (how-it-works,
+  WebPage + BreadcrumbList JSON-LD, live price from the products API).
+- New canonical page `/personalized-gifts-for-children` (gifting, dedication,
+  direct delivery; explicit note that personalized items have different
+  return conditions with a link to `/returns`).
+- `/product/custom-story` now uses the strategy title/H1, adds a confirmed
+  facts section, buyer-supply summary, visible FAQ, and internal links to the
+  two new pages and `/returns`.
+- `/category/personalized-stories` copy now states the owner-confirmed offer
+  (guardian-led story, character sheet, approval sample, dedication, direct
+  delivery) with related-links nav; other categories unchanged.
+- `/about` (Next.js and SPA banner) updated with the positioning and links.
+- SPA homepage hero (heading, supporting copy, primary/secondary CTAs, four
+  proof points), title/meta/OG wording, wizard "how it works" accordion
+  (now six confirmed steps), custom-story zigzag steps, success-page wording
+  ("عينة الشخصية" instead of "البروفة"), showcase section, and footer links
+  to the new pages.
+- `public/app.js` fallback `custom-story` record and
+  `src/lib/seed/contentDefaults.ts` hero/showcase defaults aligned with the
+  strategy; sitemap includes the two new routes.
+- Shared confirmed facts centralized in `src/lib/personalizedStoryContent.ts`
+  to keep all pages consistent.
+
+Required follow-up after merge/deploy (owner/admin action):
+
+- Update `SiteContent` via `/admin/content`: the live DB values for
+  `hero.title`, `hero.cta_primary`, `hero.cta_secondary`, and
+  `showcase.cat2.title`/`showcase.cat2.desc` still override the new defaults
+  with the old hero wording until updated. Code defaults are ready.
+- Resubmit/refresh the two new URLs (sitemap already lists them; consider
+  IndexNow per the strategy) only after production HTML is verified.
+
+Intentionally not implemented (blocked, see SEO-CONTENT-STRATEGY.md gates):
+
+- `/child-photo-privacy`: requires owner-confirmed storage/retention/deletion
+  facts; the wizard photo note keeps its existing production wording until
+  the policy is approved.
+- Evidence gallery, before/after resemblance examples, and first-hand case
+  study: require approved visual assets and guardian consent.
+- Buyer's guide and any landing pages for extra goals/occasions: require
+  confirmed package specifications (page count, materials, production time,
+  revision rounds) that are still pending owner confirmation.
+- No new FAQPage or HowTo markup was added (per strategy guidance); FAQ
+  content is visible text only.
+
 ## Unfinished work
 
 ### Near-term business-data revision

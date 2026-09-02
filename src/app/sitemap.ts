@@ -23,6 +23,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly" as const,
       priority: 0.8,
     })),
+    { url: siteUrl("/how-personalized-stories-work"), changeFrequency: "monthly", priority: 0.8 },
+    { url: siteUrl("/personalized-gifts-for-children"), changeFrequency: "monthly", priority: 0.7 },
     { url: siteUrl("/mama-world"), changeFrequency: "weekly", priority: 0.7 },
     { url: siteUrl("/about"), changeFrequency: "monthly", priority: 0.6 },
     { url: siteUrl("/contact"), changeFrequency: "monthly", priority: 0.5 },

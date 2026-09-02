@@ -1,9 +1,9 @@
 export const DEFAULT_CONTENT = [
   // Hero
-  { key: "hero.title", section: "hero", value: "متعة القراءة واللعب.. بطلها ابنك!" },
-  { key: "hero.subtitle", section: "hero", value: "قصص وتجارب مخصصة<br/>تنمّي <span class=\"highlight\">مهاراته</span> وتبني <span class=\"highlight\">شخصيته</span>" },
-  { key: "hero.cta_primary", section: "hero", value: "استكشف عالم سراج" },
-  { key: "hero.cta_secondary", section: "hero", value: "اصنع قصة لابنك" },
+  { key: "hero.title", section: "hero", value: "قصة أطفال مخصصة<br/><span class=\"highlight\">تُكتب لطفلك من البداية</span>" },
+  { key: "hero.subtitle", section: "hero", value: "احكيلنا عن طفلك والرسالة اللي تهمك — شجاعة، ثقة، صبر، حب التعلم، أو موقف خاص. نصمم له شخصية متكاملة، نرسل لك عينة لاعتمادها، ثم نحولها إلى حكاية عربية يكون هو بطلها." },
+  { key: "hero.cta_primary", section: "hero", value: "ابدأ قصة طفلك" },
+  { key: "hero.cta_secondary", section: "hero", value: "استكشف عالم سراج" },
   
   // Products
   { key: "products.kicker", section: "products", value: "أبطالنا الصغار بيحبوهم" },
@@ -98,8 +98,8 @@ export const DEFAULT_CONTENT = [
   { key: "showcase.cat1.cta", section: "showcase", value: "اكتشف قصص الأبطال" },
 
   // Category 2: القصة المخصصة
-  { key: "showcase.cat2.title", section: "showcase", value: "🌟 قصة مخصوصة.. باسم وصورة طفلك!" },
-  { key: "showcase.cat2.desc", section: "showcase", value: "عايز تفاجئ طفلك بهدية عمره ما هينساها؟ بخطوات بسيطة جداً، سراج هيدخل ورشه ويألف قصة بطلها هو طفلك نفسه (باسمه وصورته)! قصة ممتعة بتعلمهم قيم وأخلاق بطريقة تفاعلية، وهتجيلك مطبوعة بجودة عالية لحد باب البيت. خلي طفلك يشوف نفسه بطل حقيقي!" },
+  { key: "showcase.cat2.title", section: "showcase", value: "🌟 قصة مخصوصة.. بطلها طفلك نفسه!" },
+  { key: "showcase.cat2.desc", section: "showcase", value: "عايز تفاجئ طفلك بهدية عمره ما هينساها؟ احكيلنا عن طفلك والقيمة اللي تهمك — شجاعة، ثقة، صبر، أو موقف خاص — وارفع صوره. نجهز له تصميم شخصية متكامل (Character Sheet)، ونرسل لك عينة لاعتمادها قبل استكمال القصة، وبعدها نحولها لحكاية مطبوعة بطلها هو.. بإهداء باسمك لو حبيت، وتوصيل لحد باب البيت أو مباشرةً لمستلم الهدية." },
   { key: "showcase.cat2.cta", section: "showcase", value: "اصنع قصة لطفلك" },
 
   // Category 3: ألعاب سراج
