@@ -11,6 +11,7 @@
     "test:products": "tsx --test tests/product-catalog-contract.test.ts",
     "test:home-products": "playwright test tests/home-products-order.spec.js",
     "test:seo-content": "tsx --test tests/seo-content-contract.test.ts && playwright test tests/seo-content.spec.js",
+    "test:google-reviews": "tsx --test tests/google-customer-reviews-contract.test.ts && playwright test tests/google-customer-reviews.spec.js",
     "migrate:seo-content": "dotenv -e .env.local -- tsx scripts/migrate-seo-content.ts",
     "seed": "npx dotenv-cli -e .env.local -- npx tsx scripts/seed.ts"
   },

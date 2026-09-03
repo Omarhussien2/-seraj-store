@@ -23,10 +23,65 @@
   var appliedCoupon = null;
   var CHECKOUT_CONTINUE_TEXT = 'كمل تسوق';
   var CHECKOUT_DELIVERY_TEXT = 'عادةً الطلب بيوصل خلال 5 إلى 7 أيام عمل.';
+  var pendingGoogleCustomerReview = null;
+  var renderedGoogleCustomerReviewOrderId = '';
 
   var DEPOSIT_ENABLED = true;       // overridden by /api/config
   var DEPOSIT_PERCENT = 60;          // overridden by /api/config
   var paymentMode = 'full';          // 'full' | 'deposit' (chosen on checkout page)
+
+  function isGoogleCustomerReviewPayload(value) {
+    return value &&
+      typeof value.merchant_id === 'number' &&
+      typeof value.order_id === 'string' && value.order_id.length > 0 &&
+      typeof value.email === 'string' && value.email.length > 0 &&
+      value.delivery_country === 'EG' &&
+      /^\d{4}-\d{2}-\d{2}$/.test(value.estimated_delivery_date || '');
+  }
+
+  function queueGoogleCustomerReviewOptIn(value) {
+    if (!isGoogleCustomerReviewPayload(value)) return;
+    pendingGoogleCustomerReview = value;
+  }
+
+  function renderGoogleCustomerReviewOptIn() {
+    var review = pendingGoogleCustomerReview;
+    if (!review || !window.gapi || renderedGoogleCustomerReviewOrderId === review.order_id) return;
+
+    window.gapi.load('surveyoptin', function () {
+      if (!window.gapi.surveyoptin || renderedGoogleCustomerReviewOrderId === review.order_id) return;
+      window.gapi.surveyoptin.render({
+        merchant_id: review.merchant_id,
+        order_id: review.order_id,
+        email: review.email,
+        delivery_country: review.delivery_country,
+        estimated_delivery_date: review.estimated_delivery_date,
+        opt_in_style: 'CENTER_DIALOG'
+      });
+      renderedGoogleCustomerReviewOrderId = review.order_id;
+      pendingGoogleCustomerReview = null;
+    });
+  }
+
+  window.renderGoogleCustomerReviewOptIn = renderGoogleCustomerReviewOptIn;
+
+  function loadGoogleCustomerReviewOptIn() {
+    if (!pendingGoogleCustomerReview) return;
+    window.___gcfg = { lang: 'ar' };
+
+    if (window.gapi) {
+      renderGoogleCustomerReviewOptIn();
+      return;
+    }
+
+    if (document.getElementById('google-customer-reviews-script')) return;
+    var script = document.createElement('script');
+    script.id = 'google-customer-reviews-script';
+    script.src = 'https://apis.google.com/js/platform.js?onload=renderGoogleCustomerReviewOptIn';
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+  }
 
   // ----- Cloudinary Config -----
   var CLOUD_NAME = 'dkhndsrhr';
@@ -1563,6 +1618,9 @@
     h += '<span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--ink-mute);font-weight:600;pointer-events:none">🇪🇬</span>';
     h += '<input type="tel" id="custPhone" required pattern="01[0-9]{9}" placeholder="01xxxxxxxxx" autocomplete="tel" dir="ltr" style="text-align:left;padding-left:48px"/>';
     h += '</div></label>';
+    h += '<label class="field"><span>البريد الإلكتروني <small style="color:var(--ember)">*</small></span>';
+    h += '<input type="email" id="custEmail" required maxlength="254" placeholder="name@example.com" autocomplete="email" dir="ltr"/></label>';
+    h += '<p class="checkout-google-review-note">بنمرّر البريد إلى Google Customer Reviews لعرض خيار استبيان بعد الطلب؛ Google لن ترسل الاستبيان إلا لو وافقت. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">خصوصية Google</a></p>';
     h += '<label class="field" style="margin-top:16px;"><span>' + (deliversToAnotherPerson ? 'عنوان توصيل القصة' : 'العنوان') + ' <small style="color:var(--ember)">*</small></span>';
     h += '<textarea id="custAddress" required placeholder="العنوان بالتفصيل: المدينة، المنطقة، الشارع..." rows="2">' + escapeHtml(savedDeliveryAddress) + '</textarea></label>';
     h += '<label class="field"><span>ملاحظات <small style="color:var(--ink-mute)">(اختياري)</small></span>';
@@ -1689,12 +1747,13 @@
 
     var nameEl = document.getElementById('custName');
     var phoneEl = document.getElementById('custPhone');
+    var emailEl = document.getElementById('custEmail');
     var addressEl = document.getElementById('custAddress');
     var notesEl = document.getElementById('custNotes');
 
     // Validate
     var valid = true;
-    [nameEl, phoneEl, addressEl].forEach(function (el) {
+    [nameEl, phoneEl, emailEl, addressEl].forEach(function (el) {
       el.classList.remove('shake');
     });
 
@@ -1702,12 +1761,14 @@
     if (!phoneEl.value.trim() || !/^01[0-9]{9}$/.test(phoneEl.value.trim())) {
       phoneEl.classList.add('shake'); valid = false;
     }
+    emailEl.value = emailEl.value.trim();
+    if (!emailEl.checkValidity()) { emailEl.classList.add('shake'); valid = false; }
     if (!addressEl.value.trim()) { addressEl.classList.add('shake'); valid = false; }
 
     if (!valid) {
       showToast('لو سمحتي كمّلي البيانات المطلوبة ✦');
       setTimeout(function () {
-        [nameEl, phoneEl, addressEl].forEach(function (el) { el.classList.remove('shake'); });
+        [nameEl, phoneEl, emailEl, addressEl].forEach(function (el) { el.classList.remove('shake'); });
       }, 600);
       return;
     }
@@ -1723,6 +1784,7 @@
     var orderData = {
       customerName: nameEl.value.trim(),
       customerPhone: phoneEl.value.trim(),
+      customerEmail: emailEl.value.toLowerCase(),
       address: addressEl.value.trim(),
       notes: notesEl.value.trim() || '',
       items: cart.map(function (item) {
@@ -1789,6 +1851,8 @@
       .then(function (res) { return res.json(); })
       .then(function (data) {
         if (data.success && data.data) {
+          queueGoogleCustomerReviewOptIn(data.data.googleCustomerReview);
+
           // Save order info for success page
           try {
             localStorage.setItem(ORDER_KEY, JSON.stringify({
@@ -1865,6 +1929,7 @@
         }
       }
     } catch (e) { /* silent */ }
+    loadGoogleCustomerReviewOptIn();
   }
 
   // ----- Remove from cart handler -----
@@ -1919,7 +1984,7 @@
     paymentMode = radio.value === 'deposit' ? 'deposit' : 'full';
 
     var prev = {};
-    ['custName', 'custPhone', 'custAddress', 'custNotes'].forEach(function (id) {
+    ['custName', 'custPhone', 'custEmail', 'custAddress', 'custNotes'].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) prev[id] = el.value;
     });
@@ -3328,6 +3393,8 @@
     '.cart-qty { font-size: 14px; color: var(--ink-mute); font-weight: 600; margin-right: 6px; }' +
     '.checkout-form { display: grid; gap: 18px; }' +
     '.checkout-form .field { display: block; }' +
+    '.checkout-google-review-note { margin:-10px 0 0; color:var(--ink-mute); font-size:13px; line-height:1.75; }' +
+    '.checkout-google-review-note a { color:var(--seraj-dark); text-decoration:underline; }' +
     // Dropzone photo preview styles
     '.dropzone.has-photo { border-style: solid; border-color: var(--seraj); }' +
     '.dropzone .dz-preview { position: absolute; inset: 0; z-index: 2; }' +

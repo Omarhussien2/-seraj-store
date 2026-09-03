@@ -105,6 +105,7 @@ export interface IOrder extends Document {
   };
   customerName: string;
   customerPhone: string;
+  customerEmail?: string;
   address: string;
   notes?: string;
   finance?: {
@@ -179,6 +180,9 @@ const OrderSchema = new mongoose.Schema<IOrder>(
     customStory: { type: CustomStorySchema },
     customerName: { type: String, required: true, trim: true },
     customerPhone: { type: String, required: true, trim: true },
+    // Optional at the persistence layer so legacy orders remain readable.
+    // The create-order API requires this field for new orders.
+    customerEmail: { type: String, trim: true, lowercase: true },
     address: { type: String, required: true, trim: true },
     notes: { type: String, trim: true },
     finance: {

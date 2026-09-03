@@ -91,7 +91,7 @@ src/middleware.ts                     — Edge middleware: cookie-based admin ro
 
 ### Data Models
 **Product**: slug (unique), name, price, category, features[], media, action, reviews[], active, order
-**Order**: orderNumber (SRJ-YYYY-XXXX), items[], subtotal, shippingFee, total, deposit (always 0), remaining, paymentMethod, paymentStatus, orderStatus, customStory (nested), customerName, customerPhone, address
+**Order**: orderNumber (SRJ-YYYY-XXXX), items[], subtotal, shippingFee, total, deposit (always 0), remaining, paymentMethod, paymentStatus, orderStatus, customStory (nested), customerName, customerPhone, customerEmail (required for new orders; optional on legacy records), address
 
 ### Environment Variables
 ```
