@@ -37,6 +37,8 @@ values before changing them in code or an external dashboard.
 - Sitemap generator: `src/app/sitemap.ts`
 - Crawler rules: `public/robots.txt`
 - Merchant feed: `src/app/merchant-feed.xml/route.ts`
+- Google Customer Reviews order payload and delivery-date calculation:
+  `src/lib/googleCustomerReviews.ts`
 - PWA identity: `public/manifest.json`
 - Search and platform logo assets: `public/assets/logo/`
 - Organic-discovery messaging and content source of truth:
@@ -120,6 +122,19 @@ relevant source above in the same pull request.
 - Business address and customer-service details were visible as saved on
   2026-09-01. The public contact URL, correct Google email, and phone were also
   visible in Business info.
+- Google Customer Reviews uses Merchant ID `5847247567`. The storefront
+  integration asks for a validated customer email during checkout and renders
+  Google's optional survey opt-in only after the order API confirms creation.
+  The API supplies the authoritative order number, `EG` delivery country, and
+  an estimated delivery date seven Egypt business days after purchase (Friday
+  and Saturday excluded). The email is stored with the order for operations but
+  is deliberately omitted from `seraj-last-order` in localStorage.
+- The opt-in module is loaded directly from Google's `platform.js` on the order
+  confirmation route; do not move it into Google Tag Manager. The customer sees
+  a disclosure and Google receives the email only to offer the optional survey.
+- The Google Customer Reviews badge is intentionally not shown yet. Add it only
+  after Merchant Center has enough eligible ratings to display useful rating
+  information; until then it can show that no rating is available.
 - Product status immediately after setup: 5 under review and 1 not approved.
   The single issue was **Image not processed**; Google said no action was needed
   and that the image would be processed again within 3 days. This remained the
@@ -272,6 +287,12 @@ the near future. This is intentionally unfinished.
   the default policy.
 - Re-read the status of all 6 products. Do not assume an item still under review
   or rejected has the same reason recorded above.
+- After the Google Customer Reviews release is live, place a genuine test order
+  with a monitored inbox and confirm that the opt-in appears on the production
+  success route. If the customer opts in, verify the survey timing after the
+  estimated delivery date. Never use fabricated orders or reviews.
+- Monitor Merchant Center for the first eligible store ratings. Reconsider the
+  optional badge only when it can display useful rating information.
 
 ### Search indexing follow-up
 

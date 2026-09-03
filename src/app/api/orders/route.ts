@@ -23,6 +23,7 @@ import {
   reserveInventoryForOrder,
 } from "@/lib/financeOperations";
 import { lineGrossRevenue, roundMoney } from "@/lib/financeMath";
+import { buildGoogleCustomerReviewOptIn } from "@/lib/googleCustomerReviews";
 
 // Force dynamic rendering — prevent Vercel from caching or treating as static
 export const dynamic = "force-dynamic";
@@ -111,6 +112,12 @@ const CreateOrderSchema = z.object({
   customerPhone: z
     .string()
     .regex(/^01[0-9]{9}$/, "رقم الموبايل لازم يبدأ بـ 01 ويتكون من 11 رقم"),
+  customerEmail: z
+    .string()
+    .trim()
+    .email("البريد الإلكتروني غير صحيح")
+    .max(254)
+    .transform((value) => value.toLowerCase()),
   address: z.string().min(1, "العنوان مطلوب"),
   notes: z.string().optional(),
 });
@@ -380,6 +387,7 @@ export async function POST(request: Request) {
           : undefined,
         customerName: validated.customerName,
         customerPhone: validated.customerPhone,
+        customerEmail: validated.customerEmail,
         address: validated.address,
         notes: validated.notes,
         finance: { costingStatus: "snapshot" },
@@ -413,6 +421,11 @@ export async function POST(request: Request) {
           paymentMode: order.paymentMode,
           orderStatus: order.orderStatus,
           paymentStatus: order.paymentStatus,
+          googleCustomerReview: buildGoogleCustomerReviewOptIn({
+            orderNumber: order.orderNumber,
+            customerEmail: validated.customerEmail,
+            createdAt: order.createdAt,
+          }),
           warnings: stockWarnings.length ? { stock: stockWarnings } : undefined,
           createdAt: order.createdAt,
         },

@@ -79,6 +79,7 @@ interface Order {
   customStory?: CustomStory;
   customerName: string;
   customerPhone: string;
+  customerEmail?: string;
   address: string;
   notes?: string;
   finance?: {
@@ -546,6 +547,9 @@ export default function AdminOrdersPage() {
                 <CardContent className="text-sm space-y-1">
                   <p><strong>الاسم:</strong> {selectedOrder.customerName}</p>
                   <p><strong>التليفون:</strong> <span dir="ltr">{selectedOrder.customerPhone}</span></p>
+                  {selectedOrder.customerEmail && (
+                    <p><strong>البريد:</strong>{" "}<a className="underline" href={`mailto:${selectedOrder.customerEmail}`}>{selectedOrder.customerEmail}</a></p>
+                  )}
                   <p><strong>العنوان:</strong> {selectedOrder.address}</p>
                   {selectedOrder.notes && (
                     <p><strong>ملاحظات:</strong> {selectedOrder.notes}</p>
