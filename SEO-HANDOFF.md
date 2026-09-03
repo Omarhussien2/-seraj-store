@@ -135,6 +135,12 @@ relevant source above in the same pull request.
 - The Google Customer Reviews badge is intentionally not shown yet. Add it only
   after Merchant Center has enough eligible ratings to display useful rating
   information; until then it can show that no rating is available.
+- Verified on 2026-09-03 under `hussien.impression@gmail.com`: Google Customer
+  Reviews appears in **Settings → Add-ons → Your add-ons** with a Remove action,
+  confirming the add-on is active and the signed agreement is available. Its
+  overview still reported no collected data immediately after deployment, as
+  expected before a real customer accepts the survey opt-in; Google notes that
+  reporting can take a few days to appear.
 - Product status immediately after setup: 5 under review and 1 not approved.
   The single issue was **Image not processed**; Google said no action was needed
   and that the image would be processed again within 3 days. This remained the
@@ -177,6 +183,12 @@ relevant source above in the same pull request.
   Horizontal overflow remained zero at 320, 360, 390, and 430px.
 - `/api/products` and `merchant-feed.xml` expose the approved custom-story
   title and description while retaining the live `310 EGP` price.
+- Google Customer Reviews was deployed through PR #57, squash-merged as commit
+  `ec2ae33aa5597e616e230244e00c815e94aefc66` on 2026-09-03. Vercel reported the
+  production deployment successful; direct production checks returned HTTP 200
+  for `/` and `/app.js`, confirmed the HTML5 doctype, checkout email field,
+  customer disclosure, and direct Google opt-in loader. The order summary kept
+  in `seraj-last-order` does not contain the customer email.
 
 ## Content rollout implementation status (2026-09-02)
 
