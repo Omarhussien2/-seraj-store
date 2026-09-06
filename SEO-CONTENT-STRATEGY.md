@@ -5,13 +5,14 @@ Google generative search, ChatGPT search, Bing, shopping surfaces, or browser
 agents. Read `SEO-HANDOFF.md` first for accounts, live dashboard state, legal
 identity, and the production files that must remain synchronized.
 
-Last owner confirmation: **2026-09-01, Africa/Cairo**.
+Last owner positioning confirmation: **2026-09-06, Africa/Cairo**.
 Last competitor review: **2026-09-01**.
 
 ## Outcome and limits
 
-The goal is to make Seraj the clearest and most credible answer for families
-looking for personalized Arabic children's stories in Egypt. No agent may
+The goal is to make Seraj a clear and credible store for Arabic children's
+stories, Islamic stories, educational and Islamic games, and personalized
+stories in Egypt. No agent may
 promise a number-one ranking, indexing, citation by an AI system, or a rich
 result. Those outcomes are controlled by external platforms and competition.
 
@@ -108,7 +109,21 @@ is used by customers and creative professionals.
 
 ### Homepage message draft
 
-**Heading:** قصة أطفال مخصصة تُكتب لطفلك من البداية
+The owner broadened homepage positioning on 2026-09-06. The homepage now uses
+`hero.store_title` and `hero.store_subtitle` to represent the complete store;
+the personalized offer below remains relevant to its product, category and
+process pages. Legacy `hero.story_*` CMS values must not replace the broader
+homepage message. See `docs/seo-editorial-plan-2026-09-06.md` for the reviewed
+article queue and publication status. The existing three canonical categories
+remain; educational and Islamic games share `/category/educational-games`.
+
+**Homepage heading:** قصص أطفال وألعاب تعليمية وإسلامية
+
+**Homepage supporting copy:** سِراج متجر لقصص الأطفال العربية والإسلامية، وألعاب
+البازل والحساب، وقصص مخصصة تُكتب لطفلك من البداية. اختاروا حكاية تقرأوها سوا، أو
+لعبة تشاركوها، أو هدية يكون طفلك بطلها.
+
+**Personalized-story heading:** قصة أطفال مخصصة تُكتب لطفلك من البداية
 
 **Supporting copy:** احكيلنا عن طفلك والرسالة اللي تهمك—شجاعة، ثقة، صبر، حب
 التعلم، أو موقف خاص. نصمم له شخصية متكاملة، نرسل لك عينة لاعتمادها، ثم نحولها

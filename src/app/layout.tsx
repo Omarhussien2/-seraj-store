@@ -7,12 +7,12 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_SITE_URL || "https://seraj-store.vercel.app"
   ),
   title: {
-    default: "سِراج — قصص أطفال عربية مخصصة وألعاب تعليمية",
+    default: "متجر سِراج — قصص أطفال وألعاب تعليمية وإسلامية وقصص مخصصة",
     template: "%s | سراج",
   },
   applicationName: "سِراج",
   description:
-    "قصص أطفال عربية مخصصة باسم وصورة طفلك، وكتب وألعاب تعليمية تنمّي حب القراءة والقيم. مصنوعة بحب في مصر وتُشحن لباب البيت.",
+    "قصص أطفال عربية وإسلامية، وألعاب بازل وحساب، وقصص مخصصة باسم وصورة طفلك. اكتشف منتجات سراج وأدلة القراءة واللعب للأهل، مع توصيل داخل مصر.",
   authors: [{ name: "فريق سراج" }],
   creator: "سراج",
   publisher: "سراج",
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     telephone: false,
   },
   openGraph: {
-    title: "سِراج — قصص أطفال عربية مخصصة وألعاب تعليمية",
+    title: "متجر سِراج — قصص أطفال وألعاب تعليمية وإسلامية وقصص مخصصة",
     description:
       "قصص مخصصة باسم وصورة طفلك، وكتب وألعاب تعليمية عربية مصنوعة بحب في مصر.",
     type: "website",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "سِراج — قصص أطفال عربية مخصصة وألعاب تعليمية",
+    title: "متجر سِراج — قصص أطفال وألعاب تعليمية وإسلامية وقصص مخصصة",
     description:
       "قصص مخصصة باسم وصورة طفلك، وكتب وألعاب تعليمية عربية.",
     images: ["/assets/social-card-1200x630.jpg"],

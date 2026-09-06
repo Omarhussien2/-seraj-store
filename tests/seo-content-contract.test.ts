@@ -11,7 +11,7 @@ test("personalized-story homepage uses semantic CMS keys", () => {
   const html = source("public/index.html");
   const app = source("public/app.js");
 
-  assert.match(html, /data-content-key="hero\.story_title"/);
+  assert.match(html, /data-content-key="hero\.store_title"/);
   assert.match(html, /data-content-key="hero\.cta_custom_story"/);
   assert.match(html, /data-content-key="hero\.cta_products"/);
   assert.match(html, /data-content-key="showcase\.custom_story\.title"/);

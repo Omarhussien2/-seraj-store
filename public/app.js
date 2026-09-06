@@ -3761,7 +3761,7 @@
   // CMS CONTENT / DOM INJECTION
   // ---------------------------------------------------------
   var SITE_CONTENT = {};
-  var HTML_KEYS = ['hero.story_title', 'hero.story_subtitle', 'about.quote', 'showcase.cat1.title', 'showcase.cat1.desc', 'showcase.custom_story.title', 'showcase.custom_story.desc', 'showcase.cat3.title', 'showcase.cat3.desc', 'showcase.cat4.title', 'showcase.cat4.desc', 'showcase.cat5.title', 'showcase.cat5.desc'];
+  var HTML_KEYS = ['hero.store_title', 'hero.store_subtitle', 'about.quote', 'showcase.cat1.title', 'showcase.cat1.desc', 'showcase.custom_story.title', 'showcase.custom_story.desc', 'showcase.cat3.title', 'showcase.cat3.desc', 'showcase.cat4.title', 'showcase.cat4.desc', 'showcase.cat5.title', 'showcase.cat5.desc'];
   var MARKDOWN_KEYS = ['faq.content', 'shipping.content', 'returns.content', 'about.story'];
 
   function fetchSiteContent() {

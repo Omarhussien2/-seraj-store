@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import StoreCategoryLinks from "@/components/seo/StoreCategoryLinks";
 import {
   DEFAULT_SOCIAL_IMAGE,
   articleDescription,
@@ -13,7 +14,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export const metadata: Metadata = {
-  title: "عالم ماما وبابا",
+  title: "مقالات للأهل عن قصص الأطفال واللعب والتربية | عالم ماما وبابا",
   description:
     "مقالات عملية للأمهات والآباء عن التربية، التعليم، السلوكيات، والقراءة للأطفال.",
   alternates: { canonical: siteUrl("/mama-world") },
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
 };
 
 export default async function MamaWorldSeoPage() {
-  const articles = await getPublishedArticles(24);
+  const articles = await getPublishedArticles();
   const collectionJsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -66,7 +67,8 @@ export default async function MamaWorldSeoPage() {
           </div>
         </header>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <StoreCategoryLinks />
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" aria-label="جميع المقالات المنشورة">
           {articles.map((article) => (
             <article
               className="overflow-hidden rounded-lg border border-[#dcc9ad] bg-white shadow-sm"

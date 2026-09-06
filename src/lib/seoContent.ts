@@ -30,6 +30,7 @@ export type SeoProduct = {
 
 export type SeoArticle = {
   slug: string;
+  tags?: string[];
   title: string;
   seoTitle?: string;
   section: string;
@@ -42,6 +43,7 @@ export type SeoArticle = {
   publishedAt?: Date;
   metaDescription?: string;
   updatedAt?: Date;
+  sources?: { label: string; url?: string; note?: string }[];
 };
 
 export function siteUrl(path = "") {
@@ -119,11 +121,12 @@ export async function getActiveProduct(slug: string) {
   return (await Product.findOne({ slug, active: true }).lean()) as SeoProduct | null;
 }
 
-export async function getPublishedArticles(limit?: number) {
+export async function getPublishedArticles(limit?: number, categoryTag?: string) {
   await connectDB();
   let query = Article.find({
     active: true,
     publishedAt: { $ne: null, $lte: new Date() },
+    ...(categoryTag ? { tags: categoryTag } : {}),
   }).sort({ order: 1, publishedAt: -1 });
 
   if (limit) query = query.limit(limit);
