@@ -13,6 +13,34 @@ time. Treat counts below as dated observations, not permanent facts.
 
 ## Follow-up on 2026-09-06
 
+### Production release completed
+
+The owner approved deployment and article publication on 2026-09-06. PR #59
+was squash-merged as `4781371c379eedfd0f962dffa762b21a59ef0909`. Vercel
+deployment `GAwnch8eXophBpWFfuBNSRPgS6Vh` completed successfully, and the
+production homepage serves the broader store title and `hero.store_*` markup.
+
+- Published `/article/choosing-childrens-stories-and-games` through the reviewed
+  insert-only script after deployment. The article is now live, not a draft.
+- After a dry run and catalog identity check against all six active product
+  slugs, inserted only `hero.store_title` and `hero.store_subtitle` in
+  SiteContent. Other CMS keys and product data were not modified.
+- A production crawl at **2026-09-06 12:07 UTC** verified all **59 sitemap URLs**:
+  HTTP 200, non-empty titles/descriptions, self-canonicals, indexable metadata,
+  and parseable JSON-LD. The new guide is included in the sitemap.
+- Verified the guide is linked from `/mama-world` and all three canonical
+  categories, and all 13 distinct normal-path links in the guide return 200.
+  There are now 41 published articles.
+- Opened the published article in the browser and checked headings, complete
+  content and links. It has no horizontal overflow at 320/360/390/430px.
+- Search Console's daily quota was already exhausted earlier today. No further
+  manual indexing request was made. Publication and sitemap inclusion do not
+  establish that Google has indexed the new guide.
+
+The pre-release notes below are retained as history. Deployment and guide
+publication are complete; the remaining editorial topics require the evidence
+listed in `docs/seo-editorial-plan-2026-09-06.md` before drafting/publishing.
+
 Verified in the browser under `hussien.impression@gmail.com`:
 
 - Merchant Center account `5847247567` reports **6 approved**, **0 limited**,
@@ -28,7 +56,8 @@ Verified in the browser under `hussien.impression@gmail.com`:
   was not submitted after the quota response.
 - Bing and Customer Reviews were not rechecked during this batch.
 
-Prepared locally from `33cc7914be305d3c05b793ae16a58f2123cb8241`, not deployed:
+Pre-release preparation from `33cc7914be305d3c05b793ae16a58f2123cb8241`
+(subsequently published in PR #59 as recorded above):
 
 - Broad store homepage title/H1 and metadata covering children's stories,
   educational/Islamic games, and personalized stories. New `hero.store_*`
@@ -62,10 +91,9 @@ false. Codex reviewed and revised the editorial proposal. The relay's
 hashes and no extra file appeared in the delegated context directory. Usage
 cost was not reported.
 
-Remaining release work: approve/commit/push/deploy the reviewed checkout,
-publish the guide, verify production HTML and sitemap, and retry eligible
-indexing requests after the quota resets. Local verification is not proof of
-production publication or search ranking.
+Remaining search work: retry eligible indexing requests after the quota resets.
+Use the production verification above for release status; local verification
+alone is not proof of production publication or search ranking.
 
 ## Accounts and production identity
 
