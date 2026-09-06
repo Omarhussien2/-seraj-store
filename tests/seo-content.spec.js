@@ -39,7 +39,7 @@ async function mockSpaApis(page) {
         success: true,
         data: {
           hero: {
-            "hero.title": "عنوان قديم",
+            "hero.title": "عنوان قديم", "hero.story_title": "قصة أطفال مخصصة قديمة",
             "hero.cta_primary": "استكشف عالم سراج",
             "hero.cta_secondary": "اصنع قصة لابنك",
           },
@@ -64,7 +64,7 @@ test("legacy DB content cannot swap homepage CTA meaning or restore stale produc
   await mockSpaApis(page);
   await page.goto("/#/home", { waitUntil: "networkidle" });
 
-  await expect(page.locator(".hero h1")).toContainText("تُكتب لطفلك من البداية");
+  await expect(page.locator(".hero h1")).toContainText("قصص أطفال وألعاب");
   const ctas = page.locator(".hero-ctas a");
   await expect(ctas.nth(0)).toContainText("ابدأ قصة طفلك");
   await expect(ctas.nth(0)).toHaveAttribute("href", "#/product/custom-story");

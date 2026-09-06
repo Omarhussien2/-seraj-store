@@ -8,8 +8,64 @@ For customer-facing positioning, content architecture, search intent, evidence
 requirements, and the owner-confirmed personalized-story workflow, read
 `SEO-CONTENT-STRATEGY.md` in full before drafting or changing public copy.
 
-Last verified: **2026-09-01, Africa/Cairo**. External dashboards change over
+Last follow-up: **2026-09-06, Africa/Cairo** (see dated update below). External dashboards change over
 time. Treat counts below as dated observations, not permanent facts.
+
+## Follow-up on 2026-09-06
+
+Verified in the browser under `hussien.impression@gmail.com`:
+
+- Merchant Center account `5847247567` reports **6 approved**, **0 limited**,
+  **0 not approved**, and **0 under review**. The previous product-review/image
+  issue is no longer reflected in the current product-status totals. The
+  overview also reports 8 total clicks over the last 28 days.
+- Search Console reports **40 indexed**, **10 not indexed** (9 discovered but
+  not indexed; 1 alternate canonical). The report's own last update is
+  **2026-08-28**. Validation for the 9 URLs is still **Started**.
+- Individual inspection of `/how-personalized-stories-work` says **URL is
+  unknown to Google**. One indexing request on 2026-09-06 returned **Quota
+  Exceeded**. No request was accepted. Do not retry today; the gifting page
+  was not submitted after the quota response.
+- Bing and Customer Reviews were not rechecked during this batch.
+
+Prepared locally from `33cc7914be305d3c05b793ae16a58f2123cb8241`, not deployed:
+
+- Broad store homepage title/H1 and metadata covering children's stories,
+  educational/Islamic games, and personalized stories. New `hero.store_*`
+  keys prevent the old personalized-only CMS heading from returning.
+- Canonical article pages now render full Markdown with headings, lists,
+  crawlable links and separate source records; HTML and unsafe URLs are
+  filtered by `react-markdown`. The 18-paragraph truncation is removed.
+- `/mama-world` links all 40 currently published articles instead of 24.
+  Article pages and the index link the three store categories. Categories
+  show up to three published articles tagged with their canonical slug.
+- Educational-games wording names the current Islamic puzzles and arithmetic
+  game. Product facts, prices, availability and policies are unchanged.
+- One reviewed guide and an eight-topic editorial queue are ready in
+  `content/seo-articles/` and `docs/seo-editorial-plan-2026-09-06.md`.
+  `scripts/publish-seo-guide.ts` is dry-run by default and only inserts a new
+  article with `--apply`; it preserves an already-existing article.
+
+Checks completed: build with the existing local environment loaded (no secrets
+copied into this checkout); 12 targeted tests; 3 SEO Playwright tests; targeted
+ESLint with 0 errors and 33 existing warnings; guide publication dry run with
+no DB connection; live-data local browser checks of home, article index,
+educational-games category and one full article, all HTTP 200 with parseable
+JSON-LD/self-canonicals and zero horizontal overflow at 320/360/390/430px.
+The initial build without environment variables stopped at environment
+validation, before the successful configured build.
+
+Delegation: Gemini `gemini-3.8-flash-medium` via Antigravity 1.1.27, analysis
+only, exit 0. Correct account verified in the CLI log; `useAiCredits` was
+false. Codex reviewed and revised the editorial proposal. The relay's
+`readOnlyViolation` was null (unknown); the two context files retained their
+hashes and no extra file appeared in the delegated context directory. Usage
+cost was not reported.
+
+Remaining release work: approve/commit/push/deploy the reviewed checkout,
+publish the guide, verify production HTML and sitemap, and retry eligible
+indexing requests after the quota resets. Local verification is not proof of
+production publication or search ranking.
 
 ## Accounts and production identity
 

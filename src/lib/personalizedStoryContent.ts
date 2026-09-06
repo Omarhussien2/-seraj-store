@@ -89,16 +89,16 @@ export const personalizedStoryProductCopy = {
 
 export const personalizedStorySiteContent = [
   {
-    key: "hero.story_title",
+    key: "hero.store_title",
     section: "hero",
     value:
-      'قصة أطفال مخصصة<br/><span class="highlight">تُكتب لطفلك من البداية</span>',
+      'قصص أطفال وألعاب<br/><span class="highlight">تعليمية وإسلامية</span>',
   },
   {
-    key: "hero.story_subtitle",
+    key: "hero.store_subtitle",
     section: "hero",
     value:
-      "احكيلنا عن طفلك والرسالة اللي تهمك — شجاعة، ثقة، صبر، حب التعلم، أو موقف خاص. نصمم له شخصية متكاملة، نرسل لك عينة لاعتمادها، ثم نحولها إلى حكاية عربية يكون هو بطلها.",
+      "سِراج متجر لقصص الأطفال العربية والإسلامية، وألعاب البازل والحساب، وقصص مخصصة تُكتب لطفلك من البداية. اختاروا حكاية تقرأوها سوا، أو لعبة تشاركوها، أو هدية يكون طفلك بطلها.",
   },
   {
     key: "hero.cta_custom_story",

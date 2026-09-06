@@ -10,6 +10,8 @@ import {
 import {
   DEFAULT_SOCIAL_IMAGE,
   getActiveProducts,
+  getPublishedArticles,
+  encodedPath,
   jsonLd,
   siteUrl,
 } from "@/lib/seoContent";
@@ -58,7 +60,11 @@ export default async function CategorySeoPage({ params }: CategoryPageProps) {
   const category = getSeoCategory(slug);
   if (!category) notFound();
 
-  const products = (await getActiveProducts()).filter((product) =>
+  const [catalog, articles] = await Promise.all([
+    getActiveProducts(),
+    getPublishedArticles(3, category.slug),
+  ]);
+  const products = catalog.filter((product) =>
     productMatchesSeoCategory(product, category)
   );
   const categoryPath = `/category/${category.slug}`;
@@ -205,6 +211,19 @@ export default async function CategorySeoPage({ params }: CategoryPageProps) {
               </Link>
             ))}
           </nav>
+        )}
+
+        {articles.length > 0 && (
+          <section className="space-y-4 rounded-lg bg-white p-6" aria-label="أدلة اختيار وقراءة">
+            <h2 className="text-2xl font-extrabold">أفكار وأدلة للأهل</h2>
+            <ul className="space-y-3">
+              {articles.map((article) => (
+                <li key={article.slug}>
+                  <Link className="font-bold text-[#1f7a5c] underline" href={encodedPath("/article", article.slug)}>{article.title}</Link>
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
 
         <div className="rounded-lg bg-[#26170f] p-6 text-white">

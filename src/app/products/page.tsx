@@ -13,9 +13,9 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export const metadata: Metadata = {
-  title: "قصص وألعاب تعليمية للأطفال",
+  title: "قصص أطفال وألعاب تعليمية وإسلامية وقصص مخصصة",
   description:
-    "تصفح منتجات سراج من قصص مخصصة، قصص جاهزة، وأنشطة تعليمية للأطفال بجودة عالية ومحتوى عربي دافئ.",
+    "تصفح قصص الأطفال العربية والإسلامية، وبازل السيرة وقصص القرآن وألعاب الحساب، وقصص مخصصة باسم وصورة طفلك من متجر سراج.",
   alternates: { canonical: siteUrl("/products") },
   openGraph: {
     title: "منتجات سراج | قصص وألعاب تعليمية للأطفال",

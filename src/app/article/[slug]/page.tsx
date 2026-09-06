@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ArticleContent from "@/components/seo/ArticleContent";
+import StoreCategoryLinks from "@/components/seo/StoreCategoryLinks";
 import {
   DEFAULT_SOCIAL_IMAGE,
   absoluteAssetUrl,
@@ -8,7 +10,6 @@ import {
   encodedPath,
   getPublishedArticle,
   jsonLd,
-  plainText,
   siteUrl,
 } from "@/lib/seoContent";
 
@@ -18,14 +19,6 @@ export const runtime = "nodejs";
 type ArticlePageProps = {
   params: Promise<{ slug: string }>;
 };
-
-function articleParagraphs(markdown?: string) {
-  return (markdown || "")
-    .split(/\n{2,}/)
-    .map((paragraph) => plainText(paragraph))
-    .filter(Boolean)
-    .slice(0, 18);
-}
 
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -66,7 +59,6 @@ export default async function ArticleSeoPage({ params }: ArticlePageProps) {
 
   const articlePath = encodedPath("/article", article.slug);
   const description = articleDescription(article);
-  const paragraphs = articleParagraphs(article.contentMarkdown);
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -144,13 +136,8 @@ export default async function ArticleSeoPage({ params }: ArticlePageProps) {
           />
         )}
 
-        <section className="space-y-5 rounded-lg bg-white p-6 leading-8 shadow-sm">
-          {paragraphs.length > 0 ? (
-            paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)
-          ) : (
-            <p>{article.excerpt}</p>
-          )}
-        </section>
+        <ArticleContent article={article} />
+        <StoreCategoryLinks />
 
         <Link
           className="inline-flex rounded-md bg-[#1f7a5c] px-5 py-3 font-bold text-white"
