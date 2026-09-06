@@ -13,6 +13,37 @@ time. Treat counts below as dated observations, not permanent facts.
 
 ## Follow-up on 2026-09-06
 
+### Individual article SEO update completed
+
+At **14:07 UTC**, all 40 pre-existing articles received individually reviewed
+titles, SEO titles, descriptions, excerpts, introductions and related links.
+Three Codex subagents reviewed four batches after Antigravity's headless command
+permission failed; Codex reviewed and applied the final proposals. This was a
+delegation-tool limitation, not a Google Search restriction.
+
+- Published 80 related-article links and 109 heading edits. Added one contextual
+  product link to `/product/FROG` in article 6 and one category link to
+  `/category/educational-games` in article 22. Shared store-category links and
+  the product links in the existing buyer guide remain available.
+- Removed draft remnants from article 20 and the exact duplicated article 34
+  text appended to article 33. The standalone article 34 remains published.
+- An atomic database update changed only five editorial fields and `updatedAt`.
+  Verification matched all 40 revisions exactly and confirmed all other fields
+  and the previously published buyer guide were unchanged: 41 articles total.
+- All 40 production pages passed HTTP 200, title/H1/description/canonical,
+  indexable metadata, introduction, internal-link and JSON-LD checks. Both
+  commerce destinations returned 200. Browser verification found the product
+  and related links; article 6 had no overflow at 320/360/390/430px.
+- Build, targeted ESLint and four targeted tests passed. The middleware
+  deprecation warning is existing project debt.
+
+The repeat-safe publisher is `scripts/apply-article-seo.ts`; reviewed values are
+in `content/seo-articles/editorial-revisions.json`. See
+`docs/seo-article-review-2026-09-06.md` for the per-article record and remaining
+source/medical-content review concerns. This batch did not comprehensively
+fact-check existing advice, create external backlinks, or establish new Google
+indexing/ranking results. Do not repeat the quota-limited indexing request today.
+
 ### Production release completed
 
 The owner approved deployment and article publication on 2026-09-06. PR #59
