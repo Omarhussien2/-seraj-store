@@ -1,0 +1,14 @@
+[data-consent-banner] { position: fixed; inset-inline: 16px; bottom: 16px; z-index: 10000; max-width: 520px; margin-inline: auto; padding: 16px; border: 1px solid #d8c39a; border-radius: 14px; background: #fffaf0; color: #332719; box-shadow: 0 10px 35px rgba(50,35,15,.18); font-family: inherit; }
+[data-consent-banner] p { margin: 0 0 12px; line-height: 1.6; }
+[data-consent-banner] .consent-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+[data-consent-banner] button { min-height: 40px; border: 0; border-radius: 9px; padding: 8px 16px; cursor: pointer; font: inherit; }
+[data-consent-accept] { background: #2f8f59; color: white; }
+[data-consent-reject] { background: #eee4d1; color: #332719; }
+[data-consent-banner] { box-sizing: border-box; direction: rtl; max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; }
+[data-consent-banner] p { padding-inline-end: 22px; }
+[data-consent-banner] [data-consent-close] { position: absolute; inset-inline-end: 4px; top: 4px; min-height: 32px; padding: 3px 9px; background: transparent; color: inherit; }
+[data-consent-banner] a { color: #245f40; align-self: center; font-size: 13px; }
+[data-consent-manage] { position: fixed; left: 8px; bottom: 8px; z-index: 9999; border: 1px solid #d8c39a; border-radius: 8px; padding: 5px 8px; background: #eee4d1; color: #332719; font: inherit; cursor: pointer; }
+[data-consent-manage][hidden] { display: none; }
+[data-consent-banner] button:focus-visible, [data-consent-manage]:focus-visible { outline: 3px solid #b56f26; outline-offset: 2px; }
+@media (max-width: 430px) { [data-consent-banner] { inset-inline: 10px; bottom: 10px; } }

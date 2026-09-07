@@ -450,3 +450,139 @@ An external-dashboard task is complete only when the saved state is visible on
 the correct account and the corresponding production source matches it. Record
 the verification date and any review or processing delay. Never report a queued,
 under-review, or quota-limited state as approved or indexed.
+
+## Conversion implementation checkpoint: 2026-09-07 (Africa/Cairo)
+
+- Scope: conversion tracking supplements the SEO goal; this is not a claim
+  of improved rankings, complete indexing, or working live purchase delivery.
+- Verified Google target: account `hussien.impression@gmail.com`, Merchant
+  `5847247567`, GA4 property `535560370`, stream `14787160307`,
+  measurement ID `G-FZW3R2J7Y9`. Merchant/GA4 link is Active and Merchant
+  auto-tagging enabled. No other Google property/account was modified.
+- Implementation is UNCOMMITTED and NOT DEPLOYED on branch
+  `codex/conversion-tracking`, based on `089da90`, in the local worktree
+  `D:/code - projects/seraj-store/.worktrees/conversion-tracking`.
+  Do not remove this worktree or overwrite its changes. The main checkout's
+  existing edits and the other SEO agent's clone were preserved.
+- Read `docs/conversion-implementation-report.md` and the dated spec/plan
+  under `docs/superpowers/` in that worktree before continuing. Shared
+  consent-aware public tracking covers the SPA and Next public pages; no
+  browser purchase is emitted. Server purchases require first fully-paid
+  confirmation with stored consented attribution. Pending state is part of
+  the same payment update; transport delivery uses bounded token/expiry leases.
+- Independent local checks: 16 unit/contract tests passed; 13 browser tests
+  passed with Google/checkout boundaries intercepted; build exit 0; targeted
+  lint 0 errors (30 existing SPA warnings). Mobile screenshot inspected and
+  overflow checked at 320/360/390/430px. No real orders or Google events used.
+- RELEASE GATES: (1) isolated Mongo concurrency/lease integration, not mocked
+  query assertions; (2) resolve/document withdrawal of already-saved order
+  consent snapshots, since the browser button currently changes future client
+  tracking only; (3) confirm Enhanced Measurement settings with the owner;
+  (4) create/configure server-only `GA4_API_SECRET` securely; (5) separately
+  authorize release and verify a legitimate paid order in GA4/Merchant.
+- Enhanced Measurement remains in its previously saved ON configuration;
+  the OFF confirmation was opened but not approved/confirmed. No Measurement
+  Protocol secret was created. Never place secrets in chat, git or browser JS.
+- HTTP 2xx from Measurement Protocol proves transport acceptance only.
+  Missing secret preserves pending work; stale paid events older than 72 hours
+  are not backdated. Refund events are out of scope without a real refund
+  lifecycle. No scheduler/automation change was made in this implementation.
+
+## Approved Analytics settings follow-up: 2026-09-07 (Africa/Cairo)
+
+- The owner approved continuing the Enhanced Measurement and server-secret
+  setup. The visible Google account was rechecked as
+  `hussien.impression@gmail.com` for property `535560370`, stream `14787160307`.
+- Enhanced Measurement was switched OFF and the saved OFF state was verified
+  by closing and reopening the stream. This supersedes the ON/pending-approval
+  checkpoint above; it is not evidence of purchase-event delivery.
+- Measurement Protocol displayed no API secrets and required a User Data
+  Collection Acknowledgement about end-user disclosures and rights. This agent
+  did not accept that acknowledgement or create a secret. Verify the actual
+  published disclosures and consent-withdrawal behavior before proceeding;
+  owner approval to configure tracking does not establish those facts.
+- The Vercel connector exposed only the unrelated Samawah team and was not used
+  for mutations. Local project linkage identifies `seraj-store`, project
+  `prj_p2FNZs8WEF8tEAqwVODIVfvAGFwm`, team `team_CPrxylwRcjjRd3nCtrblNKjk`.
+  CLI identity verification failed on an OpenID network request. The browser
+  opened Vercel's login page; correct-project login is required before safely
+  configuring the server-only secret. Never paste the secret in chat or git.
+- No secret, environment variable, deployment, live order, or live purchase
+  event was created in this follow-up. Stored-order consent withdrawal and
+  legitimate Google receipt verification remain release gates.
+
+## Server-secret setup completed: 2026-09-07 (Africa/Cairo)
+
+This checkpoint supersedes the login/secret blockers above, not the remaining
+code release gates.
+
+- After the owner completed Vercel sign-in, the browser showed
+  `omarhussien2's projects` and the `seraj-store` project. General settings
+  confirmed project ID `prj_p2FNZs8WEF8tEAqwVODIVfvAGFwm`. Its production
+  deployment was Ready at commit `089da90`, matching the conversion worktree's
+  baseline. No unrelated project or team was modified.
+- The Google account was visibly rechecked as
+  `hussien.impression@gmail.com`. Stream `14787160307` still showed Enhanced
+  Measurement OFF. The secret screen now allowed Create without a Review terms
+  prompt and initially contained no API secrets. This agent did not accept
+  a data-collection acknowledgement or certify the site's disclosures.
+- Created the Measurement Protocol secret named
+  `seraj-server-purchase-production`. A delayed click result was reconciled
+  against the saved row before taking further action; no duplicate was created.
+- Saved that value as `GA4_API_SECRET` in Vercel's verified Seraj project,
+  type **Secret**, environment **Production** only. The resulting row and
+  successful-save notification were visible. The value passed only through
+  private browser-runtime memory into Vercel; it was not printed in chat,
+  written into code, or copied to a local environment file.
+- Vercel explicitly says a new deployment is required for this configuration
+  to take effect. No Redeploy, push, merge, or production event was performed.
+  Secret provisioning is complete; purchase tracking is NOT operational yet.
+- The delegated Mongo integration run remains unverified: the worker reports
+  localhost Mongo readiness, but no completed test output before interruption.
+  Read `docs/conversion-mongo-verification.md` in the conversion worktree.
+  Its test server was stopped and disposable database removed by the worker;
+  the ignored runtime/archive remain available. Do not count this as a pass.
+- Remaining release gates: implement and verify withdrawal of saved-order
+  analytics consent, confirm published disclosures match actual behavior,
+  complete the isolated persistence tests, authorize deployment separately,
+  then verify a legitimate paid order in Google. Existing configuration must
+  not be confused with live receipt, attribution, or a ranking improvement.
+
+## Conversion release gate: 2026-09-07 (Africa/Cairo)
+
+This supersedes earlier code/configuration blockers. The owner explicitly
+approved completing and publishing this change.
+
+- Independent lead acceptance: 18 consent/purchase/persistence tests passed;
+  the nine real-Mongo cases were rerun after the hidden-attribution assertion
+  and passed again. Seventeen existing finance/catalog/GCR/SEO contract cases
+  and seventeen intercepted browser cases passed. Final browser rerun: exit 0,
+  18.4 seconds. No real orders or live Google events were generated.
+- Saved-order withdrawal is implemented with a 256-bit browser capability,
+  server-side SHA-256 hash, hidden order attribution and durable revocation
+  records. It removes matching attribution and blocks unsent purchases. Failed
+  withdrawal submissions retain their receipt and retry on public load/online;
+  a retained token also survives failure to write the receipt queue. Reacceptance
+  must not revive an old withdrawn consent period.
+- Public Arabic disclosure describes pseudonymous identifiers, order numbers,
+  public product IDs and amounts sent to Google; contact data, child photos and
+  story details are excluded. Already transmitted data is not deleted by this
+  preference change. Requests already in flight cannot be recalled. Clearing
+  storage/changing devices may require contacting the store.
+- Lead code/test/project guards found no remaining release-blocking issue.
+  Targeted lint: exit 0, zero errors and 30 existing SPA warnings; final changed
+  client/test lint: exit 0 with no output. Mobile widths 320/360/390/430 and
+  short 320x568 viewport passed; the screenshot was inspected.
+- Production preflight: 59 sitemap pages passed basic HTTP/title/description/
+  canonical-presence/noindex checks; Merchant feed returned 200 with six items.
+  This is not a full rich-result audit or proof of improved rankings.
+- Correct Vercel Production is linked to GitHub master, previously at 089da90.
+  A fresh Production build is required to consume the saved Production-only
+  GA4_API_SECRET. Publication/result must be verified separately from these
+  local checks. Follow the conversion pull request and latest checkpoint below.
+- Final build gate passed: `npm run build` exit 0, including TypeScript and all
+  21 static pages. An initial nested-schema typing failure was corrected and
+  the 18 consent/purchase/Mongo cases passed again. No checks were disabled.
+- Legitimate purchase receipt/attribution in GA4 and Merchant remains pending;
+  never use fake live purchases to clear this gate. Google transport 2xx alone
+  is not semantic receipt. No new scheduler, paid service or refund inference.

@@ -1487,6 +1487,11 @@
 
   // ----- Checkout Page Rendering -----
   function renderCheckoutPage() {
+    try {
+      if (window.SerajAnalytics) window.SerajAnalytics.trackCheckout();
+    } catch (analyticsError) {
+      console.warn('Checkout analytics unavailable:', analyticsError);
+    }
     var container = document.getElementById('checkoutPage');
     if (!container) return;
 
@@ -1843,14 +1848,32 @@
       btn.style.opacity = '0.7';
     }
 
-    fetch('/api/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(orderData)
+    var attributionPromise = Promise.resolve().then(function () {
+      return window.SerajAnalytics && window.SerajAnalytics.getAttribution
+        ? window.SerajAnalytics.getAttribution()
+        : undefined;
+    }).catch(function (analyticsError) {
+      console.warn('Order attribution unavailable:', analyticsError);
+      return undefined;
+    });
+    attributionPromise.then(function (attribution) {
+      if (attribution) orderData.analyticsAttribution = attribution;
+      return fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+      });
     })
       .then(function (res) { return res.json(); })
       .then(function (data) {
         if (data.success && data.data) {
+          try {
+            if (window.SerajAnalytics) {
+              window.SerajAnalytics.trackOrderSubmitted(data.data.analyticsSummary);
+            }
+          } catch (analyticsError) {
+            console.warn('Order analytics unavailable:', analyticsError);
+          }
           queueGoogleCustomerReviewOptIn(data.data.googleCustomerReview);
 
           // Save order info for success page

@@ -71,20 +71,8 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className="h-full antialiased">
       <head>
-        {/* Google tag (gtag.js) */}
-        <Script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=G-FZW3R2J7Y9"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-FZW3R2J7Y9');
-          `}
-        </Script>
+        <link rel="stylesheet" href="/analytics.css" />
+        <Script src="/analytics.js" strategy="afterInteractive" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
