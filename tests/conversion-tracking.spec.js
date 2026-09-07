@@ -50,7 +50,52 @@ test.describe('consent-aware conversion tracking', () => {
       contentType: 'application/json',
       body: JSON.stringify({ success: true, data: [] }),
     }));
+    await page.route('**/api/promotions/active', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true, data: null }),
+    }));
   });
+
+
+  for (const path of ['/', '/about']) {
+    test('compact notice reveals details without choosing consent on ' + path, async ({ page }) => {
+      const analyticsRequests = [];
+      page.on('request', request => {
+        if (isAnalyticsRequest(request.url())) analyticsRequests.push(request.url());
+      });
+      await page.goto(path);
+      const banner = page.locator('[data-consent-banner]');
+      await expect(banner.locator('[data-consent-summary]')).toHaveText('تسمح لنا بتحليل الزيارات لتحسين تجربتك');
+      await expect(page.locator('#seraj-consent-details')).toBeHidden();
+      expect((await banner.boundingBox()).height).toBeLessThan(180);
+
+      const detailsButton = page.getByRole('button', { name: 'التفاصيل', exact: true });
+      await detailsButton.click();
+      await expect(page.getByRole('button', { name: 'إخفاء التفاصيل', exact: true })).toHaveAttribute('aria-expanded', 'true');
+      await expect(page.locator('#seraj-consent-details')).toBeVisible();
+      await expect(page.locator('#seraj-consent-details')).toContainText('Google Analytics');
+      expect(await page.evaluate(() => localStorage.getItem('seraj-analytics-consent-v1'))).toBeNull();
+      expect(analyticsRequests).toHaveLength(0);
+      await page.getByRole('button', { name: 'إخفاء التفاصيل', exact: true }).click();
+      await expect(page.locator('#seraj-consent-details')).toBeHidden();
+
+      await page.keyboard.press('Escape');
+      const settings = page.locator('footer [data-consent-manage]');
+      await expect(settings).toHaveText('إعدادات الخصوصية');
+      const positions = await settings.evaluate(button => ({
+        button: getComputedStyle(button).position,
+        footer: getComputedStyle(button.closest('footer')).position,
+      }));
+      expect([positions.button, positions.footer]).not.toContain('fixed');
+      await settings.click();
+      await expect(banner).toBeVisible();
+      await expect(page.locator('#seraj-consent-details')).toBeHidden();
+      await page.getByRole('button', { name: 'رفض', exact: true }).click();
+      expect(await page.evaluate(() => window.SerajAnalytics.getAttribution())).toBeUndefined();
+      expect(analyticsRequests).toHaveLength(0);
+    });
+  }
 
   test('absence and explicit rejection produce zero analytics network traffic', async ({ page }) => {
     const analyticsRequests = [];
@@ -60,7 +105,7 @@ test.describe('consent-aware conversion tracking', () => {
 
     await page.goto('/#/home');
     expect(analyticsRequests).toHaveLength(0);
-    await page.getByRole('button', { name: 'لا أوافق', exact: true }).click();
+    await page.getByRole('button', { name: 'رفض', exact: true }).click();
     await page.evaluate(() => {
       location.hash = '#/checkout';
       window.SerajAnalytics.trackCheckout();
@@ -77,7 +122,7 @@ test.describe('consent-aware conversion tracking', () => {
     });
 
     await page.goto('/?srsltid=AbC_123-xy&phone=01000000000#/product/custom-story?child=PRIVATE');
-    await page.getByRole('button', { name: 'أوافق', exact: true }).click();
+    await page.getByRole('button', { name: 'قبول', exact: true }).click();
     await expect.poll(() => loaderRequests.length).toBe(1);
 
     const pageViews = (await trackedEvents(page)).filter(entry => entry[1] === 'page_view');
@@ -100,26 +145,28 @@ test.describe('consent-aware conversion tracking', () => {
         body: JSON.stringify({ success: true }) });
     });
     await page.goto('/#/home');
-    await page.getByRole('button', { name: 'أوافق', exact: true }).click();
+    await page.getByRole('button', { name: 'قبول', exact: true }).click();
     await expect.poll(() => loaderRequests.length).toBe(1);
     const firstAttribution = await page.evaluate(() => window.SerajAnalytics.getAttribution());
 
-    await page.getByRole('button', { name: 'الخصوصية', exact: true }).click();
-    await page.getByRole('button', { name: 'لا أوافق', exact: true }).click();
+    await page.getByRole('button', { name: 'إعدادات الخصوصية', exact: true }).click();
+    await page.getByRole('button', { name: 'رفض', exact: true }).click();
     await expect.poll(() => withdrawals.length).toBe(1);
     expect(withdrawals[0]).toEqual({ tokens: [firstAttribution.consentToken] });
     const beforeRevokedEvent = (await trackedEvents(page)).length;
     await page.evaluate(() => window.SerajAnalytics.trackCheckout());
     expect((await trackedEvents(page))).toHaveLength(beforeRevokedEvent);
 
-    await page.getByRole('button', { name: 'الخصوصية', exact: true }).click();
-    await page.getByRole('button', { name: 'أوافق', exact: true }).click();
+    await page.getByRole('button', { name: 'إعدادات الخصوصية', exact: true }).click();
+    await page.getByRole('button', { name: 'قبول', exact: true }).click();
     const secondAttribution = await page.evaluate(() => window.SerajAnalytics.getAttribution());
     expect(secondAttribution.consentToken).not.toBe(firstAttribution.consentToken);
     const updates = (await consentEvents(page)).filter(entry => entry[1] === 'update');
     expect(updates.at(-1)[2].analytics_storage).toBe('granted');
     expect(loaderRequests).toHaveLength(1);
-    await page.getByRole('button', { name: 'الخصوصية', exact: true }).click();
+    await page.getByRole('button', { name: 'إعدادات الخصوصية', exact: true }).click();
+    await page.getByRole('button', { name: 'التفاصيل', exact: true }).click();
+    await expect(page.locator('#seraj-consent-details')).toBeVisible();
     await expect(page.locator('[data-consent-banner]')).toContainText('معرّفات عميل وجلسة مستعارة');
     await expect(page.locator('[data-consent-banner]')).toContainText('لا يمكن استرجاع بيانات أُرسلت بالفعل');
     await page.keyboard.press('Escape');
@@ -133,10 +180,10 @@ test.describe('consent-aware conversion tracking', () => {
         contentType: 'application/json', body: JSON.stringify({ success: attempts > 1 }) });
     });
     await page.goto('/#/home');
-    await page.getByRole('button', { name: 'أوافق', exact: true }).click();
+    await page.getByRole('button', { name: 'قبول', exact: true }).click();
     const attribution = await page.evaluate(() => window.SerajAnalytics.getAttribution());
-    await page.getByRole('button', { name: 'الخصوصية', exact: true }).click();
-    await page.getByRole('button', { name: 'لا أوافق', exact: true }).click();
+    await page.getByRole('button', { name: 'إعدادات الخصوصية', exact: true }).click();
+    await page.getByRole('button', { name: 'رفض', exact: true }).click();
     await expect.poll(() => attempts).toBe(1);
 
     await page.reload();
@@ -155,7 +202,7 @@ test.describe('consent-aware conversion tracking', () => {
       };
     });
     await page.goto('/#/home');
-    await page.getByRole('button', { name: 'أوافق', exact: true }).click();
+    await page.getByRole('button', { name: 'قبول', exact: true }).click();
 
     expect(await page.evaluate(() => window.SerajAnalytics.getAttribution())).toBeUndefined();
   });
@@ -168,7 +215,7 @@ test.describe('consent-aware conversion tracking', () => {
         contentType: 'application/json', body: JSON.stringify({ success: withdrawals.length > 1 }) });
     });
     await page.goto('/#/home');
-    await page.getByRole('button', { name: 'أوافق', exact: true }).click();
+    await page.getByRole('button', { name: 'قبول', exact: true }).click();
     const firstAttribution = await page.evaluate(() => window.SerajAnalytics.getAttribution());
     await page.evaluate(() => {
       const setItem = Storage.prototype.setItem;
@@ -177,8 +224,8 @@ test.describe('consent-aware conversion tracking', () => {
         return setItem.call(this, key, value);
       };
     });
-    await page.getByRole('button', { name: 'الخصوصية', exact: true }).click();
-    await page.getByRole('button', { name: 'لا أوافق', exact: true }).click();
+    await page.getByRole('button', { name: 'إعدادات الخصوصية', exact: true }).click();
+    await page.getByRole('button', { name: 'رفض', exact: true }).click();
     await expect.poll(() => withdrawals.length).toBe(1);
     expect(firstAttribution.consentToken).toMatch(/^[A-Za-z0-9_-]{43}$/);
     await page.reload();
@@ -190,7 +237,7 @@ test.describe('consent-aware conversion tracking', () => {
 
   test('clearing shared storage denies tracking in another open document', async ({ page }) => {
     await page.goto('/#/home');
-    await page.getByRole('button', { name: 'أوافق', exact: true }).click();
+    await page.getByRole('button', { name: 'قبول', exact: true }).click();
     await page.evaluate(() => window.dispatchEvent(new StorageEvent('storage', { key: null })));
 
     expect(await page.evaluate(() => window.SerajAnalytics.getAttribution())).toBeUndefined();
@@ -199,7 +246,7 @@ test.describe('consent-aware conversion tracking', () => {
 
   test('attribution is real, order summary is SKU-only, and repeat submission is suppressed', async ({ page }) => {
     await page.goto('/#/home');
-    await page.getByRole('button', { name: 'أوافق', exact: true }).click();
+    await page.getByRole('button', { name: 'قبول', exact: true }).click();
     const attribution = await page.evaluate(() => window.SerajAnalytics.getAttribution());
     expect(attribution).toMatchObject({ consent: true, clientId: '123.456', sessionId: '789' });
     expect(attribution.consentToken).toMatch(/^[A-Za-z0-9_-]{43}$/);
@@ -224,7 +271,7 @@ test.describe('consent-aware conversion tracking', () => {
 
   test('public-to-admin navigation blocks sends and attribution reads', async ({ page }) => {
     await page.goto('/about');
-    await page.getByRole('button', { name: 'أوافق', exact: true }).click();
+    await page.getByRole('button', { name: 'قبول', exact: true }).click();
     await page.evaluate(() => history.pushState({}, '', '/admin/orders/private-token'));
     const eventCount = (await trackedEvents(page)).length;
     const attribution = await page.evaluate(async () => {
@@ -245,17 +292,26 @@ test.describe('consent-aware conversion tracking', () => {
         scrollWidth: document.documentElement.scrollWidth,
       }));
       expect(dimensions.scrollWidth, `width ${width}`).toBeLessThanOrEqual(dimensions.clientWidth);
+      await page.getByRole('button', { name: 'التفاصيل', exact: true }).click();
+      const expanded = await page.locator('[data-consent-banner]').boundingBox();
+      expect(expanded.x).toBeGreaterThanOrEqual(0);
+      expect(expanded.x + expanded.width).toBeLessThanOrEqual(width);
+      expect(expanded.y).toBeGreaterThanOrEqual(0);
+      await page.getByRole('button', { name: 'إخفاء التفاصيل', exact: true }).click();
     }
     await page.setViewportSize({ width: 320, height: 568 });
     const banner = page.locator('[data-consent-banner]');
     await expect(banner).toBeVisible();
     expect((await banner.boundingBox()).y).toBeGreaterThanOrEqual(0);
-    for (const name of ['أوافق', 'لا أوافق']) {
+    for (const name of ['قبول', 'رفض']) {
       const button = page.getByRole('button', { name, exact: true });
       await button.scrollIntoViewIfNeeded();
       await expect(button).toBeVisible();
     }
     await page.screenshot({ path: test.info().outputPath('consent-mobile.png') });
+    await page.getByRole('button', { name: 'التفاصيل', exact: true }).click();
+    expect((await banner.boundingBox()).y).toBeGreaterThanOrEqual(0);
+    await page.screenshot({ path: test.info().outputPath('consent-mobile-details.png') });
   });
 
   test('blocked Google cannot hold up a real checkout submission', async ({ page }) => {
@@ -275,8 +331,8 @@ test.describe('consent-aware conversion tracking', () => {
       }) });
     });
     await page.goto('/#/checkout');
-    await page.getByRole('button', { name: 'الخصوصية', exact: true }).click();
-    await page.getByRole('button', { name: 'أوافق', exact: true }).click();
+    await page.getByRole('button', { name: 'إعدادات الخصوصية', exact: true }).click();
+    await page.getByRole('button', { name: 'قبول', exact: true }).click();
     await page.locator('#custName').fill('عميل اختبار');
     await page.locator('#custPhone').fill('01123456789');
     await page.locator('#custEmail').fill('local-test@example.com');
@@ -292,10 +348,10 @@ test.describe('consent-aware conversion tracking', () => {
 
   test('denial persists across reload and Escape closes without granting consent', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: 'لا أوافق', exact: true }).click();
+    await page.getByRole('button', { name: 'رفض', exact: true }).click();
     await page.reload();
     await expect(page.locator('[data-consent-banner]')).toHaveCount(0);
-    await page.getByRole('button', { name: 'الخصوصية', exact: true }).click();
+    await page.getByRole('button', { name: 'إعدادات الخصوصية', exact: true }).click();
     await page.keyboard.press('Escape');
     await expect(page.locator('[data-consent-banner]')).toHaveCount(0);
     expect(await page.evaluate(() => window.SerajAnalytics.getAttribution())).toBeUndefined();

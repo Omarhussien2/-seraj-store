@@ -233,15 +233,18 @@
     banner.setAttribute('role', 'region');
     banner.setAttribute('aria-label', 'إعدادات الخصوصية');
     banner.innerHTML = '<button type="button" data-consent-close aria-label="إغلاق إعدادات الخصوصية">×</button>' +
+      '<p data-consent-summary>تسمح لنا بتحليل الزيارات لتحسين تجربتك</p>' +
+      '<div class="consent-actions"><button type="button" data-consent-accept>قبول</button>' +
+      '<button type="button" data-consent-reject>رفض</button>' +
+      '<button type="button" data-consent-details-toggle aria-expanded="false" aria-controls="seraj-consent-details">التفاصيل</button></div>' +
+      '<div id="seraj-consent-details" data-consent-details hidden>' +
       '<p>تسمح لنا نقيس الزيارات والطلبات باستخدام Google Analytics عشان نحسّن تجربة سِراج؟ ' +
       'عند الموافقة نرسل معرّفات عميل وجلسة مستعارة، ومعرّفات المنتجات العامة، ورقم الطلب والمبالغ إلى Google لمعالجتها. ' +
       'لا نرسل بيانات التواصل أو صور الطفل أو تفاصيل قصته ضمن أحداث التحليلات.</p>' +
       '<p>تقدر تسحب موافقتك في أي وقت. السحب يمسح الربط من الطلبات المحفوظة، لكنه لا يمكن استرجاع بيانات أُرسلت بالفعل. ' +
       'إذا مسحت بيانات المتصفح أو استخدمت جهازًا آخر، تواصل معنا من صفحة <a href="/#/contact">اتصل بنا</a>.</p>' +
-      '<p data-consent-withdrawal-status></p>' +
-      '<div class="consent-actions"><button type="button" data-consent-accept>أوافق</button>' +
-      '<button type="button" data-consent-reject>لا أوافق</button>' +
-      '<a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">خصوصية Google</a></div>';
+      '<a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">خصوصية Google</a></div>' +
+      '<p data-consent-withdrawal-status role="status"></p>';
     document.body.appendChild(banner);
     var status = banner.querySelector('[data-consent-withdrawal-status]');
     try {
@@ -258,8 +261,17 @@
       var button = event.target.closest('button');
       if (!button) return;
       if (button.hasAttribute('data-consent-close')) closeBanner();
-      else chooseConsent(button.hasAttribute('data-consent-accept'));
+      else if (button.hasAttribute('data-consent-details-toggle')) toggleConsentDetails(button);
+      else if (button.hasAttribute('data-consent-accept')) chooseConsent(true);
+      else if (button.hasAttribute('data-consent-reject')) chooseConsent(false);
     });
+  }
+
+  function toggleConsentDetails(button) {
+    var details = document.getElementById('seraj-consent-details');
+    details.hidden = !details.hidden;
+    button.setAttribute('aria-expanded', String(!details.hidden));
+    button.textContent = details.hidden ? 'التفاصيل' : 'إخفاء التفاصيل';
   }
 
   function navigationChanged() {
@@ -267,6 +279,8 @@
     window['ga-disable-' + MEASUREMENT_ID] = !granted || !publicPage;
     var manage = document.querySelector('[data-consent-manage]');
     if (manage) manage.hidden = !publicPage;
+    var privacyFooter = document.querySelector('[data-consent-footer]');
+    if (privacyFooter) privacyFooter.hidden = !publicPage;
     if (!publicPage) { closeBanner(); lastPage = ''; return; }
     if (isOrderJourney()) {
       var banner = document.querySelector('[data-consent-banner]');
@@ -346,9 +360,13 @@
     window['ga-disable-' + MEASUREMENT_ID] = !granted;
     var manage = document.createElement('button');
     manage.type = 'button';
-    manage.textContent = 'الخصوصية';
+    manage.textContent = 'إعدادات الخصوصية';
     manage.setAttribute('data-consent-manage', '');
-    document.body.appendChild(manage);
+    var privacyFooter = document.createElement('footer');
+    privacyFooter.setAttribute('data-consent-footer', '');
+    privacyFooter.setAttribute('aria-label', 'الخصوصية');
+    privacyFooter.appendChild(manage);
+    document.body.appendChild(privacyFooter);
     manage.addEventListener('click', showBanner);
     document.addEventListener('keydown', function (event) { if (event.key === 'Escape') closeBanner(); });
     observeNavigation();
