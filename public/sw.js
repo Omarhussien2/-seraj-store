@@ -1,11 +1,13 @@
 // سِراج — Service Worker (offline caching)
-const CACHE_NAME = 'seraj-v23';
+const CACHE_NAME = 'seraj-v24';
 const IMAGE_CACHE_NAME = 'seraj-images-v1';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/app.js',
   '/styles.css',
+  '/analytics.js',
+  '/analytics.css',
   '/manifest.json',
   '/assets/logo/logo.webp',
   '/assets/logo/logo-icon.png',

@@ -24,6 +24,11 @@ import {
 } from "@/lib/financeOperations";
 import { lineGrossRevenue, roundMoney } from "@/lib/financeMath";
 import { buildGoogleCustomerReviewOptIn } from "@/lib/googleCustomerReviews";
+import {
+  attributionUnlessRevoked,
+  removeAttributionIfRevoked,
+  type StoredAnalyticsAttribution,
+} from "@/lib/analyticsConsent";
 
 // Force dynamic rendering — prevent Vercel from caching or treating as static
 export const dynamic = "force-dynamic";
@@ -118,6 +123,14 @@ const CreateOrderSchema = z.object({
     .email("البريد الإلكتروني غير صحيح")
     .max(254)
     .transform((value) => value.toLowerCase()),
+  analyticsAttribution: z
+    .object({
+      consent: z.literal(true),
+      clientId: z.string().trim().regex(/^\d{1,20}\.\d{1,20}$/),
+      sessionId: z.string().trim().regex(/^[1-9]\d{0,14}$/),
+      consentToken: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
+    })
+    .optional(),
   address: z.string().min(1, "العنوان مطلوب"),
   notes: z.string().optional(),
 });
@@ -314,6 +327,16 @@ export async function POST(request: Request) {
 
     const orderNumber = await generateOrderNumber();
     const orderId = new mongoose.Types.ObjectId();
+    let analyticsAttribution: StoredAnalyticsAttribution | undefined;
+    if (validated.analyticsAttribution) {
+      try {
+        analyticsAttribution = await attributionUnlessRevoked(
+          validated.analyticsAttribution
+        );
+      } catch {
+        console.error("Order analytics attribution omitted");
+      }
+    }
 
     if (coupon && discountTotal > 0) {
       try {
@@ -388,12 +411,31 @@ export async function POST(request: Request) {
         customerName: validated.customerName,
         customerPhone: validated.customerPhone,
         customerEmail: validated.customerEmail,
+        analyticsAttribution,
         address: validated.address,
         notes: validated.notes,
         finance: { costingStatus: "snapshot" },
       });
       const reservation = await reserveInventoryForOrder(order);
       stockWarnings = reservation.warnings;
+      if (analyticsAttribution) {
+        try {
+          await removeAttributionIfRevoked(
+            order._id,
+            analyticsAttribution.consentTokenHash
+          );
+        } catch {
+          console.error("Order analytics revocation recheck failed");
+          try {
+            await Order.updateOne(
+              { _id: order._id },
+              { $unset: { analyticsAttribution: 1 } }
+            );
+          } catch {
+            console.error("Order analytics attribution cleanup failed");
+          }
+        }
+      }
     } catch (e) {
       if (coupon && discountTotal > 0) {
         await rollbackCouponRedemption({ couponId: coupon.couponId, orderId });
@@ -421,6 +463,21 @@ export async function POST(request: Request) {
           paymentMode: order.paymentMode,
           orderStatus: order.orderStatus,
           paymentStatus: order.paymentStatus,
+          analyticsSummary: {
+            transactionId: order.orderNumber,
+            value: roundMoney(
+              orderItems.reduce((sum, item) => sum + (item.netRevenue ?? 0), 0)
+            ),
+            shipping: roundMoney(
+              Math.max(0, order.shippingFee - (order.discounts?.shipping || 0))
+            ),
+            currency: "EGP",
+            items: orderItems.map((item) => ({
+              itemId: item.productSlug,
+              price: (item.netRevenue ?? item.price * item.qty) / item.qty,
+              quantity: item.qty,
+            })),
+          },
           googleCustomerReview: buildGoogleCustomerReviewOptIn({
             orderNumber: order.orderNumber,
             customerEmail: validated.customerEmail,

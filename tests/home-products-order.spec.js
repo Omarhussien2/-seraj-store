@@ -85,7 +85,7 @@ test.describe('home product ordering', () => {
       });
     });
 
-    await page.goto('http://127.0.0.1:3000/#/home', { waitUntil: 'domcontentloaded' });
+    await page.goto('/#/home', { waitUntil: 'domcontentloaded' });
 
     const names = page.locator('#homeProductsGrid .product-body h3');
     await expect(names.first()).toHaveText('بوكس القصص والبازل');

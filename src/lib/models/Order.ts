@@ -51,6 +51,32 @@ const CustomStorySchema = new mongoose.Schema(
   { _id: false }
 );
 
+interface IAnalyticsAttribution {
+  consent: boolean;
+  clientId: string;
+  sessionId: string;
+  consentTokenHash: string;
+}
+
+const AnalyticsAttributionSchema =
+  new mongoose.Schema<IAnalyticsAttribution>(
+    {
+      consent: {
+        type: Boolean,
+        required: true,
+        validate: (consent: boolean) => consent === true,
+      },
+      clientId: { type: String, trim: true, maxlength: 128, required: true },
+      sessionId: { type: String, trim: true, maxlength: 128, required: true },
+      consentTokenHash: {
+        type: String,
+        match: /^[a-f0-9]{64}$/,
+        required: true,
+      },
+    },
+    { _id: false }
+  );
+
 // ---------- Order schema ----------
 export interface IOrder extends Document {
   orderNumber: string;
@@ -106,6 +132,22 @@ export interface IOrder extends Document {
   customerName: string;
   customerPhone: string;
   customerEmail?: string;
+  analyticsAttribution?: {
+    consent: true;
+    clientId: string;
+    sessionId: string;
+    consentTokenHash?: string;
+  };
+  analyticsPurchase?: {
+    status: "pending" | "leased" | "retryable" | "rejected" | "sent";
+    transactionId: string;
+    attemptCount: number;
+    leaseToken?: string;
+    leaseUntil?: Date;
+    sentAt?: Date;
+    lastError?: string;
+    confirmedAt?: Date;
+  };
   address: string;
   notes?: string;
   finance?: {
@@ -183,6 +225,24 @@ const OrderSchema = new mongoose.Schema<IOrder>(
     // Optional at the persistence layer so legacy orders remain readable.
     // The create-order API requires this field for new orders.
     customerEmail: { type: String, trim: true, lowercase: true },
+    analyticsAttribution: {
+      type: AnalyticsAttributionSchema,
+      select: false,
+    },
+    analyticsPurchase: {
+      status: {
+        type: String,
+        enum: ["pending", "leased", "retryable", "rejected", "sent"],
+      },
+      transactionId: { type: String, trim: true, maxlength: 128 },
+      attemptCount: { type: Number, min: 0, default: 0 },
+      leaseToken: { type: String, trim: true, maxlength: 128 },
+      leaseUntil: { type: Date },
+      sentAt: { type: Date },
+      lastError: { type: String, trim: true, maxlength: 500 },
+      confirmedAt: { type: Date },
+      _id: false,
+    },
     address: { type: String, required: true, trim: true },
     notes: { type: String, trim: true },
     finance: {
@@ -212,9 +272,15 @@ const OrderSchema = new mongoose.Schema<IOrder>(
 // Index for admin queries
 OrderSchema.index({ orderStatus: 1, createdAt: -1 });
 OrderSchema.index({ customerPhone: 1 });
+OrderSchema.index({ "analyticsAttribution.consentTokenHash": 1 });
 // Speeds up dashboard "deposit pending" lookup + recent-orders sort.
 OrderSchema.index({ paymentStatus: 1, createdAt: -1 });
 OrderSchema.index({ createdAt: -1 });
+OrderSchema.index({
+  "analyticsPurchase.status": 1,
+  "analyticsPurchase.leaseUntil": 1,
+  "analyticsPurchase.confirmedAt": 1,
+});
 
 // ---------- Counter schema for atomic order numbers ----------
 interface ICounter {

@@ -11,6 +11,10 @@ import {
   getOrCreateFinanceSettings,
   releaseOrReverseInventoryForOrder,
 } from "@/lib/financeOperations";
+import {
+  deliverPendingPurchases,
+  firstPaidOrderUpdateQuery,
+} from "@/lib/analyticsPurchase";
 
 const deductionRank = {
   in_progress: 1,
@@ -28,7 +32,7 @@ const PatchOrderSchema = z.object({
   paymentStatus: z
     .enum(["unpaid", "deposit_paid", "fully_paid"])
     .optional(),
-  notes: z.string().optional(),
+  notes: z.string().trim().optional(),
   storyStatus: z
     .enum(["pending", "reviewed", "sent_to_print", "delivered"])
     .optional(),
@@ -108,12 +112,21 @@ export async function PATCH(
     if (validated.paymentStatus !== undefined) updateFields.paymentStatus = validated.paymentStatus;
     if (validated.notes !== undefined) updateFields.notes = validated.notes;
     if (validated.storyStatus !== undefined) updateFields["customStory.storyStatus"] = validated.storyStatus;
-
-    let order = await Order.findByIdAndUpdate(
-      id,
-      { $set: updateFields },
-      { new: true, runValidators: true }
-    ).lean();
+    let order;
+    if (validated.paymentStatus === "fully_paid") {
+      order = await firstPaidOrderUpdateQuery({
+        orderId: id,
+        updateFields,
+        confirmedAt: new Date(),
+        requestedOrderStatus: validated.orderStatus,
+      }).lean();
+    } else {
+      order = await Order.findByIdAndUpdate(
+        id,
+        { $set: updateFields },
+        { new: true, runValidators: true }
+      ).lean();
+    }
 
     if (!order) {
       return NextResponse.json(
@@ -136,6 +149,17 @@ export async function PATCH(
     }
 
     statsCache.invalidate();
+
+    if (order?.analyticsPurchase?.status === "pending") {
+      try {
+        await deliverPendingPurchases({ limit: 1, orderIds: [id] });
+      } catch (analyticsError) {
+        console.error(
+          "Paid order saved; analytics delivery remains pending:",
+          analyticsError instanceof Error ? analyticsError.message : "unknown failure"
+        );
+      }
+    }
 
     return NextResponse.json({
       success: true,
