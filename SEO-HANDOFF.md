@@ -8,123 +8,8 @@ For customer-facing positioning, content architecture, search intent, evidence
 requirements, and the owner-confirmed personalized-story workflow, read
 `SEO-CONTENT-STRATEGY.md` in full before drafting or changing public copy.
 
-Last follow-up: **2026-09-06, Africa/Cairo** (see dated update below). External dashboards change over
+Last verified: **2026-09-03, Africa/Cairo**. External dashboards change over
 time. Treat counts below as dated observations, not permanent facts.
-
-## Follow-up on 2026-09-06
-
-### Individual article SEO update completed
-
-At **14:07 UTC**, all 40 pre-existing articles received individually reviewed
-titles, SEO titles, descriptions, excerpts, introductions and related links.
-Three Codex subagents reviewed four batches after Antigravity's headless command
-permission failed; Codex reviewed and applied the final proposals. This was a
-delegation-tool limitation, not a Google Search restriction.
-
-- Published 80 related-article links and 109 heading edits. Added one contextual
-  product link to `/product/FROG` in article 6 and one category link to
-  `/category/educational-games` in article 22. Shared store-category links and
-  the product links in the existing buyer guide remain available.
-- Removed draft remnants from article 20 and the exact duplicated article 34
-  text appended to article 33. The standalone article 34 remains published.
-- An atomic database update changed only five editorial fields and `updatedAt`.
-  Verification matched all 40 revisions exactly and confirmed all other fields
-  and the previously published buyer guide were unchanged: 41 articles total.
-- All 40 production pages passed HTTP 200, title/H1/description/canonical,
-  indexable metadata, introduction, internal-link and JSON-LD checks. Both
-  commerce destinations returned 200. Browser verification found the product
-  and related links; article 6 had no overflow at 320/360/390/430px.
-- Build, targeted ESLint and four targeted tests passed. The middleware
-  deprecation warning is existing project debt.
-
-The repeat-safe publisher is `scripts/apply-article-seo.ts`; reviewed values are
-in `content/seo-articles/editorial-revisions.json`. See
-`docs/seo-article-review-2026-09-06.md` for the per-article record and remaining
-source/medical-content review concerns. This batch did not comprehensively
-fact-check existing advice, create external backlinks, or establish new Google
-indexing/ranking results. Do not repeat the quota-limited indexing request today.
-
-### Production release completed
-
-The owner approved deployment and article publication on 2026-09-06. PR #59
-was squash-merged as `4781371c379eedfd0f962dffa762b21a59ef0909`. Vercel
-deployment `GAwnch8eXophBpWFfuBNSRPgS6Vh` completed successfully, and the
-production homepage serves the broader store title and `hero.store_*` markup.
-
-- Published `/article/choosing-childrens-stories-and-games` through the reviewed
-  insert-only script after deployment. The article is now live, not a draft.
-- After a dry run and catalog identity check against all six active product
-  slugs, inserted only `hero.store_title` and `hero.store_subtitle` in
-  SiteContent. Other CMS keys and product data were not modified.
-- A production crawl at **2026-09-06 12:07 UTC** verified all **59 sitemap URLs**:
-  HTTP 200, non-empty titles/descriptions, self-canonicals, indexable metadata,
-  and parseable JSON-LD. The new guide is included in the sitemap.
-- Verified the guide is linked from `/mama-world` and all three canonical
-  categories, and all 13 distinct normal-path links in the guide return 200.
-  There are now 41 published articles.
-- Opened the published article in the browser and checked headings, complete
-  content and links. It has no horizontal overflow at 320/360/390/430px.
-- Search Console's daily quota was already exhausted earlier today. No further
-  manual indexing request was made. Publication and sitemap inclusion do not
-  establish that Google has indexed the new guide.
-
-The pre-release notes below are retained as history. Deployment and guide
-publication are complete; the remaining editorial topics require the evidence
-listed in `docs/seo-editorial-plan-2026-09-06.md` before drafting/publishing.
-
-Verified in the browser under `hussien.impression@gmail.com`:
-
-- Merchant Center account `5847247567` reports **6 approved**, **0 limited**,
-  **0 not approved**, and **0 under review**. The previous product-review/image
-  issue is no longer reflected in the current product-status totals. The
-  overview also reports 8 total clicks over the last 28 days.
-- Search Console reports **40 indexed**, **10 not indexed** (9 discovered but
-  not indexed; 1 alternate canonical). The report's own last update is
-  **2026-08-28**. Validation for the 9 URLs is still **Started**.
-- Individual inspection of `/how-personalized-stories-work` says **URL is
-  unknown to Google**. One indexing request on 2026-09-06 returned **Quota
-  Exceeded**. No request was accepted. Do not retry today; the gifting page
-  was not submitted after the quota response.
-- Bing and Customer Reviews were not rechecked during this batch.
-
-Pre-release preparation from `33cc7914be305d3c05b793ae16a58f2123cb8241`
-(subsequently published in PR #59 as recorded above):
-
-- Broad store homepage title/H1 and metadata covering children's stories,
-  educational/Islamic games, and personalized stories. New `hero.store_*`
-  keys prevent the old personalized-only CMS heading from returning.
-- Canonical article pages now render full Markdown with headings, lists,
-  crawlable links and separate source records; HTML and unsafe URLs are
-  filtered by `react-markdown`. The 18-paragraph truncation is removed.
-- `/mama-world` links all 40 currently published articles instead of 24.
-  Article pages and the index link the three store categories. Categories
-  show up to three published articles tagged with their canonical slug.
-- Educational-games wording names the current Islamic puzzles and arithmetic
-  game. Product facts, prices, availability and policies are unchanged.
-- One reviewed guide and an eight-topic editorial queue are ready in
-  `content/seo-articles/` and `docs/seo-editorial-plan-2026-09-06.md`.
-  `scripts/publish-seo-guide.ts` is dry-run by default and only inserts a new
-  article with `--apply`; it preserves an already-existing article.
-
-Checks completed: build with the existing local environment loaded (no secrets
-copied into this checkout); 12 targeted tests; 3 SEO Playwright tests; targeted
-ESLint with 0 errors and 33 existing warnings; guide publication dry run with
-no DB connection; live-data local browser checks of home, article index,
-educational-games category and one full article, all HTTP 200 with parseable
-JSON-LD/self-canonicals and zero horizontal overflow at 320/360/390/430px.
-The initial build without environment variables stopped at environment
-validation, before the successful configured build.
-
-Delegation: Gemini `gemini-3.8-flash-medium` via Antigravity 1.1.27, analysis
-only, exit 0. Correct account verified in the CLI log; `useAiCredits` was
-false. Codex reviewed and revised the editorial proposal. The relay's
-`readOnlyViolation` was null (unknown); the two context files retained their
-hashes and no extra file appeared in the delegated context directory. Usage
-cost was not reported.
-
-Remaining search work: retry eligible indexing requests after the quota resets.
-Use the production verification above for release status; local verification
-alone is not proof of production publication or search ranking.
 
 ## Accounts and production identity
 
@@ -152,8 +37,6 @@ values before changing them in code or an external dashboard.
 - Sitemap generator: `src/app/sitemap.ts`
 - Crawler rules: `public/robots.txt`
 - Merchant feed: `src/app/merchant-feed.xml/route.ts`
-- Google Customer Reviews order payload and delivery-date calculation:
-  `src/lib/googleCustomerReviews.ts`
 - PWA identity: `public/manifest.json`
 - Search and platform logo assets: `public/assets/logo/`
 - Organic-discovery messaging and content source of truth:
@@ -178,16 +61,17 @@ relevant source above in the same pull request.
 - Validation for the 9 discovered-but-not-indexed pages was started on
   2026-09-01 after their production responses, metadata, canonicals, and
   structured data were rechecked.
-- On 2026-09-02 the correct account was confirmed in the browser through
-  `authuser=1`. URL Inspection reported
-  `/how-personalized-stories-work` as **URL is unknown to Google**. The ensuing
-  indexing request was rejected with **Quota Exceeded**, so neither new landing
-  page was submitted to Google that day. The active search-monitor automation
-  is instructed to retry both pages once on or after 2026-09-03 and to verify
-  Google's acknowledgement for each request.
-- Manual indexing requests reached Google's daily quota on 2026-09-01. This was
-  a quota response, not a page failure.
-- Manual Actions and Security Issues both reported **No issues detected**.
+- On 2026-09-03, `/how-personalized-stories-work` was still unknown to Google.
+  Its indexing request again reached the daily quota, so no request was accepted
+  and `/personalized-gifts-for-children` was not attempted that day. Retry the
+  two URLs individually on or after 2026-09-04.
+- On 2026-09-03, the report remained at 40 indexed and 10 not indexed; validation
+  for the 9 discovered-but-not-indexed pages remained **Started**. Manual Actions
+  and Security Issues both still reported **No issues detected**.
+- On 2026-09-03, `/sitemap.xml` still showed **Success**, last read on 2026-09-01
+  with 56 discovered pages. Search Console also retained an old invalid `/`
+  submission dated 2026-07-04 with 1 error; this is separate from the valid
+  sitemap.
 - Search Console reported `robots.txt` as valid and 304 crawl requests during
   the preceding 90 days.
 - The Search generative AI control was **Include**, inherited from the
@@ -208,11 +92,6 @@ relevant source above in the same pull request.
 - All 56 URLs known on 2026-09-01 were submitted through URL Submission. Bing
   showed 56 URLs submitted that day and said new reports could take up to 48
   hours to process.
-- On 2026-09-02, the two new production landing pages were submitted through
-  URL Submission:
-  `/how-personalized-stories-work` and
-  `/personalized-gifts-for-children`. Bing confirmed **2 URLs submitted
-  successfully**.
 - Bing AI Performance was available for the property but showed 0 citations and
   0 cited pages before the new property data had finished processing. Treat this
   as a dated baseline, not evidence that the site is excluded from Copilot.
@@ -237,25 +116,6 @@ relevant source above in the same pull request.
 - Business address and customer-service details were visible as saved on
   2026-09-01. The public contact URL, correct Google email, and phone were also
   visible in Business info.
-- Google Customer Reviews uses Merchant ID `5847247567`. The storefront
-  integration asks for a validated customer email during checkout and renders
-  Google's optional survey opt-in only after the order API confirms creation.
-  The API supplies the authoritative order number, `EG` delivery country, and
-  an estimated delivery date seven Egypt business days after purchase (Friday
-  and Saturday excluded). The email is stored with the order for operations but
-  is deliberately omitted from `seraj-last-order` in localStorage.
-- The opt-in module is loaded directly from Google's `platform.js` on the order
-  confirmation route; do not move it into Google Tag Manager. The customer sees
-  a disclosure and Google receives the email only to offer the optional survey.
-- The Google Customer Reviews badge is intentionally not shown yet. Add it only
-  after Merchant Center has enough eligible ratings to display useful rating
-  information; until then it can show that no rating is available.
-- Verified on 2026-09-03 under `hussien.impression@gmail.com`: Google Customer
-  Reviews appears in **Settings → Add-ons → Your add-ons** with a Remove action,
-  confirming the add-on is active and the signed agreement is available. Its
-  overview still reported no collected data immediately after deployment, as
-  expected before a real customer accepts the survey opt-in; Google notes that
-  reporting can take a few days to appear.
 - Product status immediately after setup: 5 under review and 1 not approved.
   The single issue was **Image not processed**; Google said no action was needed
   and that the image would be processed again within 3 days. This remained the
@@ -268,7 +128,8 @@ relevant source above in the same pull request.
   `https://seraj-store.vercel.app/returns`.
 - Organization JSON-LD includes the confirmed legal identity and postal address.
 - `MerchantReturnPolicy` JSON-LD mirrors the Merchant Center return settings.
-- A production crawl on 2026-09-01 checked every one of the 56 sitemap URLs:
+- PR #53 added two SEO landing pages, bringing the production sitemap to 58
+  URLs. A production crawl on 2026-09-02 checked all 58:
   all returned HTTP 200, had a non-empty title and description, used a
   self-referencing canonical, were indexable, exposed at least one valid JSON-LD
   block, and had no JSON-LD parse errors.
@@ -280,108 +141,8 @@ relevant source above in the same pull request.
   `PerplexityBot` to crawl public pages while keeping admin and API paths out of
   search. `GPTBot` and `Google-Extended` remain blocked from training use by
   deliberate policy; this does not block Google Search AI inclusion.
-- Production build, targeted ESLint, desktop rendering, and 320px no-overflow
-  checks passed for the policy release merged in PR #48.
-- PR #53 was squash-merged to `master` as commit
-  `81d0c9fccb7cd673fca23f02b453cc2940873c03` and deployed successfully to
-  production on 2026-09-02.
-- The production content migration was first run as a dry run, then applied.
-  The new semantic homepage/showcase keys and approved `custom-story` copy are
-  now present in the database. Price, availability, and media were deliberately
-  left unchanged; the live custom-story price remained `310 EGP`.
-- A fresh production crawl on 2026-09-02 checked all 58 current sitemap URLs.
-  Every URL returned HTTP 200, had a non-empty title and meta description, used
-  its own canonical URL, exposed at least one parseable JSON-LD block, and had
-  no crawl failures.
-- Production browser verification confirmed the homepage H1, semantic CTA
-  labels/destinations, custom-story showcase, and approved SPA product copy.
-  Horizontal overflow remained zero at 320, 360, 390, and 430px.
-- `/api/products` and `merchant-feed.xml` expose the approved custom-story
-  title and description while retaining the live `310 EGP` price.
-- Google Customer Reviews was deployed through PR #57, squash-merged as commit
-  `ec2ae33aa5597e616e230244e00c815e94aefc66` on 2026-09-03. Vercel reported the
-  production deployment successful; direct production checks returned HTTP 200
-  for `/` and `/app.js`, confirmed the HTML5 doctype, checkout email field,
-  customer disclosure, and direct Google opt-in loader. The order summary kept
-  in `seraj-last-order` does not contain the customer email.
-
-## Content rollout implementation status (2026-09-02)
-
-Implemented on branch `codex/seo-content-implementation`, merged in PR #53,
-and verified in production on 2026-09-02. Pre-merge verification included
-`npm run build`,
-targeted ESLint (`npx eslint public/app.js`: 0 errors, 30 pre-existing
-warnings), product catalog contract tests (7/7 pass), SEO content contract tests
-(3/3 pass), SEO Playwright tests (3/3 pass), and the existing homepage ordering
-test (1/1 pass). Browser checks cover 320/360/390/430px with no horizontal
-overflow, valid JSON-LD, self-canonicals, semantic CTA destinations, and stale
-CMS/product API responses. No broken internal links were found across the
-touched pages.
-
-Published code changes (live in production):
-
-- New canonical page `/how-personalized-stories-work` (how-it-works,
-  WebPage + BreadcrumbList JSON-LD, live price from the products API).
-- New canonical page `/personalized-gifts-for-children` (gifting, dedication,
-  direct delivery; explicit note that personalized items have different
-  return conditions with a link to `/returns`).
-- `/product/custom-story` now uses the strategy title/H1, adds a confirmed
-  facts section, buyer-supply summary, visible FAQ, and internal links to the
-  two new pages and `/returns`.
-- `/category/personalized-stories` copy now states the owner-confirmed offer
-  (guardian-led story, character sheet, approval sample, dedication, direct
-  delivery) with related-links nav; other categories unchanged.
-- `/about` (Next.js and SPA banner) updated with the positioning and links.
-- SPA homepage hero (heading, supporting copy, primary/secondary CTAs, four
-  proof points), title/meta/OG wording, wizard "how it works" accordion
-  (now six confirmed steps), custom-story zigzag steps, success-page wording
-  ("عينة الشخصية" instead of "البروفة"), showcase section, and footer links
-  to the new pages.
-- `public/app.js` fallback `custom-story` record and
-  `src/lib/seed/contentDefaults.ts` hero/showcase defaults aligned with the
-  strategy; sitemap includes the two new routes.
-- Shared confirmed facts centralized in `src/lib/personalizedStoryContent.ts`
-  to keep all pages consistent.
-- SEO-critical custom-story wording is code-controlled in both the SPA and the
-  canonical product page. Product API data continues to own price,
-  availability, and media, but stale database copy cannot silently restore old
-  positioning or unconfirmed claims in the storefront.
-- The personalized-story hero and showcase use semantic CMS keys
-  (`hero.story_*`, `hero.cta_custom_story`, `hero.cta_products`, and
-  `showcase.custom_story.*`). This prevents the legacy positional keys from
-  swapping CTA labels and destinations while rollout data is being migrated.
-
-Completed rollout actions:
-
-- `npm run migrate:seo-content` completed as a read-only production dry run,
-  followed by `npm run migrate:seo-content -- --apply` after the output was
-  reviewed. The command remains safe-by-default for future environments.
-- The rendered homepage, `/api/products`, SPA and canonical custom-story pages,
-  and `merchant-feed.xml` were verified after deployment. CTA destinations,
-  synchronized product copy, and the unchanged live price were all confirmed.
-
-Remaining external follow-up:
-
-- Request indexing of `/how-personalized-stories-work` and
-  `/personalized-gifts-for-children` in Search Console while signed in as
-  `hussien.impression@gmail.com` after the daily request quota resets. The
-  account is available through `authuser=1`; do not use the default
-  `samawah.pod@gmail.com` session. Bing submission is complete. Both URLs are
-  already present in the production sitemap and pass the technical crawl
-  checks; Google indexing is an external processing step, not a code blocker.
-
-Intentionally not implemented (blocked, see SEO-CONTENT-STRATEGY.md gates):
-
-- `/child-photo-privacy`: requires owner-confirmed storage/retention/deletion
-  facts; the wizard photo note keeps its existing production wording until
-  the policy is approved.
-- Evidence gallery, before/after resemblance examples, and first-hand case
-  study: require approved visual assets and guardian consent.
-- Buyer's guide and any landing pages for extra goals/occasions: require
-  confirmed package specifications (page count, materials, production time,
-  revision rounds) that are still pending owner confirmation.
-- No new FAQPage or HowTo markup was added (per strategy guidance); FAQ
-  content is visible text only.
+- Production build, targeted ESLint, desktop rendering, and mobile no-overflow
+  checks at 320px, 360px, 390px, and 430px passed for the PR #53 release.
 
 ## Unfinished work
 
@@ -414,12 +175,6 @@ the near future. This is intentionally unfinished.
   the default policy.
 - Re-read the status of all 6 products. Do not assume an item still under review
   or rejected has the same reason recorded above.
-- After the Google Customer Reviews release is live, place a genuine test order
-  with a monitored inbox and confirm that the opt-in appears on the production
-  success route. If the customer opts in, verify the survey timing after the
-  estimated delivery date. Never use fabricated orders or reviews.
-- Monitor Merchant Center for the first eligible store ratings. Reconsider the
-  optional badge only when it can display useful rating information.
 
 ### Search indexing follow-up
 
@@ -427,6 +182,9 @@ the near future. This is intentionally unfinished.
   discovered-but-not-indexed URLs. Use individual priority URL requests only
   after Google's daily quota resets and only where the live inspection still
   shows that a request is useful.
+- Retry `/how-personalized-stories-work` first on or after 2026-09-04. If Google
+  accepts it, request `/personalized-gifts-for-children` separately and confirm
+  each acknowledgement. If the quota message recurs, do not retry again that day.
 - Re-check page indexing, rich-result eligibility, and any new enhancement,
   security, or manual-action report after Google refreshes the dated report.
 - Confirm Bing's imported property reports finish processing after the stated
@@ -450,6 +208,66 @@ An external-dashboard task is complete only when the saved state is visible on
 the correct account and the corresponding production source matches it. Record
 the verification date and any review or processing delay. Never report a queued,
 under-review, or quota-limited state as approved or indexed.
+
+## Follow-up evidence: 2026-09-06 (Africa/Cairo)
+
+This section records a new public-production check only. It does not refresh
+the dated external-dashboard observations above.
+
+- The live sitemap contained 59 URLs. A read-only HTTP crawl checked all 59:
+  59 returned HTTP 200, non-empty titles and meta descriptions,
+  self-referencing canonicals (URL-decoded, trailing slash normalized), and at
+  least one parseable JSON-LD block, with zero JSON-LD parse failures.
+- No `noindex` was detected in the checked robots/Googlebot meta tags or
+  `X-Robots-Tag` response headers. These checks establish technical signals,
+  not actual index inclusion, content quality, or rich-result eligibility.
+- The public `/app.js` still contains the Google Customer Reviews integration:
+  it queues the successful order response's `googleCustomerReview` payload,
+  loads Google's `platform.js`, and calls `surveyoptin.render`. A real
+  production opt-in and subsequent survey delivery remain unverified; do not
+  create fabricated orders or reviews to test them.
+- Browser inventory returned no available browsers; the subsequent attempt to
+  open Search Console returned `No browser is available`. Merchant approval,
+  the current `FROG` issue, Google indexing/validation, and Bing processing
+  were therefore not inspected. Do not describe them as unchanged or resolved.
+- Next required action: restore browser access and sign in to the relevant
+  dashboards as `hussien.impression@gmail.com`; verify the visible account
+  before reading or changing anything. Then resume the pending dashboard
+  checks above, using their live results rather than the old counts.
+- No production code, platform submissions, or automation settings were
+  changed in this follow-up. Existing local handoff edits were preserved.
+
+## Merchant and Analytics verification: 2026-09-07 (Africa/Cairo)
+
+This dated observation supersedes the older Merchant product-review state,
+not the older Search Console or Bing reports.
+
+- The visible Google account was `hussien.impression@gmail.com` in both
+  Merchant Center and Analytics. Merchant Center account `5847247567` showed
+  6 approved products, 0 limited, 0 not approved, and 0 under review.
+- Merchant Center auto-tagging was enabled. After the owner explicitly
+  approved data sharing, GA4 property `seraj-store` (`535560370`) was linked.
+  The confirmation stated that Google Analytics had been linked; after
+  refreshing conversion sources, the saved row showed **Active**, attribution
+  **Data driven**, and lookback window **90 days**.
+- Analytics account `393345334`, web stream `14787160307`, and measurement ID
+  `G-FZW3R2J7Y9` were confirmed in the UI for
+  `https://seraj-store.vercel.app/`. The stream reported data collection active
+  in the past 48 hours. Do not confuse this property with the separate
+  `seraj` property `535567527`, which was not linked or changed.
+- The code audit was delegated to one native `gpt-5.6-luna` worker and checked
+  independently against the newer clone at commit `089da90`. The existing tag
+  is in `src/app/layout.tsx`; `public/index.html` and `public/app.js` do not
+  contain the corresponding GA4 initialization or checkout events. The root
+  rewrite serves the static SPA, so the Next layout is not sufficient coverage.
+- Order creation initially saves `paymentStatus: "unpaid"`. Both full and
+  deposit payment modes exist, and admin updates can set `fully_paid`.
+  Therefore an order-submission event must not be presented as confirmed paid
+  revenue. Purchase-event implementation, consent behavior, attribution,
+  duplicate prevention, and end-to-end validation remain pending; the active
+  platform link alone does not establish working purchase measurement.
+- No production code or Analytics collection settings were changed in this
+  session. No new Analytics property or Measurement Protocol secret was created.
 
 ## Conversion implementation checkpoint: 2026-09-07 (Africa/Cairo)
 
@@ -586,3 +404,37 @@ approved completing and publishing this change.
 - Legitimate purchase receipt/attribution in GA4 and Merchant remains pending;
   never use fake live purchases to clear this gate. Google transport 2xx alone
   is not semantic receipt. No new scheduler, paid service or refund inference.
+
+## Conversion production release verified: 2026-09-07 (Africa/Cairo)
+
+This is the latest state and supersedes earlier uncommitted/not-deployed
+conversion checkpoints. Implementation PR #62 was merged and published:
+https://github.com/Omarhussien2/-seraj-store/pull/62
+
+- Production commit: `7d9cc66a402538898d545f8f7aa6d4613cbd5e5a`.
+  Vercel Production Deployment `3ugVPzy53bJFN7HkBpgnDhEkncFd` was visibly
+  Ready in the correct Seraj project, on the public `seraj-store.vercel.app`
+  alias. It was a fresh master build, not promotion of a Preview artifact.
+- Live verification exited 0: four published assets match the accepted source;
+  59 sitemap pages passed basic SEO/HTTP checks; Merchant feed has six products;
+  anonymous retry is 401 and foreign-origin withdrawal is 403. An isolated
+  fresh browser produced zero Google analytics requests before/after rejection
+  across the homepage and `/about`; no attribution was returned.
+- Final local acceptance: 18 consent/purchase/real-Mongo, 17 existing contract
+  and 17 intercepted browser tests passed (52 distinct cases). Build passed
+  including TypeScript and 21 static pages. Zero lint errors; 30 existing SPA
+  warnings remain. Initial typing failure and its repair are recorded in the
+  implementation report; no checks were disabled.
+- Durable post-deployment evidence is recorded on the merged PR:
+  https://github.com/Omarhussien2/-seraj-store/pull/62#issuecomment-5570954123
+- No real orders were created and no fake live Google events were sent. Local
+  Next and Mongo test servers were stopped. The ignored portable Mongo runtime
+  and disposable data directory remain available; no user data was removed.
+- STILL OPEN: verify the first legitimate consented, fully-paid purchase in the
+  existing GA4/Merchant reports. Deployment and HTTP transport acceptance alone
+  do not establish Google receipt, attribution or improved rankings. Do not
+  mark this gate complete or send fake purchases to satisfy it.
+- Keep the conversion worktree (`codex/conversion-tracking`, commit `2ceb621`)
+  and other agents' edits. These post-release handoff notes are local additions;
+  the code/test/documentation implementation is merged, and the verification
+  comment above is the published release record.

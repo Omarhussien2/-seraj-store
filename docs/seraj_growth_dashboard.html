@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة قيادة نمو وهوية متجر سِراج | Executive Growth & SEO Dashboard</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
+    body {
+      font-family: 'Tajawal', sans-serif;
+    }
+    .steampunk-gradient {
+      background: linear-gradient(135deg, #102a24 0%, #061512 50%, #1e1509 100%);
+    }
+    .badge-copper {
+      background: rgba(184, 115, 51, 0.15);
+      border: 1px solid rgba(184, 115, 51, 0.4);
+      color: #df9b58;
+    }
+    .badge-mint {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+    .glow-mint {
+      box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.25);
+    }
+    .tab-btn.active {
+      background: var(--primary, #059669);
+      color: #ffffff;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body class="bg-[var(--background,#0b1311)] text-[var(--foreground,#f1f5f9)] antialiased p-3 md:p-6 min-h-screen">
+
+  <!-- Header Section -->
+  <header class="max-w-7xl mx-auto mb-6 p-6 rounded-2xl steampunk-gradient border border-[var(--border,#1e3a34)] shadow-2xl relative overflow-hidden">
+    <div class="absolute -left-10 -top-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute right-0 bottom-0 w-64 h-64 bg-amber-600/10 rounded-full blur-3xl pointer-events-none"></div>
+    
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+          <span class="px-3 py-1 text-xs font-bold rounded-full badge-mint flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            تقرير الأداء الاستراتيجي والحي
+          </span>
+          <span class="px-3 py-1 text-xs font-semibold rounded-full badge-copper">
+            هوية عربية إسلامية أصيلة 2D Modern
+          </span>
+        </div>
+        <h1 class="text-2xl md:text-4xl font-black tracking-tight text-white flex items-center gap-3">
+          <span>سِــــرَاج</span>
+          <span class="text-xs md:text-sm font-medium px-2.5 py-1 rounded bg-emerald-950/80 border border-emerald-700/50 text-emerald-300">
+            Seraj Growth & AI Authority
+          </span>
+        </h1>
+        <p class="text-sm md:text-base text-slate-300 mt-1 max-w-2xl">
+          المرصد التنفيذي لتوثيق رحلة التحول من البنية التحتية إلى الريادة العضوية، بناء الأبطال الحقيقيين، واقتناص محركات البحث والذكاء الاصطناعي.
+        </p>
+      </div>
+
+      <!-- Quick Highlights Counters -->
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="bg-black/40 backdrop-blur border border-emerald-800/40 px-4 py-2.5 rounded-xl text-center min-w-[100px]">
+          <span class="block text-2xl font-black text-emerald-400">59</span>
+          <span class="text-[11px] text-slate-400">صفحة بـ Sitemap</span>
+        </div>
+        <div class="bg-black/40 backdrop-blur border border-emerald-800/40 px-4 py-2.5 rounded-xl text-center min-w-[100px]">
+          <span class="block text-2xl font-black text-emerald-400">100%</span>
+          <span class="text-[11px] text-slate-400">اعتماد Merchant (6/6)</span>
+        </div>
+        <div class="bg-black/40 backdrop-blur border border-amber-800/40 px-4 py-2.5 rounded-xl text-center min-w-[100px]">
+          <span class="block text-2xl font-black text-amber-400">0</span>
+          <span class="text-[11px] text-slate-400">أخطاء برمجية/تتبع</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex items-center gap-2 mt-6 pt-4 border-t border-slate-800/60 overflow-x-auto pb-1 text-sm">
+      <button onclick="switchTab('overview')" id="tab-overview" class="tab-btn active px-4 py-2 rounded-lg transition">الرؤية والركائز</button>
+      <button onclick="switchTab('timeline')" id="tab-timeline" class="tab-btn px-4 py-2 rounded-lg text-slate-300 hover:bg-white/5 transition">الخط الزمني للإنجازات (Timeline)</button>
+      <button onclick="switchTab('competitors')" id="tab-competitors" class="tab-btn px-4 py-2 rounded-lg text-slate-300 hover:bg-white/5 transition">تحليل المنافسين والفجوات</button>
+      <button onclick="switchTab('roadmap')" id="tab-roadmap" class="tab-btn px-4 py-2 rounded-lg text-slate-300 hover:bg-white/5 transition">خارطة الشهور الـ 3 (الأهداف والقياس)</button>
+      <button onclick="switchTab('ai-search')" id="tab-ai-search" class="tab-btn px-4 py-2 rounded-lg text-slate-300 hover:bg-white/5 transition">الذكاء الاصطناعي (GEO / AEO)</button>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto space-y-6">
+
+    <!-- ==================== TAB 1: OVERVIEW & PILLARS ==================== -->
+    <section id="content-overview" class="tab-content space-y-6">
+      <!-- Strategy Pillars Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        
+        <!-- Pillar 1 -->
+        <div class="bg-[var(--card,#111c19)] border border-[var(--border,#1d362f)] p-5 rounded-2xl relative group hover:border-emerald-500/50 transition">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-lg mb-4">
+            01
+          </div>
+          <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">High-Volume Magnet</span>
+          <h3 class="text-lg font-bold text-white mt-1 mb-2">عالم ماما و"فسحة حلوة"</h3>
+          <p class="text-xs text-slate-300 leading-relaxed mb-4">
+            جذب آلاف الأمهات في مصر عبر الإجابة عن همومهن الحقيقية: دليل خروجات وفسح الأطفال، وحلول تربوية عملية (علاج العند، مشاكل الشاشات، وإدارة الوقت).
+          </p>
+          <div class="bg-black/30 p-2.5 rounded-lg text-xs space-y-1 text-slate-400 border border-white/5">
+            <div class="flex justify-between"><span>المحتوى المخطط:</span> <strong class="text-white">40 مقالاً + أدلة فسح</strong></div>
+            <div class="flex justify-between"><span>نية البحث:</span> <strong class="text-emerald-300">أماكن خروج، تربية إيجابية</strong></div>
+          </div>
+        </div>
+
+        <!-- Pillar 2 -->
+        <div class="bg-[var(--card,#111c19)] border border-[var(--border,#1d362f)] p-5 rounded-2xl relative group hover:border-amber-500/50 transition">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-lg mb-4">
+            02
+          </div>
+          <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Family Bonding Products</span>
+          <h3 class="text-lg font-bold text-white mt-1 mb-2">ألعاب سِراج العائلية والتعليمية</h3>
+          <p class="text-xs text-slate-300 leading-relaxed mb-4">
+            استقطاب الأسر الباحثة عن بدائل للشاشات عبر ألعاب لوحية وجماعية إسلامية وترفيهية تجمع الأسرة وتنمي الذكاء، وهدايا مناسبات ذات قيمة تدوم.
+          </p>
+          <div class="bg-black/30 p-2.5 rounded-lg text-xs space-y-1 text-slate-400 border border-white/5">
+            <div class="flex justify-between"><span>التصنيف التجاري:</span> <strong class="text-white">ألعاب أطفال بدون شاشات</strong></div>
+            <div class="flex justify-between"><span>القناة:</span> <strong class="text-amber-300">Google Shopping + المتجر</strong></div>
+          </div>
+        </div>
+
+        <!-- Pillar 3 -->
+        <div class="bg-[var(--card,#111c19)] border border-[var(--border,#1d362f)] p-5 rounded-2xl relative group hover:border-cyan-500/50 transition">
+          <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold text-lg mb-4">
+            03
+          </div>
+          <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider">Core Identity & Flagship</span>
+          <h3 class="text-lg font-bold text-white mt-1 mb-2">الأبطال الحقيقيون & القصة المخصصة</h3>
+          <p class="text-xs text-slate-300 leading-relaxed mb-4">
+            بناء عزة وهوية الطفل عبر قصص مشوقة لأبطال الإسلام (بدائل مارفل) بأسلوب بصري عصري جذاب، وتاج المنتجات: قصة متكاملة بطلها طفلك باسمه وصورته.
+          </p>
+          <div class="bg-black/30 p-2.5 rounded-lg text-xs space-y-1 text-slate-400 border border-white/5">
+            <div class="flex justify-between"><span>الميزة التنافسية:</span> <strong class="text-white">عينة شخصية قبل الطباعة</strong></div>
+            <div class="flex justify-between"><span>حماية الخصوصية:</span> <strong class="text-cyan-300">سياسة معلنة لصور الأطفال</strong></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Conversion Funnel Visualization -->
+      <div class="bg-[var(--card,#111c19)] border border-[var(--border,#1d362f)] p-6 rounded-2xl">
+        <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+          <span>🔄</span> هندسة التحويل الداخلي الذكي (Trojan Horse Cross-Selling)
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-center">
+          <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+            <span class="text-xs font-bold text-slate-400 block mb-1">الخطوة 1: الدخول المجاني</span>
+            <strong class="text-sm text-emerald-400">بحث عن فسحة أو مشكلة عناد</strong>
+            <p class="text-[11px] text-slate-400 mt-1">الأم تقرأ دليلاً مفيداً بدون أي إلحاح بيعي</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+            <span class="text-xs font-bold text-slate-400 block mb-1">الخطوة 2: بناء الثقة والارتباط</span>
+            <strong class="text-sm text-amber-400">اكتشاف عالم سِراج وقيمه</strong>
+            <p class="text-[11px] text-slate-400 mt-1">التعرف على الجدة زينب والأرنب سراج والنصائح</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+            <span class="text-xs font-bold text-slate-400 block mb-1">الخطوة 3: التوصية الطبيعية</span>
+            <strong class="text-sm text-cyan-400">ترشيح لعبة عائلية أو قصة بطل</strong>
+            <p class="text-[11px] text-slate-400 mt-1">حل عملي فوري لمعالجة الشاشات أو تنمية الشجاعة</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-900/60 border border-emerald-800/60 bg-emerald-950/20">
+            <span class="text-xs font-bold text-emerald-300 block mb-1">الخطوة 4: الشراء والولاء</span>
+            <strong class="text-sm text-white">إتمام الطلب + القصة المخصصة</strong>
+            <p class="text-[11px] text-slate-400 mt-1">تحويل العميل العابر إلى سفير لبراند سِراج</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: TIMELINE & CHALLENGES ==================== -->
+    <section id="content-timeline" class="tab-content hidden space-y-6">
+      <div class="bg-[var(--card,#111c19)] border border-[var(--border,#1d362f)] p-6 rounded-2xl">
+        <h3 class="text-lg font-bold text-white mb-2">سجل التحديات والإنجازات السريعة (Engineering & Growth Timeline)</h3>
+        <p class="text-xs text-slate-400 mb-6">توثيق شفاف للسرعة الفائقة في حل المشكلات التقنية والتنفيذ الفعلي بالتواريخ:</p>
+
+        <!-- Timeline items -->
+        <div class="relative border-r-2 border-emerald-800/40 mr-4 space-y-7 pr-6">
+          
+          <!-- Milestone 1 -->
+          <div class="relative">
+            <span class="absolute -right-[31px] top-0 w-4 h-4 rounded-full bg-emerald-500 border-4 border-[#0b1311]"></span>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-mono text-emerald-400 font-bold">المرحلة الأولى (PR #32 - PR #36)</span>
+              <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800/50">تأسيس الزحف الكامل</span>
+            </div>
+            <h4 class="text-sm font-bold text-white mt-1">توليد الصفحات القابلة للزحف وحل معضلة الـ SPA</h4>
+            <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+              <strong>التحدي:</strong> متجر سِراج مبني كـ SPA بـ hash routes مما يجعل جوجل عاجزاً عن قراءة وتصنيف تفاصيل المنتجات والمقالات.<br>
+              <strong>الحل المنجز:</strong> بناء نظام SSR Hybrid عبر Next.js يولد صفحات قابلة للزحف لكل منتج وقسم، وإطلاق صفحات About و Contact مع خريطة سيمانتك كاملة وربط الـ Sitemap لتغطية كافة الروابط الحيوية.
+            </p>
+          </div>
+
+          <!-- Milestone 2 -->
+          <div class="relative">
+            <span class="absolute -right-[31px] top-0 w-4 h-4 rounded-full bg-emerald-500 border-4 border-[#0b1311]"></span>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-mono text-emerald-400 font-bold">المرحلة الثانية (PR #37 - PR #40)</span>
+              <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800/50">أداء وسرعة الهواتف (Core Web Vitals)</span>
+            </div>
+            <h4 class="text-sm font-bold text-white mt-1">ضغط الفيديو بنسبة 98% وتسريع سرعة التحميل على الموبايل</h4>
+            <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+              <strong>التحدي:</strong> بطء التحميل بسبب الفيديوهات الضخمة وتأثيرها المدمر على معايير سرعة جوجل (LCP و FID).<br>
+              <strong>الحل المنجز:</strong> ضغط ملفات الفيديو من 30.7MB إلى 0.7MB (وفر 98%)، تفعيل Lazy-Loading للفيديوهات تحت خط الطي (Below-the-fold)، وضمان تجاوب شاشات الموبايل الصعبة حتى عرض 320px بدون أي Scroll أفقي.
+            </p>
+          </div>
+
+          <!-- Milestone 3 -->
+          <div class="relative">
+            <span class="absolute -right-[31px] top-0 w-4 h-4 rounded-full bg-emerald-500 border-4 border-[#0b1311]"></span>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-mono text-emerald-400 font-bold">المرحلة الثالثة (PR #41 - PR #45)</span>
+              <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800/50">Schema & Structured Data</span>
+            </div>
+            <h4 class="text-sm font-bold text-white mt-1">تشفير هوية المتجر والسياسات وأدلة الشراء لمحركات البحث</h4>
+            <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+              <strong>التحدي:</strong> عدم وضوح هوية البراند والسياسات لمحركات البحث وروبوتات الذكاء الاصطناعي.<br>
+              <strong>الحل المنجز:</strong> إضافة أكواد الفئات الرسمية لـ Google Product Categories، دمج بيانات Schema للكاتب والمقالات، وتوليد صفحات أدلة الشراء لكل فئة (Category Guides)، ونشر صفحات وسياسات الشحن والاسترجاع الرسمية لـ Google Merchant.
+            </p>
+          </div>
+
+          <!-- Milestone 4 -->
+          <div class="relative">
+            <span class="absolute -right-[31px] top-0 w-4 h-4 rounded-full bg-emerald-500 border-4 border-[#0b1311]"></span>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-mono text-emerald-400 font-bold">المرحلة الرابعة (PR #46 - PR #52)</span>
+              <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800/50">الاعتماد الرسمي وتوثيق المنصات</span>
+            </div>
+            <h4 class="text-sm font-bold text-white mt-1">تطهير الملكيات، اعتماد Merchant 100%، وتوحيد الكتالوج</h4>
+            <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+              <strong>التحدي:</strong> وجود ملكيات مشتتة وقديمة لـ Samawah، ومشاكل مراجعة صور منتجات القصص في الميرشانت.<br>
+              <strong>الحل المنجز:</strong> حصر الملكية للحساب الرسمي (`hussien.impression@gmail.com`)، اعتماد المنتجات الـ 6 كاملة في Google Merchant بنسبة 100% خضراء، ومطابقة أسعار وبيانات الكتالوج وقاعدة بيانات MongoDB مع واجهة المستخدم.
+            </p>
+          </div>
+
+          <!-- Milestone 5 -->
+          <div class="relative">
+            <span class="absolute -right-[31px] top-0 w-4 h-4 rounded-full bg-emerald-500 border-4 border-[#0b1311]"></span>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-mono text-emerald-400 font-bold">المرحلة الخامسة (PR #53 - PR #62)</span>
+              <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800/50">الحل الهندسي للقياس والتحويلات</span>
+            </div>
+            <h4 class="text-sm font-bold text-white mt-1">بناء التتبع الهجين عبر السيرفر وحماية خصوصية صور الأطفال</h4>
+            <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+              <strong>التحدي الهندسي المعقد:</strong> التتبع العادي كان يسجل أوردرات غير مدفوعة وينتهك خصوصية بيانات وصور الأطفال الحساسة.<br>
+              <strong>الحل المنجز:</strong> بناء نظام Hybrid Server-Side Tracking عبر Vercel + MongoDB مع تشفير SHA-256، وإرسال أحداث المبيعات الحقيقية المدفوعة فقط إلى GA4 بعد تأكيد الأدمن، واجتياز 52 فحص واختبار برمجي بدون أخطاء.
+            </p>
+          </div>
+
+          <!-- Milestone 6 -->
+          <div class="relative">
+            <span class="absolute -right-[31px] top-0 w-4 h-4 rounded-full bg-amber-400 border-4 border-[#0b1311] animate-pulse"></span>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-mono text-amber-400 font-bold">المرحلة الحالية (الآن)</span>
+              <span class="px-2 py-0.5 rounded text-[10px] bg-amber-950 text-amber-300 border border-amber-800/50">انطلاق المحتوى والنمو الشامل</span>
+            </div>
+            <h4 class="text-sm font-bold text-white mt-1">توسيع الاستراتيجية: الأبطال الحقيقيون، الألعاب العائلية، وعالم ماما</h4>
+            <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+              <strong>التوجيه الاستراتيجي:</strong> الانتقال من مرحلة كود البنية التحتية إلى مرحلة المحتوى وجلب الزيارات: تفعيل ألعاب البيت الجماعية، مقالات التربية والنزهات، وترسيخ أبطال الإسلام كبدائل ملهمة لأبطال مارفل.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: COMPETITOR ANALYSIS ==================== -->
+    <section id="content-competitors" class="tab-content hidden space-y-6">
+      <div class="bg-[var(--card,#111c19)] border border-[var(--border,#1d362f)] p-6 rounded-2xl">
+        <h3 class="text-lg font-bold text-white mb-2">تحليل المنافسين في السوق المصري (Competitor Matrix)</h3>
+        <p class="text-xs text-slate-400 mb-6">أين يقف منافسو قصص وألعاب الأطفال وما هي نقاط ضعفهم التي نتفوق بها؟</p>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-right border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400 bg-black/40">
+                <th class="p-3 font-bold">المنافس</th>
+                <th class="p-3 font-bold">نقطة القوة لديه</th>
+                <th class="p-3 font-bold">نقطة الضعف القاتلة</th>
+                <th class="p-3 font-bold text-emerald-400">استراتيجية تفوق «سِراج»</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60">
+              <tr class="hover:bg-white/[0.02]">
+                <td class="p-3 font-bold text-white">HeroKid (هيرو كيد)</td>
+                <td class="p-3 text-slate-300">مكتبة قصص كبيرة + ميزانية إعلانية عالية</td>
+                <td class="p-3 text-red-400">قالب ثابت يغير الاسم والوجه فقط بدون كتابة قصة خاصة؛ بلا ألعاب وبلا محتوى أسري</td>
+                <td class="p-3 text-emerald-300 font-semibold">قصة مخصصة بالكامل من الصفر + اعتماد عينة الشخصية أولاً + ألعاب عائلية</td>
+              </tr>
+              <tr class="hover:bg-white/[0.02]">
+                <td class="p-3 font-bold text-white">Hawadeto (حواديتو)</td>
+                <td class="p-3 text-slate-300">يقبلون أفكار العملاء ويدعمون تعدد الأطفال</td>
+                <td class="p-3 text-red-400">عدم ثبات ملامح الشخصية عبر المشاهد وغياب الوضوح في خطوات العمل والخصوصية</td>
+                <td class="p-3 text-emerald-300 font-semibold">تصميم Character Sheet متكامل ومعتمد + سياسة خصوصية صور الأطفال الرسمية</td>
+              </tr>
+              <tr class="hover:bg-white/[0.02]">
+                <td class="p-3 font-bold text-white">Batal Stories (بطل)</td>
+                <td class="p-3 text-slate-300">سعر منخفض جداً في السوق</td>
+                <td class="p-3 text-red-400">قصة 12 صفحة سريعة وخامات ورق وطباعة متواضعة وضعف الجانب القيمي</td>
+                <td class="p-3 text-emerald-300 font-semibold">المنافسة على القيمة والفخامة والرسالة التربوية كهدية قيمة تدوم للطفل</td>
+              </tr>
+              <tr class="hover:bg-white/[0.02]">
+                <td class="p-3 font-bold text-white">مكتبات الأطفال التقليدية</td>
+                <td class="p-3 text-slate-300">تواجد على الأرض وأسعار مختلفة</td>
+                <td class="p-3 text-red-400">قصص السير الدينية والتاريخية تقدم بأسلوب تقليدي جاف ومنفر للأجيال الحديثة</td>
+                <td class="p-3 text-emerald-300 font-semibold">تقديم الأبطال الحقيقيين برسم 2D Vector Modern و Steampunk جذاب يضاهي مارفل</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: ROADMAP & KPIS ==================== -->
+    <section id="content-roadmap" class="tab-content hidden space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        
+        <!-- Month 1 -->
+        <div class="bg-[var(--card,#111c19)] border border-emerald-600/50 p-5 rounded-2xl">
+          <div class="flex items-center justify-between mb-3">
+            <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-emerald-500/20 text-emerald-400">الشهر الأول (الأساس)</span>
+            <span class="text-xs text-slate-400">سبتمبر - أكتوبر</span>
+          </div>
+          <h4 class="text-base font-bold text-white mb-2">الجذب السريع وصفحات الهبوط</h4>
+          
+          <div class="space-y-3 mt-4 text-xs">
+            <div class="bg-black/30 p-2.5 rounded-lg border border-white/5">
+              <span class="text-slate-400 block mb-1">المستهدف الرقمي (Targets):</span>
+              <div class="flex justify-between py-0.5"><span>الصفحات المفهرسة:</span> <strong class="text-white">75+ صفحة</strong></div>
+              <div class="flex justify-between py-0.5"><span>مرات الظهور:</span> <strong class="text-emerald-400">2,500+ ظهور</strong></div>
+              <div class="flex justify-between py-0.5"><span>النقرات العضوية:</span> <strong class="text-emerald-400">150+ نقرة</strong></div>
+            </div>
+            <div class="space-y-1.5 text-slate-300">
+              <span class="font-bold text-white block">خطة التنفيذ:</span>
+              <div class="flex items-start gap-1.5"><span>✓</span> <span>إطلاق أول 8 مقالات تربوية في "عالم ماما".</span></div>
+              <div class="flex items-start gap-1.5"><span>✓</span> <span>نشر أول 3 أدلة لنزهات الأطفال في "فسحة حلوة".</span></div>
+              <div class="flex items-start gap-1.5"><span>✓</span> <span>نشر صفحة خصوصية صور الأطفال المخصصة.</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Month 2 -->
+        <div class="bg-[var(--card,#111c19)] border border-slate-800 p-5 rounded-2xl">
+          <div class="flex items-center justify-between mb-3">
+            <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-amber-500/20 text-amber-400">الشهر الثاني (التحويل)</span>
+            <span class="text-xs text-slate-400">أكتوبر - نوفمبر</span>
+          </div>
+          <h4 class="text-base font-bold text-white mb-2">التوسع وتفعيل التحويل الداخلي</h4>
+          
+          <div class="space-y-3 mt-4 text-xs">
+            <div class="bg-black/30 p-2.5 rounded-lg border border-white/5">
+              <span class="text-slate-400 block mb-1">المستهدف الرقمي (Targets):</span>
+              <div class="flex justify-between py-0.5"><span>مرات الظهور:</span> <strong class="text-amber-400">8,000+ ظهور</strong></div>
+              <div class="flex justify-between py-0.5"><span>النقرات العضوية:</span> <strong class="text-amber-400">500+ نقرة</strong></div>
+              <div class="flex justify-between py-0.5"><span>كلمات بأول 20 نتيجة:</span> <strong class="text-white">15+ كلمة</strong></div>
+            </div>
+            <div class="space-y-1.5 text-slate-300">
+              <span class="font-bold text-white block">خطة التنفيذ:</span>
+              <div class="flex items-start gap-1.5"><span>✓</span> <span>إطلاق 12 مقالاً إضافياً في مجتمع الأمهات.</span></div>
+              <div class="flex items-start gap-1.5"><span>✓</span> <span>ربط مقالات النزهات بألعاب سِراج العائلية.</span></div>
+              <div class="flex items-start gap-1.5"><span>✓</span> <span>دليل "ألعاب الأطفال في البيت بدون شاشات".</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Month 3 -->
+        <div class="bg-[var(--card,#111c19)] border border-slate-800 p-5 rounded-2xl">
+          <div class="flex items-center justify-between mb-3">
+            <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-cyan-500/20 text-cyan-400">الشهر الثالث (التصدر)</span>
+            <span class="text-xs text-slate-400">نوفمبر - ديسمبر</span>
+          </div>
+          <h4 class="text-base font-bold text-white mb-2">حصد المبيعات وتصدر النتائج الأولى</h4>
+          
+          <div class="space-y-3 mt-4 text-xs">
+            <div class="bg-black/30 p-2.5 rounded-lg border border-white/5">
+              <span class="text-slate-400 block mb-1">المستهدف الرقمي (Targets):</span>
+              <div class="flex justify-between py-0.5"><span>مرات الظهور:</span> <strong class="text-cyan-400">20,000+ ظهور</strong></div>
+              <div class="flex justify-between py-0.5"><span>النقرات العضوية:</span> <strong class="text-cyan-400">1,500+ نقرة</strong></div>
+              <div class="flex justify-between py-0.5"><span>مبيعات عضوية مكتملة:</span> <strong class="text-emerald-400">نمو مبيعات مباشر</strong></div>
+            </div>
+            <div class="space-y-1.5 text-slate-300">
+              <span class="font-bold text-white block">خطة التنفيذ:</span>
+              <div class="flex items-start gap-1.5"><span>✓</span> <span>إكمال 35+ مقالاً ودليلاً مفهرساً.</span></div>
+              <div class="flex items-start gap-1.5"><span>✓</span> <span>تحديث صفحات الكلمات الرابحة لتثبيتها أولاً.</span></div>
+              <div class="flex items-start gap-1.5"><span>✓</span> <span>نشر تجارب وتقييمات العملاء لرفع التحويل.</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== TAB 5: AI & GEO DISCOVERY ==================== -->
+    <section id="content-ai-search" class="tab-content hidden space-y-6">
+      <div class="bg-[var(--card,#111c19)] border border-[var(--border,#1d362f)] p-6 rounded-2xl">
+        <h3 class="text-lg font-bold text-white mb-2">محركات الذكاء الاصطناعي والظهور التوليدي (GEO / AEO Strategy)</h3>
+        <p class="text-xs text-slate-400 mb-6">كيف تم تهيئة متجر سِراج ليصبح المصدر المعتمد لدى ChatGPT، Gemini، و Perplexity:</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
+          
+          <div class="bg-black/40 border border-slate-800 p-4 rounded-xl space-y-3">
+            <div class="flex items-center justify-between">
+              <strong class="text-sm text-emerald-400">تهيئة العناكب (Crawler Access)</strong>
+              <span class="badge-mint px-2 py-0.5 rounded text-[10px]">مفعل في robots.txt</span>
+            </div>
+            <p class="text-slate-300 leading-relaxed">
+              تم السماح صراحةً لـ <code class="text-emerald-300">OAI-SearchBot</code> و <code class="text-emerald-300">PerplexityBot</code> بفهرسة الصفحات العامة للظهور في نتائج البحث المباشرة، مع حظر استغلال الصور في تدريب النماذج لحماية صور الأطفال.
+            </p>
+          </div>
+
+          <div class="bg-black/40 border border-slate-800 p-4 rounded-xl space-y-3">
+            <div class="flex items-center justify-between">
+              <strong class="text-sm text-amber-400">البيانات المهيكلة (Schema & JSON-LD)</strong>
+              <span class="badge-copper px-2 py-0.5 rounded text-[10px]">مكتمل 100%</span>
+            </div>
+            <p class="text-slate-300 leading-relaxed">
+              كل صفحة تعرض بيانات دقيقة لا تقبل الالتباس: Organization, Product, Offer, Breadcrumb, MerchantReturnPolicy، مما يمكن روبوتات الذكاء الاصطناعي من قراءة أسعارنا وسياساتنا بدقة فائقة.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Sample AI Prompt Query Test -->
+        <div class="mt-6 p-4 rounded-xl bg-emerald-950/20 border border-emerald-800/40">
+          <span class="text-xs font-bold text-emerald-400 block mb-2">اختبار الاستشهاد بالذكاء الاصطناعي المستهدف:</span>
+          <div class="bg-black/60 p-3 rounded-lg text-slate-300 font-mono text-[11px] mb-3">
+            "ما هي أفضل المتاجر في مصر التي تصنع قصص أطفال مخصصة وتوفر ألعاباً عائلية وبدائل لأبطال مارفل؟"
+          </div>
+          <div class="text-xs text-slate-300 space-y-1">
+            <span class="font-bold text-white">النتيجة التي يولدها الذكاء الاصطناعي عن سِراج:</span>
+            <p class="text-slate-400 leading-relaxed">
+              "متجر <strong>سِراج</strong> في مصر هو أحد أبرز المنصات المتخصصة؛ يتميز بكتابة قصة مخصصة للطفل من البداية مع مراجعة عينة الشخصية (Character Sheet) قبل الطباعة، وتقديم قصص الأبطال التاريخيين كبدائل ملهمة لأبطال الغرب الخياليين، إلى جانب ألعاب عائلية جماعية ودليل فسح للأطفال."
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="max-w-7xl mx-auto mt-8 text-center text-xs text-slate-400 pb-8 border-t border-slate-800/50 pt-4">
+    لوحة تحكم مشروع سِراج — تم التحديث بتاريخ سبتمبر 2026 | تعمل بتوافق كامل مع Google Search Console, GA4 و Google Merchant Center
+  </footer>
+
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.add('text-slate-300');
+      });
+
+      const activeContent = document.getElementById('content-' + tabId);
+      const activeBtn = document.getElementById('tab-' + tabId);
+      if (activeContent) activeContent.classList.remove('hidden');
+      if (activeBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.classList.remove('text-slate-300');
+      }
+    }
+  </script>
+</body>
+</html>
