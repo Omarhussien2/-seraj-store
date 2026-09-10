@@ -70,6 +70,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" className="h-full antialiased">
+      <head>
         <link rel="stylesheet" href="/analytics.css" />
         <Script src="/analytics.js" strategy="afterInteractive" />
         {/* Microsoft Clarity */}
