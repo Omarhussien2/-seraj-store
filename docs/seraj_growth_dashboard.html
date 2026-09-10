@@ -179,18 +179,30 @@
     <!-- ==================== TAB 2: TIMELINE & CHALLENGES ==================== -->
     <section id="content-timeline" class="tab-content hidden space-y-6">
       <div class="bg-[var(--card,#111c19)] border border-[var(--border,#1d362f)] p-6 rounded-2xl">
-        <h3 class="text-lg font-bold text-white mb-2">سجل التحديات والإنجازات السريعة (Engineering & Growth Timeline)</h3>
-        <p class="text-xs text-slate-400 mb-6">توثيق شفاف للسرعة الفائقة في حل المشكلات التقنية والتنفيذ الفعلي بالتواريخ:</p>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 class="text-lg font-bold text-white">سجل التحديات والإنجازات السريعة (Engineering & Growth Timeline)</h3>
+            <p class="text-xs text-slate-400 mt-0.5">توثيق تقني متسلسل لمراحل التحول والإنجازات الفائقة:</p>
+          </div>
+          <button onclick="toggleDates()" id="date-toggle-btn" class="self-start sm:self-auto px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-300 border border-slate-700/60 flex items-center gap-1.5 transition">
+            <span>📅</span>
+            <span id="date-toggle-text">إظهار التواريخ الدقيقة</span>
+          </button>
+        </div>
 
         <!-- Timeline items -->
-        <div class="relative border-r-2 border-emerald-800/40 mr-4 space-y-7 pr-6">
+        <div class="relative border-r-2 border-emerald-800/40 mr-4 space-y-7 pr-6 mt-6">
           
           <!-- Milestone 1 -->
-          <div class="relative">
+          <div class="relative group">
             <span class="absolute -right-[31px] top-0 w-4 h-4 rounded-full bg-emerald-500 border-4 border-[#0b1311]"></span>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <span class="text-xs font-mono text-emerald-400 font-bold">المرحلة الأولى (PR #32 - PR #36)</span>
               <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800/50">تأسيس الزحف الكامل</span>
+              <!-- Hidden Date badge -->
+              <span class="timeline-date opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-[11px] font-mono px-2 py-0.5 rounded bg-black/60 text-slate-300 border border-emerald-700/40 cursor-help" title="تاريخ التنفيذ">
+                🕒 أواخر أغسطس 2026
+              </span>
             </div>
             <h4 class="text-sm font-bold text-white mt-1">توليد الصفحات القابلة للزحف وحل معضلة الـ SPA</h4>
             <p class="text-xs text-slate-300 mt-1 leading-relaxed">
@@ -200,11 +212,15 @@
           </div>
 
           <!-- Milestone 2 -->
-          <div class="relative">
+          <div class="relative group">
             <span class="absolute -right-[31px] top-0 w-4 h-4 rounded-full bg-emerald-500 border-4 border-[#0b1311]"></span>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <span class="text-xs font-mono text-emerald-400 font-bold">المرحلة الثانية (PR #37 - PR #40)</span>
               <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800/50">أداء وسرعة الهواتف (Core Web Vitals)</span>
+              <!-- Hidden Date badge -->
+              <span class="timeline-date opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-[11px] font-mono px-2 py-0.5 rounded bg-black/60 text-slate-300 border border-emerald-700/40 cursor-help" title="تاريخ التنفيذ">
+                🕒 28 أغسطس 2026
+              </span>
             </div>
             <h4 class="text-sm font-bold text-white mt-1">ضغط الفيديو بنسبة 98% وتسريع سرعة التحميل على الموبايل</h4>
             <p class="text-xs text-slate-300 mt-1 leading-relaxed">
@@ -214,11 +230,15 @@
           </div>
 
           <!-- Milestone 3 -->
-          <div class="relative">
+          <div class="relative group">
             <span class="absolute -right-[31px] top-0 w-4 h-4 rounded-full bg-emerald-500 border-4 border-[#0b1311]"></span>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <span class="text-xs font-mono text-emerald-400 font-bold">المرحلة الثالثة (PR #41 - PR #45)</span>
               <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800/50">Schema & Structured Data</span>
+              <!-- Hidden Date badge -->
+              <span class="timeline-date opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-[11px] font-mono px-2 py-0.5 rounded bg-black/60 text-slate-300 border border-emerald-700/40 cursor-help" title="تاريخ التنفيذ">
+                🕒 30 - 31 أغسطس 2026
+              </span>
             </div>
             <h4 class="text-sm font-bold text-white mt-1">تشفير هوية المتجر والسياسات وأدلة الشراء لمحركات البحث</h4>
             <p class="text-xs text-slate-300 mt-1 leading-relaxed">
@@ -228,11 +248,15 @@
           </div>
 
           <!-- Milestone 4 -->
-          <div class="relative">
+          <div class="relative group">
             <span class="absolute -right-[31px] top-0 w-4 h-4 rounded-full bg-emerald-500 border-4 border-[#0b1311]"></span>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <span class="text-xs font-mono text-emerald-400 font-bold">المرحلة الرابعة (PR #46 - PR #52)</span>
               <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800/50">الاعتماد الرسمي وتوثيق المنصات</span>
+              <!-- Hidden Date badge -->
+              <span class="timeline-date opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-[11px] font-mono px-2 py-0.5 rounded bg-black/60 text-slate-300 border border-emerald-700/40 cursor-help" title="تاريخ التنفيذ">
+                🕒 01 - 03 سبتمبر 2026
+              </span>
             </div>
             <h4 class="text-sm font-bold text-white mt-1">تطهير الملكيات، اعتماد Merchant 100%، وتوحيد الكتالوج</h4>
             <p class="text-xs text-slate-300 mt-1 leading-relaxed">
@@ -242,11 +266,15 @@
           </div>
 
           <!-- Milestone 5 -->
-          <div class="relative">
+          <div class="relative group">
             <span class="absolute -right-[31px] top-0 w-4 h-4 rounded-full bg-emerald-500 border-4 border-[#0b1311]"></span>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <span class="text-xs font-mono text-emerald-400 font-bold">المرحلة الخامسة (PR #53 - PR #62)</span>
               <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800/50">الحل الهندسي للقياس والتحويلات</span>
+              <!-- Hidden Date badge -->
+              <span class="timeline-date opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-[11px] font-mono px-2 py-0.5 rounded bg-black/60 text-slate-300 border border-emerald-700/40 cursor-help" title="تاريخ التنفيذ">
+                🕒 04 - 07 سبتمبر 2026
+              </span>
             </div>
             <h4 class="text-sm font-bold text-white mt-1">بناء التتبع الهجين عبر السيرفر وحماية خصوصية صور الأطفال</h4>
             <p class="text-xs text-slate-300 mt-1 leading-relaxed">
@@ -256,11 +284,33 @@
           </div>
 
           <!-- Milestone 6 -->
-          <div class="relative">
+          <div class="relative group">
+            <span class="absolute -right-[31px] top-0 w-4 h-4 rounded-full bg-emerald-500 border-4 border-[#0b1311]"></span>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs font-mono text-emerald-400 font-bold">المرحلة السادسة (الآن)</span>
+              <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800/50">تفعيل Microsoft Clarity</span>
+              <!-- Hidden Date badge -->
+              <span class="timeline-date opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-[11px] font-mono px-2 py-0.5 rounded bg-black/60 text-slate-300 border border-emerald-700/40 cursor-help" title="تاريخ التنفيذ">
+                🕒 10 سبتمبر 2026
+              </span>
+            </div>
+            <h4 class="text-sm font-bold text-white mt-1">تثبيت الخرائط الحرارية وتسجيل الجلسات (Project yg9nkvht27)</h4>
+            <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+              <strong>التحدي:</strong> رصد سلوك الآباء والأمهات على الموبايل ومعرفة سبب خروجهم أو تعثرهم في معالج القصة والسلة دون انتهاك خصوصية صور الأطفال.<br>
+              <strong>الحل المنجز:</strong> تثبيت كود Microsoft Clarity في كلا المسارين (SPA + Next.js)، ربطه مع Google Analytics 4، وتفعيل الحجب المتوازن (Strict Masking) واجتياز بناء الإنتاج بنجاح.
+            </p>
+          </div>
+
+          <!-- Milestone 7 -->
+          <div class="relative group">
             <span class="absolute -right-[31px] top-0 w-4 h-4 rounded-full bg-amber-400 border-4 border-[#0b1311] animate-pulse"></span>
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-mono text-amber-400 font-bold">المرحلة الحالية (الآن)</span>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs font-mono text-amber-400 font-bold">الخطة القادمة</span>
               <span class="px-2 py-0.5 rounded text-[10px] bg-amber-950 text-amber-300 border border-amber-800/50">انطلاق المحتوى والنمو الشامل</span>
+              <!-- Hidden Date badge -->
+              <span class="timeline-date opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-[11px] font-mono px-2 py-0.5 rounded bg-black/60 text-slate-300 border border-amber-700/40 cursor-help" title="تاريخ التنفيذ">
+                🕒 سبتمبر 2026 فصاعداً
+              </span>
             </div>
             <h4 class="text-sm font-bold text-white mt-1">توسيع الاستراتيجية: الأبطال الحقيقيون، الألعاب العائلية، وعالم ماما</h4>
             <p class="text-xs text-slate-300 mt-1 leading-relaxed">
@@ -465,6 +515,27 @@
       if (activeBtn) {
         activeBtn.classList.add('active');
         activeBtn.classList.remove('text-slate-300');
+      }
+    }
+
+    let datesAlwaysVisible = false;
+    function toggleDates() {
+      datesAlwaysVisible = !datesAlwaysVisible;
+      const dateBadges = document.querySelectorAll('.timeline-date');
+      const toggleText = document.getElementById('date-toggle-text');
+      
+      dateBadges.forEach(badge => {
+        if (datesAlwaysVisible) {
+          badge.classList.remove('opacity-0');
+          badge.classList.add('opacity-100');
+        } else {
+          badge.classList.remove('opacity-100');
+          badge.classList.add('opacity-0');
+        }
+      });
+
+      if (toggleText) {
+        toggleText.textContent = datesAlwaysVisible ? 'إخفاء التواريخ' : 'إظهار التواريخ الدقيقة';
       }
     }
   </script>
