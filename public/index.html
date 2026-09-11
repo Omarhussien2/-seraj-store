@@ -124,6 +124,7 @@
     </a>
     <nav class="topnav">
       <a href="#/mama-world" data-link data-content-key="nav.mama">عالم ماما وبابا</a>
+      <a href="#/outings" data-link data-content-key="nav.outings">الفسح العائلية</a>
       <a href="#/products" data-link data-content-key="nav.products">المنتجات</a>
       <a href="#/about" data-link data-content-key="nav.about">حكايتنا</a>
     </nav>
@@ -432,6 +433,37 @@
       <!-- Products Grid -->
       <div class="catalog-grid" id="catalogGrid"></div>
 
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- OUTINGS                                                   -->
+    <!-- ========================================================= -->
+    <section class="page" data-page="outings">
+      <div class="page-head">
+        <span class="kicker" data-content-key="outings.kicker">دليل العائلة</span>
+        <h2 data-content-key="outings.heading">الفسح والخروجات العائلية</h2>
+      </div>
+
+      <div class="wrapper">
+        <div class="outings-controls">
+          <div class="budget-calc">
+            <h3>🧮 حاسبة خروجة العيلة</h3>
+            <div class="calc-row">
+              <label><span>عدد الكبار:</span> <input type="number" id="adultCount" value="2" min="1"></label>
+              <label><span>عدد الأطفال:</span> <input type="number" id="childCount" value="2" min="0"></label>
+            </div>
+            <small>حاسبة تقديرية للحد الأدنى لتكلفة التذاكر، الأسعار قابلة للتغيير الطفيف بناءً على المواسم والأعياد.</small>
+          </div>
+          <div class="outings-filters">
+            <h3>🚇 محطة المترو</h3>
+            <select id="metroFilter">
+              <option value="">جميع المحطات</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="outings-grid" id="outingsGrid"></div>
+      </div>
     </section>
 
     <!-- ========================================================= -->
@@ -1250,6 +1282,7 @@
   </a>
 
   <script src="analytics.js"></script>
+  <script src="data/outings.js"></script>
   <script src="app.js"></script>
 
 

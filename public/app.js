@@ -3915,6 +3915,7 @@
     fetchSiteContent();
     fetchTestimonials();
     fetchActivePromotion();
+    initOutings();
     if (!location.hash) location.hash = '#/home';
 
     var didInitialRender = false;
@@ -4062,5 +4063,75 @@
     }
   };
 
+  // ----- Outings Logic -----
+  function initOutings() {
+    var grid = document.getElementById('outingsGrid');
+    var metroFilter = document.getElementById('metroFilter');
+    var adultCount = document.getElementById('adultCount');
+    var childCount = document.getElementById('childCount');
+    if (!grid || !metroFilter || !window.outingsData) return;
+
+    // Populate Metro Dropdown
+    var stations = [];
+    window.outingsData.forEach(function(o) {
+      if (o.metroStation && stations.indexOf(o.metroStation) === -1) {
+        stations.push(o.metroStation);
+      }
+    });
+    stations.sort();
+    stations.forEach(function(st) {
+      var opt = document.createElement('option');
+      opt.value = st;
+      opt.textContent = st;
+      metroFilter.appendChild(opt);
+    });
+
+    function render() {
+      var adults = parseInt(adultCount.value, 10) || 0;
+      var kids = parseInt(childCount.value, 10) || 0;
+      var totalPersons = adults + kids;
+      var selectedMetro = metroFilter.value;
+
+      var html = '';
+      var filtered = window.outingsData.filter(function(o) {
+        if (selectedMetro && o.metroStation !== selectedMetro) return false;
+        return true;
+      });
+
+      filtered.forEach(function(o) {
+        var priceVal = (o.price === 0) ? "مجانًا" : ((o.price * totalPersons) + " ج.م");
+        var ctaHTML = o.videoUrl ? '<a href="'+o.videoUrl+'" target="_blank" class="btn btn-outline outing-btn">شاهد الفيديو</a>' : '';
+        var foodHTML = o.foodAllowed ? '<span class="tag tag-green">🥪 مسموح بالأكل</span>' : '<span class="tag tag-red">🚫 الأكل غير مسموح</span>';
+        
+        html += '<div class="outing-card reveal">';
+        html += '<div class="outing-card-body">';
+        html += '<h3>' + o.name + '</h3>';
+        html += '<p class="outing-loc">📍 ' + (o.location ? o.location + ' - ' : '') + 'محطة: ' + o.metroStation + '</p>';
+        html += '<div class="outing-tags">' + foodHTML + '</div>';
+        html += '<p class="outing-transport">🚇 ' + o.transportDetails + '</p>';
+        html += '<div class="outing-price-box">';
+        html += '<span class="outing-price-label">التكلفة لأسرتك:</span>';
+        html += '<span class="outing-price-val">' + priceVal + '</span>';
+        if(o.priceNote) html += '<small class="outing-price-note">' + o.priceNote + '</small>';
+        html += '</div>';
+        html += ctaHTML;
+        html += '</div></div>';
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<p class="empty-state" style="text-align:center;grid-column:1/-1;">مفيش أماكن بالمحطة دي.</p>';
+      } else {
+        grid.innerHTML = html;
+        // Re-trigger reveal animation for newly inserted cards
+        if (typeof initReveals === 'function') setTimeout(initReveals, 50);
+      }
+    }
+
+    adultCount.addEventListener('input', render);
+    childCount.addEventListener('input', render);
+    metroFilter.addEventListener('change', render);
+
+    render();
+  }
 
 })();
