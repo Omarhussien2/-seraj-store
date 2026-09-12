@@ -11,6 +11,8 @@
 # testing
 /coverage
 /.conversion-test-results/
+/.delegate_runs/
+/test-results/
 
 # next.js
 /.next/

@@ -30,6 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: siteUrl("/contact"), changeFrequency: "monthly", priority: 0.5 },
     { url: siteUrl("/shipping"), changeFrequency: "monthly", priority: 0.5 },
     { url: siteUrl("/returns"), changeFrequency: "monthly", priority: 0.5 },
+    { url: siteUrl("/child-photo-privacy"), changeFrequency: "monthly", priority: 0.6 },
   ];
 
   let dynamicRoutes: MetadataRoute.Sitemap = [];

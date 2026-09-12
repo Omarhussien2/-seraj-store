@@ -83,6 +83,10 @@
     <div class="flex items-center gap-2 mt-6 pt-4 border-t border-slate-800/60 overflow-x-auto pb-1 text-sm">
       <button onclick="switchTab('overview')" id="tab-overview" class="tab-btn active px-4 py-2 rounded-lg transition">الرؤية والركائز</button>
       <button onclick="switchTab('timeline')" id="tab-timeline" class="tab-btn px-4 py-2 rounded-lg text-slate-300 hover:bg-white/5 transition">الخط الزمني للإنجازات (Timeline)</button>
+      <button onclick="switchTab('results')" id="tab-results" class="tab-btn px-4 py-2 rounded-lg text-amber-300 bg-amber-950/40 border border-amber-600/40 hover:bg-amber-900/30 transition flex items-center gap-1.5 font-bold">
+        <span>🎯</span>
+        <span>مرصد النتائج والتحقق (Action vs Results)</span>
+      </button>
       <button onclick="switchTab('competitors')" id="tab-competitors" class="tab-btn px-4 py-2 rounded-lg text-slate-300 hover:bg-white/5 transition">تحليل المنافسين والفجوات</button>
       <button onclick="switchTab('roadmap')" id="tab-roadmap" class="tab-btn px-4 py-2 rounded-lg text-slate-300 hover:bg-white/5 transition">خارطة الشهور الـ 3 (الأهداف والقياس)</button>
       <button onclick="switchTab('ai-search')" id="tab-ai-search" class="tab-btn px-4 py-2 rounded-lg text-slate-300 hover:bg-white/5 transition">الذكاء الاصطناعي (GEO / AEO)</button>
@@ -493,6 +497,223 @@
         </div>
 
       </div>
+    </section>
+
+    <!-- ==================== TAB: RESULTS & VERIFICATION OBSERVATORY ==================== -->
+    <section id="content-results" class="tab-content hidden space-y-6">
+      
+      <!-- Top banner -->
+      <div class="bg-[var(--card,#111c19)] border border-amber-600/40 p-6 rounded-2xl relative overflow-hidden">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                مرصد التحقق الزمني
+              </span>
+              <span class="text-xs text-slate-400">Time-Lag & Outcomes Tracker</span>
+            </div>
+            <h3 class="text-xl font-bold text-white">سجل الأفعال المنجزة والنتائج المتوقعة (Action ➔ Outcome Ledger)</h3>
+            <p class="text-xs text-slate-300 mt-1 max-w-3xl leading-relaxed">
+              في عالم النمو والـ SEO، كل فعل نقوم به يحتاج إلى نافذة انتظار طبيعية (Time-Lag) قبل أن تظهر ثماره في الخوارزميات ولوحات التحكم. هذا المرصد يوثق ما فعلناه، متى يُتوقع ظهور نتيجته، وهل تحققت بالفعل أم ما زالت قيد المعالجة؟
+            </p>
+          </div>
+          <div class="flex items-center gap-2 bg-black/50 px-3.5 py-2 rounded-xl border border-white/5 text-xs">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+            <span class="text-slate-300">يتم التحديث دورياً مع كل خطوة</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action-Result Cards Grid -->
+      <div class="space-y-4">
+
+        <!-- Card 1: Microsoft Clarity (LATEST WIN!) -->
+        <div class="bg-[var(--card,#111c19)] border border-emerald-500/40 p-5 rounded-2xl hover:border-emerald-400/60 transition">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3 mb-4">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold text-xs">01</span>
+              <h4 class="text-base font-bold text-white">تثبيت Microsoft Clarity وربط GA4 (المشروع: yg9nkvht27)</h4>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                <span>✓</span> بدأت النتائج بالظهور فعلياً
+              </span>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+            <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+              <span class="text-slate-400 block mb-1 font-semibold">1. الإجراء المنفذ (Action)</span>
+              <p class="text-slate-200">تثبيت كود كلاريتي في كلا المسارين (SPA + Next.js) وربط خاصية GA4 وإصلاح النشر على Vercel.</p>
+              <span class="text-[10px] text-emerald-400 font-mono mt-1 block">تاريخ التنفيذ: 10 سبتمبر 2026</span>
+            </div>
+            <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+              <span class="text-slate-400 block mb-1 font-semibold">2. وقت الانتظار المتوقع (Lag)</span>
+              <p class="text-slate-200">ساعة إلى ساعتين من أول زيارة لتجميع الجلسات، وفوري للربط مع Google Analytics.</p>
+              <span class="text-[10px] text-amber-300 font-mono mt-1 block">المعدل: 2 - 24 ساعة</span>
+            </div>
+            <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+              <span class="text-slate-400 block mb-1 font-semibold">3. النتيجة المتوقعة (Expected)</span>
+              <p class="text-slate-200">فتح الداشبورد واستقبال بيانات الجلسات والربط المباشر مع GA4 وإظهار مسارات الدخول.</p>
+            </div>
+            <div class="bg-emerald-950/20 p-3 rounded-xl border border-emerald-600/40">
+              <span class="text-emerald-300 block mb-1 font-bold">4. النتيجة الفعلية المحققة (Actual)</span>
+              <p class="text-slate-200 font-medium">تم فتح الداشبورد بنجاح! تبويب Google Analytics نشط ويعرض 12 جلسة بمتوسط 126 ثانية، ووضعية التسجيل الحي (Live Users) بدأت بالعمل فوراً.</p>
+              <span class="text-[10px] text-emerald-400 font-bold block mt-1">الحالة: ناجح ومحقق 100%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Google Search Console Indexing -->
+        <div class="bg-[var(--card,#111c19)] border border-slate-800 p-5 rounded-2xl hover:border-slate-700 transition">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3 mb-4">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center font-bold text-xs">02</span>
+              <h4 class="text-base font-bold text-white">فهرسة الصفحات الجديدة في Google Search Console و Bing</h4>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                <span>⏳</span> قيد معالجة الخوارزميات (Validation in Progress)
+              </span>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+            <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+              <span class="text-slate-400 block mb-1 font-semibold">1. الإجراء المنفذ (Action)</span>
+              <p class="text-slate-200">تقديم السايت ماب (59 صفحة)، وحل مشاكل الكانونيكال، وطلب التحقق (Validation) لـ 9 صفحات، وتقديم صفحات الهبوط لـ Bing.</p>
+              <span class="text-[10px] text-slate-400 font-mono mt-1 block">تاريخ البدء: 01 - 03 سبتمبر 2026</span>
+            </div>
+            <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+              <span class="text-slate-400 block mb-1 font-semibold">2. وقت الانتظار المتوقع (Lag)</span>
+              <p class="text-slate-200">جوجل يستغرق من 7 إلى 14 يوماً لإنهاء دورة الـ Validation لصفحات Discovered.</p>
+              <span class="text-[10px] text-amber-300 font-mono mt-1 block">نافذة المراجعة: منتصف سبتمبر 2026</span>
+            </div>
+            <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+              <span class="text-slate-400 block mb-1 font-semibold">3. النتيجة المتوقعة (Expected)</span>
+              <p class="text-slate-200">تحول الصفحات الـ 9 المستبعدة إلى "Indexed" ليرتفع الإجمالي المفهرس إلى 49+ صفحة.</p>
+            </div>
+            <div class="bg-black/40 p-3 rounded-xl border border-white/5">
+              <span class="text-slate-400 block mb-1 font-semibold">4. النتيجة الفعلية المحققة (Actual)</span>
+              <p class="text-slate-300">40 صفحة مفهرسة بالكامل وثابتة، وحالة التحقق لا زالت "Started" بدون أي أخطاء أمان أو إجراءات يدوية (No Issues Detected).</p>
+              <span class="text-[10px] text-amber-400 font-bold block mt-1">الحالة: منتظم وضمن المعدل الزمني الطبيعي</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Google Merchant Center Product Approval -->
+        <div class="bg-[var(--card,#111c19)] border border-emerald-500/40 p-5 rounded-2xl hover:border-emerald-400/60 transition">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3 mb-4">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold text-xs">03</span>
+              <h4 class="text-base font-bold text-white">مراجعة واعتماد منتجات Google Merchant Center</h4>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                <span>✓</span> محقق ومكتمل 100%
+              </span>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+            <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+              <span class="text-slate-400 block mb-1 font-semibold">1. الإجراء المنفذ (Action)</span>
+              <p class="text-slate-200">إعادة هيكلة Merchant Feed، تصحيح أبعاد وروابط الصور، وضبط استثناءات القصص المخصصة في سياسة الإرجاع.</p>
+              <span class="text-[10px] text-slate-400 font-mono mt-1 block">تاريخ الإجراء: 01 سبتمبر 2026</span>
+            </div>
+            <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+              <span class="text-slate-400 block mb-1 font-semibold">2. وقت الانتظار المتوقع (Lag)</span>
+              <p class="text-slate-200">جوجل ذكر أن معالجة الصور تستغرق 3 أيام عمل من تاريخ التقديم.</p>
+              <span class="text-[10px] text-emerald-400 font-mono mt-1 block">تم في: 07 سبتمبر 2026</span>
+            </div>
+            <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+              <span class="text-slate-400 block mb-1 font-semibold">3. النتيجة المتوقعة (Expected)</span>
+              <p class="text-slate-200">اعتماد كافة المنتجات الـ 6 وإلغاء أي تعليق أو رفض للصور.</p>
+            </div>
+            <div class="bg-emerald-950/20 p-3 rounded-xl border border-emerald-600/40">
+              <span class="text-emerald-300 block mb-1 font-bold">4. النتيجة الفعلية المحققة (Actual)</span>
+              <p class="text-slate-200 font-medium">اعتماد 6 من 6 منتجات بالكامل (0 مرفوض، 0 تحت المراجعة، 0 محدود) وظهور المنتجات مجاناً في تبويب Google Shopping بمصر.</p>
+              <span class="text-[10px] text-emerald-400 font-bold block mt-1">الحالة: مكتمل بنجاح تام 100%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: Mama World & Family Articles Deployment -->
+        <div class="bg-[var(--card,#111c19)] border border-slate-800 p-5 rounded-2xl hover:border-slate-700 transition">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3 mb-4">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-bold text-xs">04</span>
+              <h4 class="text-base font-bold text-white">نشر مقالات عالم ماما وأدلة فسحة حلوة والألعاب العائلية</h4>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 flex items-center gap-1">
+                <span>📋</span> قيد النشر ضمن أهداف الشهر الأول
+              </span>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+            <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+              <span class="text-slate-400 block mb-1 font-semibold">1. الإجراء المنفذ (Action)</span>
+              <p class="text-slate-200">تجهيز أول 8 مقالات تربوية و3 أدلة خروج عائلية وربطها بنظام قاعدة البيانات والتحويل الداخلي.</p>
+              <span class="text-[10px] text-slate-400 font-mono mt-1 block">الموعد المستهدف: الأسبوعين القادمين</span>
+            </div>
+            <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+              <span class="text-slate-400 block mb-1 font-semibold">2. وقت الانتظار المتوقع (Lag)</span>
+              <p class="text-slate-200">من 2 إلى 4 أسابيع من النشر لبدء حصد الزيارات الأولى وتصدر كلمات البحث التثقيفية.</p>
+              <span class="text-[10px] text-slate-400 font-mono mt-1 block">المعدل: نهاية أكتوبر 2026</span>
+            </div>
+            <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+              <span class="text-slate-400 block mb-1 font-semibold">3. النتيجة المتوقعة (Expected)</span>
+              <p class="text-slate-200">الوصول لـ 2,500+ ظهور و 150+ نقرة عضوية من أمهات يبحثن عن فسح وحلول سلوكية.</p>
+            </div>
+            <div class="bg-black/40 p-3 rounded-xl border border-white/5">
+              <span class="text-slate-400 block mb-1 font-semibold">4. النتيجة الفعلية المحققة (Actual)</span>
+              <p class="text-slate-300">المحتوى والهيكل جاهز ومخطط بالكامل في وثائق ومستودع المشروع، وتفعيل النشر في مسار التنفيذ الفوري.</p>
+              <span class="text-[10px] text-cyan-400 font-bold block mt-1">الحالة: قيد التحضير والانطلاق</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5: Child Photo Privacy & Trust Policy -->
+        <div class="bg-[var(--card,#111c19)] border border-emerald-500/40 p-5 rounded-2xl hover:border-emerald-400/60 transition">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3 mb-4">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold text-xs">05</span>
+              <h4 class="text-base font-bold text-white">إطلاق وتفعيل سياسة خصوصية وحماية صور الأطفال (/child-photo-privacy)</h4>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                <span>✓</span> منجز ومباشر
+              </span>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+            <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+              <span class="text-slate-400 block mb-1 font-semibold">1. الإجراء المنفذ (Action)</span>
+              <p class="text-slate-200">تدشين صفحة SSR معتمدة لخصوصية صور الأطفال تتعهد بعدم تدريب نماذج الذكاء الاصطناعي، والحذف التلقائي خلال 30 يوماً، مع ربطها بمعالج رفع الصور والفوتر وخريطة الموقع.</p>
+              <span class="text-[10px] text-slate-400 font-mono mt-1 block">تاريخ الإجراء: 12 سبتمبر 2026</span>
+            </div>
+            <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+              <span class="text-slate-400 block mb-1 font-semibold">2. وقت الانتظار المتوقع (Lag)</span>
+              <p class="text-slate-200">أثر فوري على ثقة العميل أثناء التخصيص؛ وفهرسة الرابط الجديد في جوجل خلال 3 إلى 7 أيام.</p>
+              <span class="text-[10px] text-emerald-400 font-mono mt-1 block">الأثر: فوري + فهرسة قريبة</span>
+            </div>
+            <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+              <span class="text-slate-400 block mb-1 font-semibold">3. النتيجة المتوقعة (Expected)</span>
+              <p class="text-slate-200">إزالة الحاجز النفسي الأول لشراء القصص المخصصة في مصر (تخوف الأهل من مشاركة صور أبنائهم)، ورفع نسبة إكمال المعالج بنسبة +20%.</p>
+            </div>
+            <div class="bg-emerald-950/20 p-3 rounded-xl border border-emerald-600/40">
+              <span class="text-emerald-300 block mb-1 font-bold">4. النتيجة الفعلية المحققة (Actual)</span>
+              <p class="text-slate-200 font-medium">الصفحة منشورة ومفعلة برابط مباشر داخل خطوة رفع الصور، ومدعومة ببيانات Schema.org المنظمة، وإتاحة طلب الحذف الفوري بنقرة واحدة عبر واتساب.</p>
+              <span class="text-[10px] text-emerald-400 font-bold block mt-1">الحالة: مكتمل وفعال على المتجر</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
     </section>
 
   </main>
