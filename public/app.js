@@ -4065,6 +4065,9 @@
 
   // ----- Outings Logic -----
   function initOutings() {
+    if (window._myOutingsInited) return;
+    window._myOutingsInited = true;
+
     var grid = document.getElementById('outingsGrid');
     var metroFilter = document.getElementById('metroFilter');
     var adultCount = document.getElementById('adultCount');

@@ -124,7 +124,6 @@
     </a>
     <nav class="topnav">
       <a href="#/mama-world" data-link data-content-key="nav.mama">عالم ماما وبابا</a>
-      <a href="#/outings" data-link data-content-key="nav.outings">الفسح العائلية</a>
       <a href="#/products" data-link data-content-key="nav.products">المنتجات</a>
       <a href="#/about" data-link data-content-key="nav.about">حكايتنا</a>
     </nav>
@@ -433,37 +432,6 @@
       <!-- Products Grid -->
       <div class="catalog-grid" id="catalogGrid"></div>
 
-    </section>
-
-    <!-- ========================================================= -->
-    <!-- OUTINGS                                                   -->
-    <!-- ========================================================= -->
-    <section class="page" data-page="outings">
-      <div class="page-head">
-        <span class="kicker" data-content-key="outings.kicker">دليل العائلة</span>
-        <h2 data-content-key="outings.heading">الفسح والخروجات العائلية</h2>
-      </div>
-
-      <div class="wrapper">
-        <div class="outings-controls">
-          <div class="budget-calc">
-            <h3>🧮 حاسبة خروجة العيلة</h3>
-            <div class="calc-row">
-              <label><span>عدد الكبار:</span> <input type="number" id="adultCount" value="2" min="1"></label>
-              <label><span>عدد الأطفال:</span> <input type="number" id="childCount" value="2" min="0"></label>
-            </div>
-            <small>حاسبة تقديرية للحد الأدنى لتكلفة التذاكر، الأسعار قابلة للتغيير الطفيف بناءً على المواسم والأعياد.</small>
-          </div>
-          <div class="outings-filters">
-            <h3>🚇 محطة المترو</h3>
-            <select id="metroFilter">
-              <option value="">جميع المحطات</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="outings-grid" id="outingsGrid"></div>
-      </div>
     </section>
 
     <!-- ========================================================= -->
@@ -1081,121 +1049,24 @@
       <!-- PANEL 2: فسحة حلوة -->
       <div class="mama-panel" data-mama-panel="outings">
 
-        <!-- SEARCH -->
-        <div class="mama-search">
-          <input type="text" placeholder="ابحث بالمنطقة أو المدينة..."/>
-        </div>
-
-        <!-- FILTER SECTION -->
-        <div class="outings-filters">
-
-          <!-- City Chips -->
-          <div class="filter-group reveal" style="--d:.12s">
-            <h3 class="filter-title">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-              المنطقة
-            </h3>
-            <div class="filter-chips" id="cityChips">
-              <button class="chip is-active" data-city="">كل المدن</button>
-              <button class="chip" data-city="Cairo">القاهرة</button>
-              <button class="chip" data-city="Alexandria">الإسكندرية</button>
-              <button class="chip" data-city="North Coast">الساحل</button>
-              <button class="chip" data-city="Sharm El Sheikh">شرم الشيخ</button>
-              <button class="chip" data-city="Hurghada">الغردقة</button>
-              <button class="chip" data-city="Al Fayoum">الفيوم</button>
+        <div class="outings-controls">
+          <div class="budget-calc">
+            <h3>🧮 حاسبة خروجة العيلة</h3>
+            <div class="calc-row">
+              <label><span>عدد الكبار:</span> <input type="number" id="adultCount" value="2" min="1"></label>
+              <label><span>عدد الأطفال:</span> <input type="number" id="childCount" value="2" min="0"></label>
             </div>
+            <small>حاسبة تقديرية للحد الأدنى لتكلفة التذاكر، الأسعار قابلة للتغيير الطفيف بناءً على المواسم والأعياد.</small>
           </div>
-
-          <!-- Area Sub-filter (Cairo only) -->
-          <div class="filter-group reveal" id="areaFilterGroup" style="display:none;--d:.15s">
-            <h3 class="filter-title">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-              المنطقة في القاهرة
-            </h3>
-            <div class="filter-chips" id="areaChips">
-              <button class="chip is-active" data-area="">كل القاهرة</button>
-              <button class="chip" data-area="New Cairo">التجمع / القاهرة الجديدة</button>
-              <button class="chip" data-area="6 Oct./ Sheikh Zayed">أكتوبر / الشيخ زايد</button>
-              <button class="chip" data-area="Maadi">المعادي</button>
-              <button class="chip" data-area="Heliopolis">مصر الجديدة</button>
-              <button class="chip" data-area="Al Shorouk/ Madinaty/Obour">الشروق / مدينتي / العبور</button>
-              <button class="chip" data-area="Nasr City">مدينة نصر</button>
-              <button class="chip" data-area="Mohandiseen/Dokki">المهندسين / الدقي</button>
-              <button class="chip" data-area="Old Cairo">القاهرة القديمة</button>
-              <button class="chip" data-area="Zamalek">الزمالك</button>
-              <button class="chip" data-area="Giza">الجيزة</button>
-            </div>
-          </div>
-
-          <!-- Type Chips (indoor/outdoor/etc.) -->
-          <div class="filter-group reveal" style="--d:.19s">
-            <h3 class="filter-title">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg>
-              نوع الفسحة
-            </h3>
-            <div class="filter-chips" id="typeChips">
-              <button class="chip is-active" data-type="">الكل</button>
-              <button class="chip" data-type="outdoor">في الهوا الطلق</button>
-              <button class="chip" data-type="indoor">أماكن مغلقة</button>
-              <button class="chip" data-type="mixed">مختلط</button>
-            </div>
-          </div>
-
-          <!-- Category Chips -->
-          <div class="filter-group reveal" style="--d:.26s">
-            <h3 class="filter-title">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-              التصنيف
-            </h3>
-            <div class="filter-chips" id="catChips">
-              <button class="chip is-active" data-cat="">الكل</button>
-              <button class="chip" data-cat="1">🎠 لعب ومرح</button>
-              <button class="chip" data-cat="3">🌳 حدائق ومتنزهات</button>
-              <button class="chip" data-cat="5">🐾 مزارع وحيوانات</button>
-              <button class="chip" data-cat="4">🎨 فنون وتعليم</button>
-              <button class="chip" data-cat="2">🎬 سينما وعروض</button>
-              <button class="chip" data-cat="6">🍕 مطاعم</button>
-            </div>
+          <div class="outings-filters" style="border: 2px solid var(--line); border-radius: 12px; padding: 16px; background: var(--cream); flex: 1;">
+            <h3 style="margin: 0 0 12px 0; font-size: 16px; color: var(--ink);">🚇 محطة المترو</h3>
+            <select id="metroFilter" style="width: 100%; padding: 10px; border: 2px solid var(--line); border-radius: 8px; font-size: 15px; font-family: inherit; background: var(--cream-2); cursor: pointer;">
+              <option value="">جميع المحطات</option>
+            </select>
           </div>
         </div>
 
-        <!-- RESULTS COUNT -->
-        <div class="outings-results-bar" id="outingsResultsBar" style="display:none">
-          <span id="outingsCount"></span>
-          <button class="outings-clear-btn" id="outingsClearFilters" style="display:none">مسح الفلاتر ✕</button>
-        </div>
-
-        <!-- RESULTS GRID -->
-        <div class="outings-grid" id="outingsGrid">
-          <!-- Dynamic cards rendered by app.js -->
-        </div>
-
-        <!-- LOADING STATE -->
-        <div id="outingsLoading" class="outings-loading" style="display:none">
-          <div class="outings-spinner"></div>
-          <p>بنجهّز لِك الأماكن...</p>
-        </div>
-
-        <!-- EMPTY STATE -->
-        <div id="outingsEmpty" class="outings-empty" style="display:none">
-          <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--brass)" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-          <h3>مفيش أماكن بالفلاتر دي</h3>
-          <p>جرب تغيّر المنطقة أو التصنيف</p>
-        </div>
-
-        <!-- LOAD MORE -->
-        <button id="outingsLoadMore" class="btn btn-outline outings-load-more" style="display:none">عرض المزيد ↓</button>
-
-        <!-- PLACE DETAIL MODAL -->
-        <div class="place-modal-backdrop" id="placeModal" style="display:none">
-          <div class="place-modal">
-            <button class="place-modal-close" id="placeModalClose">✕</button>
-            <div class="place-modal-img" id="placeModalImg"></div>
-            <div class="place-modal-body" id="placeModalBody">
-              <!-- Dynamically filled -->
-            </div>
-          </div>
-        </div>
+        <div class="outings-grid" id="outingsGrid"></div>
 
       </div>
 
